@@ -2,7 +2,10 @@ package com.talhanation.bannermod.events;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
+import com.talhanation.bannermod.governance.BannerModContractManager;
 import com.talhanation.bannermod.governance.BannerModGovernorAuthority;
+import com.talhanation.bannermod.governance.BannerModGovernorContract;
+import com.talhanation.bannermod.governance.BannerModGovernorContractStatus;
 import com.talhanation.bannermod.governance.BannerModGovernorManager;
 import com.talhanation.bannermod.governance.BannerModGovernorPolicy;
 import com.talhanation.bannermod.governance.BannerModGovernorRecommendation;
@@ -10,6 +13,7 @@ import com.talhanation.bannermod.governance.BannerModGovernorService;
 import com.talhanation.bannermod.governance.BannerModGovernorSnapshot;
 import com.talhanation.bannermod.inventory.military.GovernorContainer;
 import com.talhanation.bannermod.network.messages.military.MessageOpenGovernorScreen;
+import com.talhanation.bannermod.network.messages.military.MessageToClientUpdateContractBoard;
 import com.talhanation.bannermod.network.messages.military.MessageToClientUpdateGovernorScreen;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementBinding;
@@ -148,6 +152,86 @@ final class RecruitGovernorWorkflow {
         return ClaimEvents.recruitsClaimManager == null
                 ? null
                 : ClaimEvents.recruitsClaimManager.getClaim(new ChunkPos(recruit.blockPosition()));
+    }
+
+    static void openContractBoard(ServerPlayer player, AbstractRecruitEntity recruit) {
+        if (!(recruit.getCommandSenderWorld() instanceof ServerLevel serverLevel)) return;
+        RecruitsClaim claim = resolveClaim(recruit);
+        if (claim == null) {
+            player.sendSystemMessage(Component.literal("No claim found at governor's position."));
+            return;
+        }
+        BannerModGovernorSnapshot snapshot = governorService(serverLevel).getOrCreateGovernorSnapshot(claim);
+        boolean isOwner = player.getUUID().equals(snapshot.governorOwnerUuid());
+        BannerModContractManager contractManager = BannerModContractManager.get(serverLevel);
+        java.util.List<MessageToClientUpdateContractBoard.ContractDto> dtos = contractManager
+                .getContractsForClaim(claim.getUUID()).stream()
+                .map(c -> new MessageToClientUpdateContractBoard.ContractDto(
+                        c.contractId(), c.type().token(), c.calculatedReward(),
+                        c.status().name().toLowerCase(), c.deadlineTick(), c.pinned(),
+                        c.acceptedByUuid() != null))
+                .collect(java.util.stream.Collectors.toList());
+        BannerModMain.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
+                new MessageToClientUpdateContractBoard(recruit.getUUID(), claim.getUUID(),
+                        isOwner, snapshot.maxContractReward(), serverLevel.getGameTime(), dtos));
+    }
+
+    static void acceptContract(ServerPlayer player, AbstractRecruitEntity recruit, java.util.UUID contractId) {
+        if (!(recruit.getCommandSenderWorld() instanceof ServerLevel serverLevel)) return;
+        RecruitsClaim claim = resolveClaim(recruit);
+        if (claim == null) return;
+        BannerModContractManager contractManager = BannerModContractManager.get(serverLevel);
+        BannerModGovernorContract contract = contractManager.getContract(contractId);
+        if (contract == null || !contract.isOpen()) {
+            player.sendSystemMessage(Component.literal("Contract is no longer available."));
+            return;
+        }
+        contractManager.putContract(contract.withAcceptedBy(player.getUUID()));
+        player.sendSystemMessage(Component.literal("Contract accepted. Complete the task and return to claim completion."));
+        openContractBoard(player, recruit);
+    }
+
+    static void cancelContract(ServerPlayer player, AbstractRecruitEntity recruit, java.util.UUID contractId) {
+        if (!(recruit.getCommandSenderWorld() instanceof ServerLevel serverLevel)) return;
+        RecruitsClaim claim = resolveClaim(recruit);
+        if (claim == null) return;
+        BannerModGovernorSnapshot snapshot = governorService(serverLevel).getOrCreateGovernorSnapshot(claim);
+        if (!player.getUUID().equals(snapshot.governorOwnerUuid()) && !player.hasPermissions(2)) {
+            player.sendSystemMessage(Component.literal("Only the claim owner can cancel contracts."));
+            return;
+        }
+        BannerModContractManager contractManager = BannerModContractManager.get(serverLevel);
+        BannerModGovernorContract contract = contractManager.getContract(contractId);
+        if (contract != null) {
+            contractManager.putContract(contract.withStatus(BannerModGovernorContractStatus.CANCELLED));
+        }
+        openContractBoard(player, recruit);
+    }
+
+    static void pinContract(ServerPlayer player, AbstractRecruitEntity recruit, java.util.UUID contractId, boolean pinned) {
+        if (!(recruit.getCommandSenderWorld() instanceof ServerLevel serverLevel)) return;
+        RecruitsClaim claim = resolveClaim(recruit);
+        if (claim == null) return;
+        BannerModGovernorSnapshot snapshot = governorService(serverLevel).getOrCreateGovernorSnapshot(claim);
+        if (!player.getUUID().equals(snapshot.governorOwnerUuid()) && !player.hasPermissions(2)) {
+            player.sendSystemMessage(Component.literal("Only the claim owner can pin contracts."));
+            return;
+        }
+        BannerModContractManager contractManager = BannerModContractManager.get(serverLevel);
+        BannerModGovernorContract contract = contractManager.getContract(contractId);
+        if (contract != null) contractManager.putContract(contract.withPinned(pinned));
+        openContractBoard(player, recruit);
+    }
+
+    static void setContractMaxReward(ServerPlayer player, AbstractRecruitEntity recruit, int maxReward) {
+        if (!(recruit.getCommandSenderWorld() instanceof ServerLevel serverLevel)) return;
+        BannerModGovernorService.OperationResult result = governorService(serverLevel)
+                .updateMaxContractReward(resolveClaim(recruit), BannerModGovernorAuthority.actor(player), maxReward);
+        if (!result.allowed()) {
+            player.sendSystemMessage(Component.literal("Max reward update denied."));
+            return;
+        }
+        openContractBoard(player, recruit);
     }
 
     private static String recommendationLabel(BannerModGovernorSnapshot snapshot, boolean garrison) {

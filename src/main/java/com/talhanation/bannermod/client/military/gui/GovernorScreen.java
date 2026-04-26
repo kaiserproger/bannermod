@@ -6,6 +6,7 @@ import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.governance.BannerModGovernorAdvisory;
 import com.talhanation.bannermod.governance.BannerModGovernorPolicy;
 import com.talhanation.bannermod.inventory.military.GovernorContainer;
+import com.talhanation.bannermod.network.messages.military.MessageOpenContractBoard;
 import com.talhanation.bannermod.network.messages.military.MessageOpenGovernorScreen;
 import com.talhanation.bannermod.network.messages.military.MessageToggleGovernorAutoManage;
 import com.talhanation.bannermod.network.messages.military.MessageUpdateGovernorPolicy;
@@ -48,6 +49,9 @@ public class GovernorScreen extends ScreenBase<GovernorContainer> {
         addRenderableWidget(new ExtendedButton(this.leftPos + 150, this.topPos + 160, 80, 16,
                 Component.literal(autoManageLabel()),
                 button -> toggleAutoManage(button)));
+        addRenderableWidget(new ExtendedButton(this.leftPos + 150, this.topPos + 180, 80, 16,
+                Component.literal("[Contracts]"),
+                button -> BannerModMain.SIMPLE_CHANNEL.sendToServer(new MessageOpenContractBoard(this.recruit.getUUID()))));
         BannerModMain.SIMPLE_CHANNEL.sendToServer(new MessageOpenGovernorScreen(this.recruit.getUUID(), false));
     }
 

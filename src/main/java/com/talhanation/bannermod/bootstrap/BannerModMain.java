@@ -73,6 +73,8 @@ public class BannerModMain {
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, WorkersServerConfig.SERVER, "bannermod-workers-server.toml");
         // Register war/RP config — own filename to avoid the SERVER filename collision called out above.
         ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, WarServerConfig.SERVER, "bannermod-war-server.toml");
+        // Register governor contract config.
+        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, com.talhanation.bannermod.config.BannerModGovernorContractConfig.SERVER, "bannermod-governor-contracts-server.toml");
 
         // Lifecycle
         modEventBus.addListener(this::setup);

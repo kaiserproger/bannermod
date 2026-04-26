@@ -1,6 +1,7 @@
 package com.talhanation.bannermod.events;
 
 import com.talhanation.bannermod.army.command.CommandIntentQueueRuntime;
+import com.talhanation.bannermod.governance.BannerModContractManager;
 import com.talhanation.bannermod.governance.BannerModGovernorHeartbeat;
 import com.talhanation.bannermod.governance.BannerModGovernorManager;
 import com.talhanation.bannermod.governance.BannerModTreasuryManager;
@@ -133,6 +134,7 @@ public class ClaimEvents {
                     recruitsClaimManager,
                     governorManager,
                     BannerModTreasuryManager.get(level),
+                    BannerModContractManager.get(level),
                     governorMaintenanceCursor,
                     GOVERNOR_HEARTBEAT_BATCH_SIZE
             );

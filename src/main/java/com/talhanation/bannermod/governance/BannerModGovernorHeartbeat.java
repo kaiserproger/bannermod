@@ -120,13 +120,14 @@ public final class BannerModGovernorHeartbeat {
                                                  RecruitsClaimManager claimManager,
                                                  BannerModGovernorManager governorManager,
                                                  @Nullable BannerModTreasuryManager treasuryManager) {
-        runGovernedClaimHeartbeatBatch(level, claimManager, governorManager, treasuryManager, 0, Integer.MAX_VALUE);
+        runGovernedClaimHeartbeatBatch(level, claimManager, governorManager, treasuryManager, null, 0, Integer.MAX_VALUE);
     }
 
     public static BatchResult runGovernedClaimHeartbeatBatch(ServerLevel level,
                                                              RecruitsClaimManager claimManager,
                                                              BannerModGovernorManager governorManager,
                                                              @Nullable BannerModTreasuryManager treasuryManager,
+                                                             @Nullable BannerModContractManager contractManager,
                                                              int startIndex,
                                                              int maxSnapshots) {
         if (level == null || claimManager == null || governorManager == null) {
@@ -200,7 +201,7 @@ public final class BannerModGovernorHeartbeat {
                     recruitSupplyStatus
             );
 
-            governorManager.putSnapshot(snapshot.withHeartbeatReport(
+            BannerModGovernorSnapshot updated = snapshot.withHeartbeatReport(
                     report.heartbeatTick(),
                     report.collectionTick(),
                     report.citizenCount(),
@@ -208,7 +209,13 @@ public final class BannerModGovernorHeartbeat {
                     report.taxesCollected(),
                     incidentTokens(report.incidents()),
                     recommendationTokens(report.recommendations())
-            ).withFiscalRollup(fiscalRollup));
+            ).withFiscalRollup(fiscalRollup);
+            governorManager.putSnapshot(updated);
+
+            if (contractManager != null) {
+                contractManager.expireOldContracts(level.getGameTime());
+                BannerModContractPolicy.autoPost(updated, report, contractManager, level.getGameTime());
+            }
         }
 
         return recordBatchResult("settlement.heartbeat.governor_batch", new BatchResult(clampedStart, endIndex, total, endIndex >= total), startNanos);
