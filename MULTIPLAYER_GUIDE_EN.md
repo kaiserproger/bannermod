@@ -153,6 +153,30 @@ Slash commands are available to all players, but most actions require you to be 
 
 Outcomes that grant land or change defender state (`tribute`, `vassalize`, `demilitarize`, annexation) give the defender `LOST_TERRITORY_IMMUNITY` for a configurable number of days (default 3) — no offensive war can be declared on them during this window. `PEACEFUL` toggles also have a cooldown (`PEACEFUL_TOGGLE_RECENT`, default 2 days).
 
+## Allies In War
+
+While a war is still in the `DECLARED` phase (pre-active), the leader of either main side may invite a third political entity to join as an ally. Ally membership is consent-based: invite → accept / decline.
+
+From the War Room (`U`):
+
+1. Select an active war in the list.
+2. Click the `Allies for selected war` button below the list — `WarAlliesScreen` opens.
+3. If you are the leader of one of the main sides, `Invite to Attacker` / `Invite to Defender` are active. They open a picker — the list of political entities legal to invite (the client mirrors the same `WarAllyPolicy` the server uses, so main sides, entities already in the war, and `PEACEFUL` entities trying to join the attacker side are filtered out).
+4. Clicking a row sends the invite.
+5. The leader of the invited state sees the invite in the list; left-click accepts (`MessageRespondAllyInvite` accept), DEL/BACKSPACE declines. The leader of the inviting side sees the same row with a `(click to cancel)` hint.
+
+Slash commands provide the same flow without UI:
+
+- `/bannermod war ally invite <warId> <side> <entity>` — leader of `side` invites the entity (`<side>` = `ATTACKER` or `DEFENDER`).
+- `/bannermod war ally accept <inviteId>` — invitee leader accepts.
+- `/bannermod war ally decline <inviteId>` — invitee leader declines.
+- `/bannermod war ally cancel <inviteId>` — inviter leader cancels.
+- `/bannermod war ally list <warId>` — list current allies + pending invites for the war.
+
+Every invite and response writes a `WarAuditLogSavedData` entry (`ALLY_INVITED`, `ALLY_JOINED`, `ALLY_INVITE_DECLINED`, `ALLY_INVITE_CANCELLED`). When a war leaves `DECLARED`, dangling invites are auto-removed on next access.
+
+Typical denial reasons: `war_not_found`, `war_not_pre_active` (the war has been activated — no more invites), `invitee_is_main_side`, `invitee_already_on_side`, `invitee_on_opposing_side`, `peaceful_cannot_join_attacker`, `not_leader`.
+
 ## Sieges And Siege Standards
 
 To place a siege standard:

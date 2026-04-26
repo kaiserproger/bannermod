@@ -38,6 +38,26 @@ public record WarDeclarationRecord(
                 declaredAtGameTime, earliestActivationGameTime, newState);
     }
 
+    public WarDeclarationRecord withAttackerAllyIds(List<UUID> newAllies) {
+        return new WarDeclarationRecord(id, attackerPoliticalEntityId, defenderPoliticalEntityId, goalType,
+                casusBelli, targetPositions, newAllies, defenderAllyIds,
+                declaredAtGameTime, earliestActivationGameTime, state);
+    }
+
+    public WarDeclarationRecord withDefenderAllyIds(List<UUID> newAllies) {
+        return new WarDeclarationRecord(id, attackerPoliticalEntityId, defenderPoliticalEntityId, goalType,
+                casusBelli, targetPositions, attackerAllyIds, newAllies,
+                declaredAtGameTime, earliestActivationGameTime, state);
+    }
+
+    public List<UUID> alliesFor(WarSide side) {
+        return side == WarSide.ATTACKER ? attackerAllyIds : defenderAllyIds;
+    }
+
+    public UUID mainSideEntityId(WarSide side) {
+        return side == WarSide.ATTACKER ? attackerPoliticalEntityId : defenderPoliticalEntityId;
+    }
+
     public boolean involves(UUID politicalEntityId) {
         return politicalEntityId != null
                 && (politicalEntityId.equals(attackerPoliticalEntityId)

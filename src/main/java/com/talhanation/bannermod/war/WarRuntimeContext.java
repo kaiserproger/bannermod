@@ -13,6 +13,8 @@ import com.talhanation.bannermod.war.runtime.RevoltRuntime;
 import com.talhanation.bannermod.war.runtime.RevoltSavedData;
 import com.talhanation.bannermod.war.runtime.SiegeStandardRuntime;
 import com.talhanation.bannermod.war.runtime.SiegeStandardSavedData;
+import com.talhanation.bannermod.war.runtime.WarAllyInviteRuntime;
+import com.talhanation.bannermod.war.runtime.WarAllyInviteSavedData;
 import com.talhanation.bannermod.war.runtime.WarDeclarationRuntime;
 import com.talhanation.bannermod.war.runtime.WarDeclarationSavedData;
 import com.talhanation.bannermod.war.runtime.WarOutcomeApplier;
@@ -59,6 +61,10 @@ public final class WarRuntimeContext {
         return WarAuditLogSavedData.get(level);
     }
 
+    public static WarAllyInviteRuntime allyInvites(ServerLevel level) {
+        return WarAllyInviteSavedData.get(level).runtime();
+    }
+
     public static WarOutcomeApplier applierFor(ServerLevel level) {
         return new WarOutcomeApplier(
                 declarations(level),
@@ -68,7 +74,9 @@ public final class WarRuntimeContext {
                 demilitarizations(level),
                 registry(level),
                 cooldowns(level),
-                com.talhanation.bannermod.war.config.WarServerConfig.lostTerritoryImmunityTicks()
+                com.talhanation.bannermod.war.config.WarServerConfig.lostTerritoryImmunityTicks(),
+                com.talhanation.bannermod.governance.BannerModTreasuryManager.get(level),
+                com.talhanation.bannermod.events.ClaimEvents.recruitsClaimManager
         );
     }
 }

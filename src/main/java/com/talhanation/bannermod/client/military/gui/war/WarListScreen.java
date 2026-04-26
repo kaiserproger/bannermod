@@ -50,6 +50,7 @@ public class WarListScreen extends Screen {
     private Button openAttackerBtn;
     private Button openDefenderBtn;
     private Button placeSiegeBtn;
+    private Button alliesBtn;
     private Button statesBtn;
     private Button refreshBtn;
     private Button closeBtn;
@@ -88,10 +89,15 @@ public class WarListScreen extends Screen {
         closeBtn = Button.builder(Component.literal("Close"), btn -> onClose())
                 .bounds(detailX + 88, detailY + 44, 80, 18).build();
 
+        int alliesY = guiTop + LIST_TOP_OFFSET + LIST_VISIBLE * ROW_H + 4;
+        alliesBtn = Button.builder(Component.literal("Allies for selected war"), btn -> openAllies())
+                .bounds(guiLeft + 8, alliesY, 184, 18).build();
+
         addRenderableWidget(openAttackerBtn);
         addRenderableWidget(openDefenderBtn);
         addRenderableWidget(statesBtn);
         addRenderableWidget(placeSiegeBtn);
+        addRenderableWidget(alliesBtn);
         addRenderableWidget(refreshBtn);
         addRenderableWidget(closeBtn);
 
@@ -103,6 +109,11 @@ public class WarListScreen extends Screen {
         if (selected == null || sideId == null) return;
         BannerModMain.SIMPLE_CHANNEL.sendToServer(
                 new MessagePlaceSiegeStandardHere(selected.id(), sideId, 0));
+    }
+
+    private void openAllies() {
+        if (selected == null) return;
+        this.minecraft.setScreen(new WarAlliesScreen(this, selected.id()));
     }
 
     private void refresh() {
@@ -125,6 +136,9 @@ public class WarListScreen extends Screen {
         if (placeSiegeBtn != null) {
             placeSiegeBtn.active = has && leaderSideOf(selected) != null
                     && selected.state() != WarState.RESOLVED && selected.state() != WarState.CANCELLED;
+        }
+        if (alliesBtn != null) {
+            alliesBtn.active = has;
         }
     }
 

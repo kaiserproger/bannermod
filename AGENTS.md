@@ -63,12 +63,18 @@ After coding, provide:
 - "Clean checkout" is not the default state.
 
 9. Commit hygiene
+- Always work on a feature branch, never directly on `master`. Create the branch (e.g. `feature/<area>-<short-slug>`) before the first commit of a new task. Push only when the user asks for it.
 - Default to atomic commits grouped by area / package.
 - When the worktree is tangled with prior-session work, path-based grouping (one commit per directory or theme) is acceptable instead of fine-grained per-feature splits.
 - Do not stage Markdown (`*.md`, `*.mdc`) unless explicitly asked. If Markdown is requested in a commit, only `AGENTS.md` and `CLAUDE.md` are allowed by default; do not commit planning docs or other guide files unless the user explicitly names them.
 - For multi-line commit messages: write the message to `/tmp/commit_msg.txt` via the file-writing tool, then `git commit -F /tmp/commit_msg.txt`. The `ctx` pre-bash hook blocks heredoc patterns (`<<'EOF'`).
 
-10. Contribution flow
+10. Backlog hygiene
+- `docs/BANNERMOD_BACKLOG.md` is the single canonical backlog. When you add a new task, write the section in full: `## <ID> — <Title>`, **Зачем**, **Scope** (concrete deliverables), **Acceptance** (verifiable success criteria). Skipping any of these makes the task invisible to future sessions.
+- When a task is finished, mark it closed by inserting a `**Status: DONE <YYYY-MM-DD>.**` line at the top of its section (right under the heading) and keeping the existing scope/acceptance/progress paragraphs in place as the historical record. Never silently delete a closed task.
+- Open tasks have no `Status:` line; in-progress slices use a `**Progress <YYYY-MM-DD>.**` paragraph at the bottom of the section.
+
+11. Contribution flow
 - Read `docs/STATUS.md` before picking up brownfield work.
 - Use `docs/CONTRIBUTING.md` as the contribution flow for code, tests, docs, and commits.
 - Use `docs/BANNERMOD_BACKLOG.md` as the canonical active backlog.

@@ -5,6 +5,9 @@ import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.talhanation.bannermod.events.ClaimEvents;
+import com.talhanation.bannermod.persistence.military.RecruitsClaim;
+import com.talhanation.bannermod.persistence.military.RecruitsClaimManager;
 import com.talhanation.bannermod.war.WarRuntimeContext;
 import com.talhanation.bannermod.war.audit.WarAuditLogSavedData;
 import com.talhanation.bannermod.war.config.WarServerConfig;
@@ -13,16 +16,20 @@ import com.talhanation.bannermod.war.registry.PoliticalEntityRecord;
 import com.talhanation.bannermod.war.registry.PoliticalRegistryRuntime;
 import com.talhanation.bannermod.war.rp.WarDeclarationFormatter;
 import com.talhanation.bannermod.war.rp.WarNoticeService;
+import com.talhanation.bannermod.war.runtime.ClaimRepublisher;
 import com.talhanation.bannermod.war.runtime.WarDeclarationRecord;
 import com.talhanation.bannermod.war.runtime.WarDeclarationRuntime;
 import com.talhanation.bannermod.war.runtime.WarGoalType;
 import com.talhanation.bannermod.war.runtime.WarOutcomeApplier;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -67,6 +74,14 @@ public final class WarDeclarationCommands {
                         .then(Commands.argument("warId", StringArgumentType.word())
                                 .then(Commands.argument("days", IntegerArgumentType.integer(1, 365))
                                         .executes(WarDeclarationCommands::demilitarize))))
+                .then(Commands.literal("occupy")
+                        .then(Commands.argument("warId", StringArgumentType.word())
+                                .executes(ctx -> occupy(ctx, 0))
+                                .then(Commands.argument("radius", IntegerArgumentType.integer(0, 8))
+                                        .executes(ctx -> occupy(ctx, IntegerArgumentType.getInteger(ctx, "radius"))))))
+                .then(Commands.literal("annex")
+                        .then(Commands.argument("warId", StringArgumentType.word())
+                                .executes(WarDeclarationCommands::annex)))
                 .then(Commands.literal("occupations")
                         .executes(WarDeclarationCommands::listOccupations))
                 .then(Commands.literal("revolts")
@@ -219,6 +234,59 @@ public final class WarDeclarationCommands {
         long ticks = (long) days * WarCooldownPolicy.TICKS_PER_DAY;
         WarOutcomeApplier applier = WarRuntimeContext.applierFor(level);
         WarOutcomeApplier.Result result = applier.applyDemilitarization(war.id(), ticks, level.getGameTime());
+        return finalizeOutcome(context, level, war, ResolveMode.OUTCOME, result);
+    }
+
+    private static int occupy(com.mojang.brigadier.context.CommandContext<CommandSourceStack> context, int radius)
+            throws CommandSyntaxException {
+        String token = StringArgumentType.getString(context, "warId");
+        WarDeclarationRecord war = WarCommandSupport.requireWar(context, token);
+        ServerLevel level = WarCommandSupport.level(context);
+        PoliticalRegistryRuntime reg = WarRuntimeContext.registry(level);
+        Optional<PoliticalEntityRecord> attacker = reg.byId(war.attackerPoliticalEntityId());
+        if (!context.getSource().hasPermission(2)
+                && (attacker.isEmpty() || !WarCommandSupport.isLeaderOrOp(context, attacker.get()))) {
+            throw WarCommandSupport.ERR_NOT_LEADER.create();
+        }
+        ChunkPos centre = new ChunkPos(BlockPos.containing(context.getSource().getPosition()));
+        int r = Math.max(0, Math.min(radius, 8));
+        List<ChunkPos> chunks = new ArrayList<>((2 * r + 1) * (2 * r + 1));
+        for (int dx = -r; dx <= r; dx++) {
+            for (int dz = -r; dz <= r; dz++) {
+                chunks.add(new ChunkPos(centre.x + dx, centre.z + dz));
+            }
+        }
+        WarOutcomeApplier applier = WarRuntimeContext.applierFor(level);
+        WarOutcomeApplier.Result result = applier.applyOccupy(war.id(), chunks, level.getGameTime());
+        return finalizeOutcome(context, level, war, ResolveMode.OUTCOME, result);
+    }
+
+    private static int annex(com.mojang.brigadier.context.CommandContext<CommandSourceStack> context)
+            throws CommandSyntaxException {
+        String token = StringArgumentType.getString(context, "warId");
+        WarDeclarationRecord war = WarCommandSupport.requireWar(context, token);
+        ServerLevel level = WarCommandSupport.level(context);
+        PoliticalRegistryRuntime reg = WarRuntimeContext.registry(level);
+        Optional<PoliticalEntityRecord> attacker = reg.byId(war.attackerPoliticalEntityId());
+        if (!context.getSource().hasPermission(2)
+                && (attacker.isEmpty() || !WarCommandSupport.isLeaderOrOp(context, attacker.get()))) {
+            throw WarCommandSupport.ERR_NOT_LEADER.create();
+        }
+        ChunkPos centre = new ChunkPos(BlockPos.containing(context.getSource().getPosition()));
+        WarOutcomeApplier applier = WarRuntimeContext.applierFor(level);
+        RecruitsClaimManager claimManager = ClaimEvents.recruitsClaimManager;
+        ClaimRepublisher publisher = c -> claimManager.addOrUpdateClaim(level, c);
+        RecruitsClaim claim = claimManager.getClaim(centre);
+        WarOutcomeApplier.Result result = applier.applyAnnex(war.id(), centre, level.getGameTime(), publisher);
+        if (result.valid() && claim != null) {
+            int rebound = WarAnnexEffects.rebindEntitiesToNewOwner(
+                    level, claim,
+                    war.defenderPoliticalEntityId(),
+                    war.attackerPoliticalEntityId());
+            WarRuntimeContext.audit(level).append(war.id(), "ANNEX_REBIND",
+                    "claim=" + claim.getUUID() + ";rebound=" + rebound,
+                    level.getGameTime());
+        }
         return finalizeOutcome(context, level, war, ResolveMode.OUTCOME, result);
     }
 

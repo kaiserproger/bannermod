@@ -32,6 +32,26 @@ class WarPvpGateTest {
         );
     }
 
+    private static WarDeclarationRecord warWithAllies(UUID attacker,
+                                                      UUID defender,
+                                                      List<UUID> attackerAllies,
+                                                      List<UUID> defenderAllies,
+                                                      WarState state) {
+        return new WarDeclarationRecord(
+                UUID.randomUUID(),
+                attacker,
+                defender,
+                WarGoalType.WHITE_PEACE,
+                "",
+                List.of(),
+                attackerAllies,
+                defenderAllies,
+                0L,
+                0L,
+                state
+        );
+    }
+
     private static BattleWindowSchedule openSchedule() {
         return new BattleWindowSchedule(List.of(
                 new BattleWindow(DayOfWeek.WEDNESDAY, LocalTime.of(0, 0), LocalTime.of(23, 59))));
@@ -100,5 +120,42 @@ class WarPvpGateTest {
         boolean ok = WarPvpGate.allowsWarPvp(a, b, List.of(war(a, c, WarState.DECLARED)),
                 openSchedule(), aWednesday(), true);
         assertFalse(ok);
+    }
+
+    @Test
+    void allowsWhenAttackerAllyHitsDefenderMain() {
+        UUID attacker = UUID.randomUUID();
+        UUID defender = UUID.randomUUID();
+        UUID attackerAlly = UUID.randomUUID();
+        WarDeclarationRecord record = warWithAllies(attacker, defender,
+                List.of(attackerAlly), List.of(), WarState.DECLARED);
+        boolean ok = WarPvpGate.allowsWarPvp(attackerAlly, defender, List.of(record),
+                openSchedule(), aWednesday(), true);
+        assertTrue(ok);
+    }
+
+    @Test
+    void allowsWhenDefenderAllyHitsAttackerMain() {
+        UUID attacker = UUID.randomUUID();
+        UUID defender = UUID.randomUUID();
+        UUID defenderAlly = UUID.randomUUID();
+        WarDeclarationRecord record = warWithAllies(attacker, defender,
+                List.of(), List.of(defenderAlly), WarState.DECLARED);
+        boolean ok = WarPvpGate.allowsWarPvp(attacker, defenderAlly, List.of(record),
+                openSchedule(), aWednesday(), true);
+        assertTrue(ok);
+    }
+
+    @Test
+    void allowsWhenAttackerAllyHitsDefenderAlly() {
+        UUID attacker = UUID.randomUUID();
+        UUID defender = UUID.randomUUID();
+        UUID attackerAlly = UUID.randomUUID();
+        UUID defenderAlly = UUID.randomUUID();
+        WarDeclarationRecord record = warWithAllies(attacker, defender,
+                List.of(attackerAlly), List.of(defenderAlly), WarState.DECLARED);
+        boolean ok = WarPvpGate.allowsWarPvp(attackerAlly, defenderAlly, List.of(record),
+                openSchedule(), aWednesday(), true);
+        assertTrue(ok);
     }
 }

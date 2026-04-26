@@ -93,6 +93,38 @@ public class WarDeclarationRuntime {
         return true;
     }
 
+    public Optional<WarDeclarationRecord> appendAlly(UUID warId, WarSide side, UUID allyEntityId) {
+        if (warId == null || side == null || allyEntityId == null) return Optional.empty();
+        WarDeclarationRecord record = warsById.get(warId);
+        if (record == null) return Optional.empty();
+        List<UUID> existing = record.alliesFor(side);
+        if (existing.contains(allyEntityId)) return Optional.of(record);
+        List<UUID> updated = new java.util.ArrayList<>(existing);
+        updated.add(allyEntityId);
+        WarDeclarationRecord next = side == WarSide.ATTACKER
+                ? record.withAttackerAllyIds(updated)
+                : record.withDefenderAllyIds(updated);
+        warsById.put(warId, next);
+        dirtyListener.run();
+        return Optional.of(next);
+    }
+
+    public Optional<WarDeclarationRecord> removeAlly(UUID warId, WarSide side, UUID allyEntityId) {
+        if (warId == null || side == null || allyEntityId == null) return Optional.empty();
+        WarDeclarationRecord record = warsById.get(warId);
+        if (record == null) return Optional.empty();
+        List<UUID> existing = record.alliesFor(side);
+        if (!existing.contains(allyEntityId)) return Optional.of(record);
+        List<UUID> updated = new java.util.ArrayList<>(existing);
+        updated.remove(allyEntityId);
+        WarDeclarationRecord next = side == WarSide.ATTACKER
+                ? record.withAttackerAllyIds(updated)
+                : record.withDefenderAllyIds(updated);
+        warsById.put(warId, next);
+        dirtyListener.run();
+        return Optional.of(next);
+    }
+
     public boolean hasRecentWarBetween(UUID first, UUID second, long nowGameTime, long cooldownTicks) {
         if (first == null || second == null) {
             return false;

@@ -218,6 +218,12 @@ The War Room now also ships a battle-window banner. `WarServerConfig.resolveSche
 
 **Progress 2026-04-26.** Added `GovernmentForm` enum (`MONARCHY`, `REPUBLIC`); persisted on `PoliticalEntityRecord` with backward-compatible 11-arg constructor and tag fallback to `MONARCHY` for old saves. New `MessageSetGovernmentForm` packet (leader-only) toggles via the runtime's `updateGovernmentForm`. UI shows the current form on the political-entity detail panel and ships a "→ Republic / → Monarchy" toggle button on `PoliticalEntityListScreen` enabled only for leaders. `PoliticalEntityAuthority.canAct` extends authority to co-leaders when the form is `REPUBLIC`; `MONARCHY` keeps it leader-only. `GovernmentFormTest` covers enum default, authority delegation, runtime mutation, tag round-trip, and legacy-save fallback.
 
+---
+
+## WAR-001
+
+**Status: DONE 2026-04-26.**
+
 **Зачем.** Outcomes must be real gameplay, not audit-only text.
 
 **Scope.**
@@ -234,6 +240,8 @@ The War Room now also ships a battle-window banner. `WarServerConfig.resolveSche
 - Annex respects chunk/claim limit.
 - Tribute affects treasury, not only audit.
 - UI shows outcome result.
+
+**Progress 2026-04-26.** All five outcomes are now real state changes; behavior is locked by `WarOutcomeApplierTest` (15 cases). `applyTribute` walks defender-owned `RecruitsClaim`s, debits each ledger's available balance through `BannerModTreasuryManager` up to the requested amount, and credits the same total into the first attacker-owned ledger; audit `OUTCOME_APPLIED type=TRIBUTE` records both `amount=` (requested) and `transferred=` (actually moved); zero-balance and zero-claim edges are explicit and tested. `applyOccupy(warId, chunks, gameTime)` registers a real `OccupationRecord` via `OccupationRuntime.place`, resolves the war, clears sieges, grants `LOST_TERRITORY_IMMUNITY`, and audits `type=OCCUPATION;chunks=N;occupationId=...`. `applyAnnex(warId, centerChunk, gameTime, republisher)` flips an entire defender claim wholesale when the targeted chunk is its center: `RecruitsClaim.setOwnerPoliticalEntityId(attacker)` + `republisher.republish(claim)` so chunks and per-claim treasury ledger follow the new owner naturally; the command-side helper `WarAnnexEffects.rebindEntitiesToNewOwner` then re-teams workers/citizens/recruits inside the annexed claim's chunks via the scoreboard, and updates `AbstractWorkAreaEntity.setTeamStringID` for work-area entities. New `WarServerConfig.SiegeProtectionAttackersExplosivesOnly` (default true) hooks `ClaimProtectionPolicy` to deny manual block-break/place/interaction by non-friendly players inside any claim that `WarSiegeQueries.isClaimUnderSiege` reports as besieged — explosions and Medieval Siege Machines bypass naturally because they don't pass through the player-block-event paths. New slash nodes: `/bannermod war occupy <warId> [radius]` (radius 0..8, square area) and `/bannermod war annex <warId>` (annexes the claim under the source's current chunk; must be the claim center). Both attacker-leader-or-op gated. Vassalize and demilitarization were already real state changes (defender → `VASSAL` and `DemilitarizationRuntime.impose` respectively); not retouched.
 
 ---
 
@@ -294,6 +302,10 @@ The War Room now also ships a battle-window banner. `WarServerConfig.resolveSche
 
 **Progress 2026-04-26.** New `WarCooldownKind` (`LOST_TERRITORY_IMMUNITY`, `PEACEFUL_TOGGLE_RECENT`), `WarCooldownRecord`, `WarCooldownRuntime`, and `WarCooldownSavedData` mirror the existing demilitarization persistence pattern. `WarCooldownPolicy.canDeclareWithImmunity` wraps the existing `canDeclare` and adds a defender-immunity check; `canTogglePeacefulStatus` gates PEACEFUL flips. `WarOutcomeApplier` grants `LOST_TERRITORY_IMMUNITY` to the defender after `applyTribute`, `applyVassalize`, and `applyDemilitarization`; `PoliticalRegistryCommands.setStatus` records `PEACEFUL_TOGGLE_RECENT` on every PEACEFUL flip and refuses subsequent toggles until the cooldown expires. `WarServerConfig` exposes `LostTerritoryImmunityDays` (default 3) and `PeacefulToggleCooldownDays` (default 2). Targeted JUnit covers the runtime grant/expiry/dirty-listener semantics, the immunity gate on declaration, and the peaceful-toggle gate.
 
+## WAR-005 — Allies in war (consent flow)
+
+**Status: DONE 2026-04-26.**
+
 **Зачем.** War records can model sides; player workflow must support allies.
 
 **Scope.**
@@ -308,6 +320,8 @@ The War Room now also ships a battle-window banner. `WarServerConfig.resolveSche
 - Allies become valid PvP participants on their side.
 - Consent is required.
 - UI and audit reflect side membership.
+
+**Progress 2026-04-26.** Pre-active wars now accept allies via a consent-based invitation flow. New persistence layer mirrors the existing pattern: `WarAllyInviteRecord` (id/warId/side/invitee/inviter/createdAt with NBT round-trip), `WarAllyInviteRuntime` (CRUD + `existing(warId,side,invitee)` dedup + dirty listener), `WarAllyInviteSavedData` (file id `bannermodWarAllyInvites`), and a new `WarRuntimeContext.allyInvites(level)` accessor. Pure `WarAllyPolicy` returns one denial enum (`OK`, `WAR_NOT_FOUND`, `WAR_NOT_PRE_ACTIVE`, `INVITEE_UNKNOWN`, `INVITEE_IS_MAIN_SIDE`, `INVITEE_ALREADY_ON_SIDE`, `INVITEE_ON_OPPOSING_SIDE`, `PEACEFUL_CANNOT_JOIN_ATTACKER`, `INVITE_NOT_FOUND`, `INVITE_WAR_MISMATCH`); `WarAllyService` is the single entry point shared by slash commands and packets, performs leader-or-op auth, re-checks the policy on accept (so a status flip between invite and accept doesn't sneak through), removes dangling invites when the war advances, and writes `ALLY_INVITED`/`ALLY_JOINED`/`ALLY_INVITE_DECLINED`/`ALLY_INVITE_CANCELLED` audit entries. Slash subtree `/bannermod war ally invite|accept|decline|cancel|list`. Three new client→server packets (`MessageInviteAlly`, `MessageRespondAllyInvite`, `MessageCancelAllyInvite`) wire the War Room UI: a new `WarAlliesScreen` lists pending invites and current allies of each side and exposes Invite-to-Attacker/Defender buttons that open `WarAllyInvitePickerScreen` (filtered by client-side mirror of the same policy). Invites are synced through `WarClientState` (new `AllyInvites` ListTag). Targeted JUnit covers every denial token in the policy, the runtime ally append/remove dirty semantics, the invite NBT round-trip, dedup by (war, side, invitee), and removeForWar bulk cleanup. Ally membership already drives PvP gating via `WarDeclarationRecord.opposingSides`, locked in by `WarPvpGateTest.allowsWhenAttackerAllyHitsDefenderMain` / `allowsWhenDefenderAllyHitsAttackerMain` / `allowsWhenAttackerAllyHitsDefenderAlly`. Right-click decline on `WarAlliesScreen` invite rows replaces the discoverability-only DEL/BACKSPACE shortcut; the picker still uses left-click for invite selection.
 
 ---
 

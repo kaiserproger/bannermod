@@ -17,6 +17,7 @@ public final class BannerModWarCommands {
         return Commands.literal("bannermod")
                 .then(PoliticalRegistryCommands.build())
                 .then(WarDeclarationCommands.build()
-                        .then(SiegeStandardCommands.build()));
+                        .then(SiegeStandardCommands.build())
+                        .then(WarAllyCommands.build()));
     }
 }

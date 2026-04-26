@@ -8,6 +8,7 @@ import com.talhanation.bannermod.war.config.WarServerConfig;
 import com.talhanation.bannermod.war.registry.PoliticalEntityRecord;
 import com.talhanation.bannermod.war.runtime.BattleWindowSchedule;
 import com.talhanation.bannermod.war.runtime.SiegeStandardRecord;
+import com.talhanation.bannermod.war.runtime.WarAllyInviteRecord;
 import com.talhanation.bannermod.war.runtime.WarDeclarationRecord;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
@@ -76,12 +77,13 @@ public class WarStateBroadcaster {
         Collection<WarDeclarationRecord> wars = WarRuntimeContext.declarations(level).all();
         Collection<SiegeStandardRecord> sieges = WarRuntimeContext.sieges(level).all();
         BattleWindowSchedule schedule = resolveSchedule();
-        int hash = stateHash(entities, wars, sieges, schedule);
+        Collection<WarAllyInviteRecord> invites = WarRuntimeContext.allyInvites(level).all();
+        int hash = stateHash(entities, wars, sieges, schedule, invites);
         if (primed && hash == lastHash) return;
         lastHash = hash;
         primed = true;
 
-        CompoundTag payload = WarClientState.encode(entities, wars, sieges, schedule);
+        CompoundTag payload = WarClientState.encode(entities, wars, sieges, schedule, invites);
         BannerModMain.SIMPLE_CHANNEL.send(PacketDistributor.ALL.noArg(),
                 new MessageToClientUpdateWarState(payload));
     }
@@ -91,7 +93,8 @@ public class WarStateBroadcaster {
                 WarRuntimeContext.registry(level).all(),
                 WarRuntimeContext.declarations(level).all(),
                 WarRuntimeContext.sieges(level).all(),
-                resolveSchedule()
+                resolveSchedule(),
+                WarRuntimeContext.allyInvites(level).all()
         );
         BannerModMain.SIMPLE_CHANNEL.send(PacketDistributor.PLAYER.with(() -> player),
                 new MessageToClientUpdateWarState(payload));
@@ -108,7 +111,8 @@ public class WarStateBroadcaster {
     private static int stateHash(Collection<PoliticalEntityRecord> entities,
                                  Collection<WarDeclarationRecord> wars,
                                  Collection<SiegeStandardRecord> sieges,
-                                 BattleWindowSchedule schedule) {
+                                 BattleWindowSchedule schedule,
+                                 Collection<WarAllyInviteRecord> invites) {
         int result = 1;
         for (PoliticalEntityRecord entity : entities) {
             result = 31 * result + entity.toTag().hashCode();
@@ -121,6 +125,9 @@ public class WarStateBroadcaster {
         }
         if (schedule != null) {
             result = 31 * result + schedule.toListTag().hashCode();
+        }
+        for (WarAllyInviteRecord invite : invites) {
+            result = 31 * result + invite.toTag().hashCode();
         }
         return result;
     }

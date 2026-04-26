@@ -25,6 +25,7 @@ public class WarServerConfig {
     public static final ForgeConfigSpec.IntValue MinDeclarationDelayTicks;
     public static final ForgeConfigSpec.IntValue LostTerritoryImmunityDays;
     public static final ForgeConfigSpec.IntValue PeacefulToggleCooldownDays;
+    public static final ForgeConfigSpec.BooleanValue SiegeProtectionAttackersExplosivesOnly;
 
     static {
         RegulatedPvpEnabled = BUILDER.comment("""
@@ -74,6 +75,14 @@ public class WarServerConfig {
                         \tabusive flip-flopping between peaceful and combat-eligible status.
                         \tdefault: 2""")
                 .defineInRange("PeacefulToggleCooldownDays", 2, 0, 365);
+
+        SiegeProtectionAttackersExplosivesOnly = BUILDER.comment("""
+                        When true, claims under active siege block manual block-breaking, placement,
+                        \tand interaction by non-friendly players (attackers). Explosions and siege
+                        \tmachines bypass these checks naturally because they do not fire the
+                        \tplayer-driven block events. Defenders and the claim owner are unaffected.
+                        \tdefault: true""")
+                .define("SiegeProtectionAttackersExplosivesOnly", true);
 
         SERVER = BUILDER.build();
     }

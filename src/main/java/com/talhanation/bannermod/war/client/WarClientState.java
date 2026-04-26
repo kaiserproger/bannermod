@@ -4,6 +4,7 @@ import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.war.registry.PoliticalEntityRecord;
 import com.talhanation.bannermod.war.runtime.BattleWindowSchedule;
 import com.talhanation.bannermod.war.runtime.SiegeStandardRecord;
+import com.talhanation.bannermod.war.runtime.WarAllyInviteRecord;
 import com.talhanation.bannermod.war.runtime.WarDeclarationRecord;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -32,11 +33,13 @@ public final class WarClientState {
     public static final String NBT_WARS = "Wars";
     public static final String NBT_SIEGES = "Sieges";
     public static final String NBT_SCHEDULE = "Schedule";
+    public static final String NBT_ALLY_INVITES = "AllyInvites";
 
     private static List<PoliticalEntityRecord> entities = List.of();
     private static List<WarDeclarationRecord> wars = List.of();
     private static List<SiegeStandardRecord> sieges = List.of();
     private static BattleWindowSchedule schedule = new BattleWindowSchedule(List.of());
+    private static List<WarAllyInviteRecord> allyInvites = List.of();
     private static Map<UUID, PoliticalEntityRecord> entitiesById = Map.of();
     private static int version = 0;
 
@@ -59,6 +62,19 @@ public final class WarClientState {
         return schedule;
     }
 
+    public static List<WarAllyInviteRecord> allyInvites() {
+        return allyInvites;
+    }
+
+    public static List<WarAllyInviteRecord> allyInvitesForWar(UUID warId) {
+        if (warId == null) return List.of();
+        List<WarAllyInviteRecord> matches = new ArrayList<>();
+        for (WarAllyInviteRecord invite : allyInvites) {
+            if (warId.equals(invite.warId())) matches.add(invite);
+        }
+        return matches;
+    }
+
     public static PoliticalEntityRecord entityById(UUID id) {
         return entitiesById.get(id);
     }
@@ -72,6 +88,7 @@ public final class WarClientState {
         wars = List.of();
         sieges = List.of();
         schedule = new BattleWindowSchedule(List.of());
+        allyInvites = List.of();
         entitiesById = Map.of();
         version++;
     }
@@ -85,6 +102,7 @@ public final class WarClientState {
         wars = decodeWars(tag.getList(NBT_WARS, Tag.TAG_COMPOUND));
         sieges = decodeSieges(tag.getList(NBT_SIEGES, Tag.TAG_COMPOUND));
         schedule = BattleWindowSchedule.fromListTag(tag.getList(NBT_SCHEDULE, Tag.TAG_COMPOUND));
+        allyInvites = decodeAllyInvites(tag.getList(NBT_ALLY_INVITES, Tag.TAG_COMPOUND));
         Map<UUID, PoliticalEntityRecord> byId = new HashMap<>();
         for (PoliticalEntityRecord entity : entities) {
             byId.put(entity.id(), entity);
@@ -96,7 +114,8 @@ public final class WarClientState {
     public static CompoundTag encode(Iterable<PoliticalEntityRecord> entitySrc,
                                      Iterable<WarDeclarationRecord> warSrc,
                                      Iterable<SiegeStandardRecord> siegeSrc,
-                                     BattleWindowSchedule scheduleSrc) {
+                                     BattleWindowSchedule scheduleSrc,
+                                     Iterable<WarAllyInviteRecord> allyInviteSrc) {
         CompoundTag tag = new CompoundTag();
         ListTag entitiesTag = new ListTag();
         for (PoliticalEntityRecord entity : entitySrc) entitiesTag.add(entity.toTag());
@@ -109,6 +128,13 @@ public final class WarClientState {
         tag.put(NBT_SIEGES, siegesTag);
         if (scheduleSrc != null) {
             tag.put(NBT_SCHEDULE, scheduleSrc.toListTag());
+        }
+        if (allyInviteSrc != null) {
+            ListTag invitesTag = new ListTag();
+            for (WarAllyInviteRecord invite : allyInviteSrc) {
+                if (invite != null) invitesTag.add(invite.toTag());
+            }
+            tag.put(NBT_ALLY_INVITES, invitesTag);
         }
         return tag;
     }
@@ -154,6 +180,16 @@ public final class WarClientState {
         List<SiegeStandardRecord> result = new ArrayList<>(list.size());
         for (int i = 0; i < list.size(); i++) {
             result.add(SiegeStandardRecord.fromTag(list.getCompound(i)));
+        }
+        return List.copyOf(result);
+    }
+
+    private static List<WarAllyInviteRecord> decodeAllyInvites(ListTag list) {
+        if (list == null || list.isEmpty()) return List.of();
+        List<WarAllyInviteRecord> result = new ArrayList<>(list.size());
+        for (int i = 0; i < list.size(); i++) {
+            WarAllyInviteRecord record = WarAllyInviteRecord.fromTag(list.getCompound(i));
+            if (record != null) result.add(record);
         }
         return List.copyOf(result);
     }

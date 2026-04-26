@@ -23,6 +23,14 @@ import java.util.*;
 public class RecruitsClaimManager {
     private final Map<ChunkPos, RecruitsClaim> claims = new HashMap<>();
 
+    /** Test-only direct seeding bypassing Forge events and persistence. */
+    public void testInsertClaim(RecruitsClaim claim) {
+        if (claim == null) return;
+        for (ChunkPos pos : claim.getClaimedChunks()) {
+            this.claims.put(pos, claim);
+        }
+    }
+
     public void load(ServerLevel level) {
         RecruitsClaimSaveData data = RecruitsClaimSaveData.get(level);
         this.claims.clear();
