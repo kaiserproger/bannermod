@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.bootstrap;
 
+import com.talhanation.bannermod.commands.military.RecruitsAdminCommands;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -11,6 +12,6 @@ public class BannerModLifecycle {
 
     @SubscribeEvent
     public void onRegisterCommands(RegisterCommandsEvent event) {
-        // Recruit and worker command registration will be filled in by wave 4 (events + commands wave)
+        RecruitsAdminCommands.register(event.getDispatcher());
     }
 }
