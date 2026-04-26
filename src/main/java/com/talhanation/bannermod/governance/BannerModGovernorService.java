@@ -138,6 +138,25 @@ public class BannerModGovernorService {
         return new OperationResult(true, authorityDecision, governorDecision, updated);
     }
 
+    public OperationResult updateAutoManage(@Nullable RecruitsClaim claim,
+                                            BannerModGovernorAuthority.ActorContext actor,
+                                            boolean autoManage) {
+        BannerModGovernorSnapshot snapshot = claim == null ? null : getOrCreateGovernorSnapshot(claim);
+        BannerModGovernorAuthority.Decision authorityDecision = BannerModGovernorAuthority.revokeDecision(
+                actor,
+                snapshot == null ? null : snapshot.governorOwnerUuid(),
+                snapshot == null ? null : snapshot.settlementFactionId()
+        );
+        BannerModSettlementBinding.Binding binding = resolveBinding(claim, snapshot == null ? null : snapshot.settlementFactionId(), true);
+        BannerModGovernorRules.Decision governorDecision = BannerModGovernorRules.controlDecision(binding, snapshot);
+        if (!BannerModGovernorAuthority.isAllowed(authorityDecision) || !BannerModGovernorRules.isAllowed(governorDecision) || snapshot == null) {
+            return new OperationResult(false, authorityDecision, governorDecision, snapshot);
+        }
+        BannerModGovernorSnapshot updated = snapshot.withAutoManage(autoManage);
+        this.manager.putSnapshot(updated);
+        return new OperationResult(true, authorityDecision, governorDecision, updated);
+    }
+
     private BannerModGovernorSnapshot getOrCreateSnapshot(RecruitsClaim claim, @Nullable String settlementFactionId) {
         ChunkPos anchorChunk = resolveAnchorChunk(claim);
         BannerModGovernorSnapshot fallback = BannerModGovernorSnapshot.create(

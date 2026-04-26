@@ -135,6 +135,10 @@ public class RecruitEvents {
         RecruitGovernorWorkflow.updateGovernorPolicy(player, recruit, policy, value);
     }
 
+    public static void updateGovernorAutoManage(ServerPlayer player, AbstractRecruitEntity recruit, boolean autoManage) {
+        RecruitGovernorWorkflow.updateGovernorAutoManage(player, recruit, autoManage);
+    }
+
     public static void handleGroupBackwardCompatibility(AbstractRecruitEntity recruit, int oldGroupNumber) {
         RecruitWorldLifecycleService.handleLegacyGroup(recruit, oldGroupNumber, server, recruitsGroupsManager);
     }

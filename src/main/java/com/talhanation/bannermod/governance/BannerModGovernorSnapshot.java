@@ -30,6 +30,7 @@ public record BannerModGovernorSnapshot(
         int garrisonPriority,
         int fortificationPriority,
         int taxPressure,
+        boolean autoManage,
         List<String> incidentTokens,
         List<String> recommendationTokens
 ) {
@@ -65,6 +66,7 @@ public record BannerModGovernorSnapshot(
                 this.garrisonPriority,
                 this.fortificationPriority,
                 this.taxPressure,
+                this.autoManage,
                 this.incidentTokens,
                 this.recommendationTokens
         );
@@ -89,6 +91,7 @@ public record BannerModGovernorSnapshot(
                 this.garrisonPriority,
                 this.fortificationPriority,
                 this.taxPressure,
+                this.autoManage,
                 this.incidentTokens,
                 this.recommendationTokens
         );
@@ -113,6 +116,32 @@ public record BannerModGovernorSnapshot(
                 BannerModGovernorPolicy.GARRISON_PRIORITY.clamp(garrisonPriority),
                 BannerModGovernorPolicy.FORTIFICATION_PRIORITY.clamp(fortificationPriority),
                 BannerModGovernorPolicy.TAX_PRESSURE.clamp(taxPressure),
+                this.autoManage,
+                this.incidentTokens,
+                this.recommendationTokens
+        );
+    }
+
+    public BannerModGovernorSnapshot withAutoManage(boolean autoManage) {
+        return new BannerModGovernorSnapshot(
+                this.claimUuid,
+                this.anchorChunkX,
+                this.anchorChunkZ,
+                this.settlementFactionId,
+                this.governorRecruitUuid,
+                this.governorOwnerUuid,
+                this.lastHeartbeatTick,
+                this.lastCollectionTick,
+                this.citizenCount,
+                this.taxesDue,
+                this.taxesCollected,
+                this.treasuryBalance,
+                this.lastTreasuryNet,
+                this.projectedTreasuryBalance,
+                this.garrisonPriority,
+                this.fortificationPriority,
+                this.taxPressure,
+                autoManage,
                 this.incidentTokens,
                 this.recommendationTokens
         );
@@ -140,6 +169,7 @@ public record BannerModGovernorSnapshot(
                 this.garrisonPriority,
                 this.fortificationPriority,
                 this.taxPressure,
+                this.autoManage,
                 incidentTokens,
                 recommendationTokens
         );
@@ -164,6 +194,7 @@ public record BannerModGovernorSnapshot(
                 this.garrisonPriority,
                 this.fortificationPriority,
                 this.taxPressure,
+                this.autoManage,
                 this.incidentTokens,
                 this.recommendationTokens
         );
@@ -194,6 +225,7 @@ public record BannerModGovernorSnapshot(
         tag.putInt("GarrisonPriority", this.garrisonPriority);
         tag.putInt("FortificationPriority", this.fortificationPriority);
         tag.putInt("TaxPressure", this.taxPressure);
+        tag.putBoolean("AutoManage", this.autoManage);
         tag.put("IncidentTokens", writeTokens(this.incidentTokens));
         tag.put("RecommendationTokens", writeTokens(this.recommendationTokens));
         return tag;
@@ -218,6 +250,7 @@ public record BannerModGovernorSnapshot(
                 BannerModGovernorPolicy.DEFAULT_VALUE,
                 BannerModGovernorPolicy.DEFAULT_VALUE,
                 BannerModGovernorPolicy.DEFAULT_VALUE,
+                false,
                 List.of(),
                 List.of()
         );
@@ -246,6 +279,7 @@ public record BannerModGovernorSnapshot(
                 tag.contains("GarrisonPriority", Tag.TAG_INT) ? tag.getInt("GarrisonPriority") : BannerModGovernorPolicy.DEFAULT_VALUE,
                 tag.contains("FortificationPriority", Tag.TAG_INT) ? tag.getInt("FortificationPriority") : BannerModGovernorPolicy.DEFAULT_VALUE,
                 tag.contains("TaxPressure", Tag.TAG_INT) ? tag.getInt("TaxPressure") : BannerModGovernorPolicy.DEFAULT_VALUE,
+                tag.contains("AutoManage", Tag.TAG_BYTE) && tag.getBoolean("AutoManage"),
                 readTokens(tag.getList("IncidentTokens", Tag.TAG_STRING)),
                 readTokens(tag.getList("RecommendationTokens", Tag.TAG_STRING))
         );

@@ -108,6 +108,7 @@ final class RecruitGovernorWorkflow {
                 snapshot == null ? 0 : snapshot.treasuryBalance(),
                 snapshot == null ? 0 : snapshot.lastTreasuryNet(),
                 snapshot == null ? 0 : snapshot.projectedTreasuryBalance(),
+                snapshot != null && snapshot.autoManage(),
                 snapshot == null ? java.util.List.of() : snapshot.incidentTokens(),
                 snapshot == null ? java.util.List.of() : snapshot.recommendationTokens()
         ));
@@ -121,6 +122,19 @@ final class RecruitGovernorWorkflow {
                 .updatePolicy(resolveClaim(recruit), BannerModGovernorAuthority.actor(player), policy, value);
         if (!result.allowed()) {
             player.sendSystemMessage(Component.literal("Governor policy update denied: " + result.governorDecision().name().toLowerCase()));
+            return;
+        }
+        syncGovernorScreen(player, recruit);
+    }
+
+    static void updateGovernorAutoManage(ServerPlayer player, AbstractRecruitEntity recruit, boolean autoManage) {
+        if (!(recruit.getCommandSenderWorld() instanceof ServerLevel serverLevel)) {
+            return;
+        }
+        BannerModGovernorService.OperationResult result = governorService(serverLevel)
+                .updateAutoManage(resolveClaim(recruit), BannerModGovernorAuthority.actor(player), autoManage);
+        if (!result.allowed()) {
+            player.sendSystemMessage(Component.literal("Governor auto-manage update denied: " + result.governorDecision().name().toLowerCase()));
             return;
         }
         syncGovernorScreen(player, recruit);

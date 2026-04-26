@@ -25,6 +25,7 @@ public class MessageToClientUpdateGovernorScreen implements Message<MessageToCli
     private int treasuryBalance;
     private int lastTreasuryNet;
     private int projectedTreasuryBalance;
+    private boolean autoManage;
     private List<String> incidents;
     private List<String> recommendations;
 
@@ -45,6 +46,7 @@ public class MessageToClientUpdateGovernorScreen implements Message<MessageToCli
                                                  int treasuryBalance,
                                                  int lastTreasuryNet,
                                                  int projectedTreasuryBalance,
+                                                 boolean autoManage,
                                                  List<String> incidents,
                                                  List<String> recommendations) {
         this.recruit = recruit;
@@ -61,6 +63,7 @@ public class MessageToClientUpdateGovernorScreen implements Message<MessageToCli
         this.treasuryBalance = treasuryBalance;
         this.lastTreasuryNet = lastTreasuryNet;
         this.projectedTreasuryBalance = projectedTreasuryBalance;
+        this.autoManage = autoManage;
         this.incidents = incidents;
         this.recommendations = recommendations;
     }
@@ -75,7 +78,7 @@ public class MessageToClientUpdateGovernorScreen implements Message<MessageToCli
         GovernorScreen.applyUpdate(recruit, settlementStatus, citizenCount, taxesDue, taxesCollected, lastHeartbeatTick,
                 garrisonRecommendation, fortificationRecommendation, garrisonPriority, fortificationPriority, taxPressure,
                 treasuryBalance, lastTreasuryNet, projectedTreasuryBalance,
-                incidents, recommendations);
+                autoManage, incidents, recommendations);
     }
 
     @Override
@@ -94,6 +97,7 @@ public class MessageToClientUpdateGovernorScreen implements Message<MessageToCli
         this.treasuryBalance = buf.readInt();
         this.lastTreasuryNet = buf.readInt();
         this.projectedTreasuryBalance = buf.readInt();
+        this.autoManage = buf.readBoolean();
         this.incidents = new ArrayList<>(buf.readList(FriendlyByteBuf::readUtf));
         this.recommendations = new ArrayList<>(buf.readList(FriendlyByteBuf::readUtf));
         return this;
@@ -115,6 +119,7 @@ public class MessageToClientUpdateGovernorScreen implements Message<MessageToCli
         buf.writeInt(this.treasuryBalance);
         buf.writeInt(this.lastTreasuryNet);
         buf.writeInt(this.projectedTreasuryBalance);
+        buf.writeBoolean(this.autoManage);
         buf.writeCollection(this.incidents, FriendlyByteBuf::writeUtf);
         buf.writeCollection(this.recommendations, FriendlyByteBuf::writeUtf);
     }

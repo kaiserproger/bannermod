@@ -122,6 +122,7 @@ public class BannerModNetworkBootstrap {
         MessageOpenGovernorScreen.class,
         MessageToClientUpdateGovernorScreen.class,
         MessageUpdateGovernorPolicy.class,
+        MessageToggleGovernorAutoManage.class,
         MessageDebugGui.class,
         MessageDebugScreen.class,
         MessageSelectRecruits.class,
