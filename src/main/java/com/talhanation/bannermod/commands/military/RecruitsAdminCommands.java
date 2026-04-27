@@ -23,7 +23,8 @@ public class RecruitsAdminCommands {
                 .then(UnitsManagerAdminCommands.create())
                 .then(ClaimManagerAdminCommands.create())
                 .then(NobleVillagerManagerAdminCommands.create())
-                .then(DebugManagerAdminCommands.create());
+                .then(DebugManagerAdminCommands.create())
+                .then(GovernorDebugCommands.create());
     }
 
     private static LiteralArgumentBuilder<CommandSourceStack> createTeleportToOwnerCommand() {

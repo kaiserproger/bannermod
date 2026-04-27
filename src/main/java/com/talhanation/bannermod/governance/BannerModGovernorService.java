@@ -43,6 +43,17 @@ public class BannerModGovernorService {
             return new OperationResult(false, authorityDecision, governorDecision, claim == null ? null : this.manager.getSnapshot(claim.getUUID()));
         }
 
+        // 1-to-1: if this recruit is already governing another claim, revoke from it first.
+        if (recruit != null) {
+            for (BannerModGovernorSnapshot existing : this.manager.getAllSnapshots()) {
+                if (existing != null
+                        && recruit.recruitUuid().equals(existing.governorRecruitUuid())
+                        && !existing.claimUuid().equals(claim.getUUID())) {
+                    this.manager.putSnapshot(existing.withGovernor(null, null));
+                }
+            }
+        }
+
         BannerModGovernorSnapshot snapshot = getOrCreateSnapshot(claim, settlementFactionId);
         BannerModGovernorSnapshot updated = snapshot
                 .withSettlementFactionId(normalizeFactionId(settlementFactionId))
@@ -134,6 +145,44 @@ public class BannerModGovernorService {
             case FORTIFICATION_PRIORITY -> snapshot.withPolicies(snapshot.garrisonPriority(), policy.clamp(value), snapshot.taxPressure());
             case TAX_PRESSURE -> snapshot.withPolicies(snapshot.garrisonPriority(), snapshot.fortificationPriority(), policy.clamp(value));
         };
+        this.manager.putSnapshot(updated);
+        return new OperationResult(true, authorityDecision, governorDecision, updated);
+    }
+
+    public OperationResult updateMaxContractReward(@Nullable RecruitsClaim claim,
+                                                   BannerModGovernorAuthority.ActorContext actor,
+                                                   int maxReward) {
+        BannerModGovernorSnapshot snapshot = claim == null ? null : getOrCreateGovernorSnapshot(claim);
+        BannerModGovernorAuthority.Decision authorityDecision = BannerModGovernorAuthority.revokeDecision(
+                actor,
+                snapshot == null ? null : snapshot.governorOwnerUuid(),
+                snapshot == null ? null : snapshot.settlementFactionId()
+        );
+        BannerModSettlementBinding.Binding binding = resolveBinding(claim, snapshot == null ? null : snapshot.settlementFactionId(), true);
+        BannerModGovernorRules.Decision governorDecision = BannerModGovernorRules.controlDecision(binding, snapshot);
+        if (!BannerModGovernorAuthority.isAllowed(authorityDecision) || !BannerModGovernorRules.isAllowed(governorDecision) || snapshot == null) {
+            return new OperationResult(false, authorityDecision, governorDecision, snapshot);
+        }
+        BannerModGovernorSnapshot updated = snapshot.withMaxContractReward(maxReward);
+        this.manager.putSnapshot(updated);
+        return new OperationResult(true, authorityDecision, governorDecision, updated);
+    }
+
+    public OperationResult updateAutoManage(@Nullable RecruitsClaim claim,
+                                            BannerModGovernorAuthority.ActorContext actor,
+                                            boolean autoManage) {
+        BannerModGovernorSnapshot snapshot = claim == null ? null : getOrCreateGovernorSnapshot(claim);
+        BannerModGovernorAuthority.Decision authorityDecision = BannerModGovernorAuthority.revokeDecision(
+                actor,
+                snapshot == null ? null : snapshot.governorOwnerUuid(),
+                snapshot == null ? null : snapshot.settlementFactionId()
+        );
+        BannerModSettlementBinding.Binding binding = resolveBinding(claim, snapshot == null ? null : snapshot.settlementFactionId(), true);
+        BannerModGovernorRules.Decision governorDecision = BannerModGovernorRules.controlDecision(binding, snapshot);
+        if (!BannerModGovernorAuthority.isAllowed(authorityDecision) || !BannerModGovernorRules.isAllowed(governorDecision) || snapshot == null) {
+            return new OperationResult(false, authorityDecision, governorDecision, snapshot);
+        }
+        BannerModGovernorSnapshot updated = snapshot.withAutoManage(autoManage);
         this.manager.putSnapshot(updated);
         return new OperationResult(true, authorityDecision, governorDecision, updated);
     }

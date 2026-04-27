@@ -135,6 +135,30 @@ public class RecruitEvents {
         RecruitGovernorWorkflow.updateGovernorPolicy(player, recruit, policy, value);
     }
 
+    public static void updateGovernorAutoManage(ServerPlayer player, AbstractRecruitEntity recruit, boolean autoManage) {
+        RecruitGovernorWorkflow.updateGovernorAutoManage(player, recruit, autoManage);
+    }
+
+    public static void openContractBoard(ServerPlayer player, AbstractRecruitEntity recruit) {
+        RecruitGovernorWorkflow.openContractBoard(player, recruit);
+    }
+
+    public static void acceptContract(ServerPlayer player, AbstractRecruitEntity recruit, java.util.UUID contractId) {
+        RecruitGovernorWorkflow.acceptContract(player, recruit, contractId);
+    }
+
+    public static void cancelContract(ServerPlayer player, AbstractRecruitEntity recruit, java.util.UUID contractId) {
+        RecruitGovernorWorkflow.cancelContract(player, recruit, contractId);
+    }
+
+    public static void pinContract(ServerPlayer player, AbstractRecruitEntity recruit, java.util.UUID contractId, boolean pinned) {
+        RecruitGovernorWorkflow.pinContract(player, recruit, contractId, pinned);
+    }
+
+    public static void setContractMaxReward(ServerPlayer player, AbstractRecruitEntity recruit, int maxReward) {
+        RecruitGovernorWorkflow.setContractMaxReward(player, recruit, maxReward);
+    }
+
     public static void handleGroupBackwardCompatibility(AbstractRecruitEntity recruit, int oldGroupNumber) {
         RecruitWorldLifecycleService.handleLegacyGroup(recruit, oldGroupNumber, server, recruitsGroupsManager);
     }
