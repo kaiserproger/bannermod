@@ -13,6 +13,7 @@ import com.talhanation.bannermod.config.WorkersServerConfig;
 import com.talhanation.bannermod.config.RecruitsServerConfig;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.entity.military.RecruitIndex;
+import com.talhanation.bannermod.util.AdaptiveRuntimeBudgets;
 import com.talhanation.bannermod.util.RuntimeProfilingCounters;
 import com.talhanation.bannermod.persistence.military.*;
 import net.minecraft.core.BlockPos;
@@ -65,6 +66,8 @@ public class ClaimEvents {
 
     private static int governorMaintenanceCursor;
 
+    private static long serverTickStartedAtNanos;
+
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
         server = event.getServer();
@@ -98,7 +101,14 @@ public class ClaimEvents {
 
     @SubscribeEvent
     public void onServerTick(TickEvent.ServerTickEvent event){
+        if (event.phase == TickEvent.Phase.START) {
+            serverTickStartedAtNanos = System.nanoTime();
+            return;
+        }
         if (event.phase != TickEvent.Phase.END) return;
+        if (serverTickStartedAtNanos > 0L) {
+            AdaptiveRuntimeBudgets.recordServerTickNanos(System.nanoTime() - serverTickStartedAtNanos);
+        }
         if (server == null || recruitsClaimManager == null) return;
 
         ServerLevel level = server.overworld();
@@ -120,7 +130,12 @@ public class ClaimEvents {
             tickGovernorMaintenance(level);
         }
 
-        BuildingInvalidationRuntime.tickBatch(level, WorkersServerConfig.settlementRevalidationBatchSizePerTick());
+        int revalidationBudget = AdaptiveRuntimeBudgets.intBudget(
+                "settlement.revalidation.batch",
+                WorkersServerConfig.settlementRevalidationBatchSizePerTick(),
+                1
+        );
+        BuildingInvalidationRuntime.tickBatch(level, revalidationBudget);
     }
 
     private void tickGovernorMaintenance(ServerLevel level) {
@@ -164,7 +179,11 @@ public class ClaimEvents {
                     settlementManager,
                     governorManager,
                     governorMaintenanceCursor,
-                    SETTLEMENT_ORCHESTRATOR_BATCH_SIZE
+                    AdaptiveRuntimeBudgets.intBudget(
+                            "settlement.orchestrator.batch",
+                            SETTLEMENT_ORCHESTRATOR_BATCH_SIZE,
+                            1
+                    )
             );
             recordGovernorMaintenanceBatch("claim_events.settlement_heartbeat.orchestrator_batch", result.startIndex(), result.nextIndex(), result.totalItems(), result.completed(), startNanos);
             advanceGovernorMaintenance(result.nextIndex(), result.completed(), GOVERNOR_STAGE_IDLE);

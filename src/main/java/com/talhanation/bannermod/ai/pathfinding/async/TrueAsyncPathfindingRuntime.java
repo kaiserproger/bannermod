@@ -2,6 +2,7 @@ package com.talhanation.bannermod.ai.pathfinding.async;
 
 import com.talhanation.bannermod.ai.pathfinding.AsyncPathNavigation;
 import com.talhanation.bannermod.config.RecruitsServerConfig;
+import com.talhanation.bannermod.util.AdaptiveRuntimeBudgets;
 import com.talhanation.bannermod.util.RuntimeProfilingCounters;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -105,7 +106,11 @@ public final class TrueAsyncPathfindingRuntime {
         SnapshotBuildResult buildResult = snapshotBuilder.build(
                 level,
                 snapshotRequest,
-                RecruitsServerConfig.AsyncPathfindingSnapshotBudgetNanos.get()
+                AdaptiveRuntimeBudgets.longBudget(
+                        "pathfinding.true_async.snapshot_nanos",
+                        RecruitsServerConfig.AsyncPathfindingSnapshotBudgetNanos.get(),
+                        Math.max(1L, RecruitsServerConfig.AsyncPathfindingSnapshotBudgetNanos.get() / 4L)
+                )
         );
         RuntimeProfilingCounters.add(METRICS_PREFIX + ".snapshot.build_nanos", buildResult.buildNanos());
         if (buildResult.status() != SnapshotStatus.OK) {
@@ -133,7 +138,12 @@ public final class TrueAsyncPathfindingRuntime {
         }
 
         long startedAt = System.nanoTime();
-        long budgetNanos = Math.max(1L, RecruitsServerConfig.AsyncPathfindingCommitBudgetNanos.get());
+        long configuredBudgetNanos = Math.max(1L, RecruitsServerConfig.AsyncPathfindingCommitBudgetNanos.get());
+        long budgetNanos = AdaptiveRuntimeBudgets.longBudget(
+                "pathfinding.true_async.commit_nanos",
+                configuredBudgetNanos,
+                Math.max(1L, configuredBudgetNanos / 4L)
+        );
         while (System.nanoTime() - startedAt < budgetNanos) {
             List<PathResult> batch = activeScheduler.pollCompleted(32);
             if (batch.isEmpty()) {

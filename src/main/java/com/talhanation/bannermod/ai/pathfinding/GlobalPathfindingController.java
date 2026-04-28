@@ -1,6 +1,7 @@
 package com.talhanation.bannermod.ai.pathfinding;
 
 import com.talhanation.bannermod.config.RecruitsServerConfig;
+import com.talhanation.bannermod.util.AdaptiveRuntimeBudgets;
 import com.talhanation.bannermod.util.RuntimeProfilingCounters;
 
 import java.util.LinkedHashMap;
@@ -501,7 +502,11 @@ public final class GlobalPathfindingController {
             return override;
         }
         return new BudgetSettings(
-                RecruitsServerConfig.PathfindingRequestBudgetPerTick.get(),
+                AdaptiveRuntimeBudgets.intBudget(
+                        "pathfinding.request_budget_per_tick",
+                        RecruitsServerConfig.PathfindingRequestBudgetPerTick.get(),
+                        1
+                ),
                 RecruitsServerConfig.PathfindingMaxDeferredBacklog.get(),
                 RecruitsServerConfig.PathfindingMaxDeferredTicks.get()
         );
