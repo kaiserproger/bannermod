@@ -146,6 +146,8 @@ If the settlement lacks resources, check:
 
 Port or sea-entry points can affect the settlement's trade hints — the snapshot stores `tradeRouteSeed` and `seaEntrypoint` for later economy slices. Sea trade is not a complete player-facing loop yet.
 
+The governor screen shows the current tax obligation as collected/due. A friendly settlement that pays shows the obligation as satisfied and adds to treasury; if a siege or settlement mismatch blocks payment, the same line turns unpaid and explains that treasury growth, upkeep, and defense funding can stall.
+
 ## Recruits And Armies
 
 Recruits follow their owner. Allies on the same side can help with group commands if the server allows it and they are close enough.

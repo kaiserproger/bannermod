@@ -44,6 +44,37 @@ class BannerModGovernorHeartbeatTest {
     }
 
     @Test
+    void friendlySettlementUnderSiegeKeepsTaxObligationVisibleButUnpaid() {
+        BannerModGovernorSnapshot previousSnapshot = BannerModGovernorSnapshot.create(UUID.randomUUID(), new net.minecraft.world.level.ChunkPos(4, 7), "blueguild")
+                .withHeartbeatReport(90L, 80L, 6, 12, 12, List.of(), List.of());
+
+        BannerModGovernorHeartbeat.HeartbeatReport report = BannerModGovernorHeartbeat.evaluate(new BannerModGovernorHeartbeat.HeartbeatInput(
+                BannerModSettlementBinding.Status.FRIENDLY_CLAIM,
+                true,
+                4,
+                2,
+                6,
+                new BannerModSupplyStatus.WorkerSupplyStatus(false, null, null),
+                new BannerModSupplyStatus.RecruitSupplyStatus(
+                        BannerModSupplyStatus.RecruitSupplyState.READY,
+                        false,
+                        false,
+                        false,
+                        null,
+                        BannerModSupplyStatus.armyUpkeepStatus(false, false, 100.0F)
+                ),
+                100L,
+                80L,
+                previousSnapshot
+        ));
+
+        assertEquals(12, report.taxesDue());
+        assertEquals(0, report.taxesCollected());
+        assertEquals(80L, report.collectionTick());
+        assertTrue(report.incidents().contains(BannerModGovernorIncident.UNDER_SIEGE));
+    }
+
+    @Test
     void degradedOrHostileSettlementProducesInstabilityIncidentsAndNoNormalCollection() {
         BannerModGovernorHeartbeat.HeartbeatReport hostile = BannerModGovernorHeartbeat.evaluate(new BannerModGovernorHeartbeat.HeartbeatInput(
                 BannerModSettlementBinding.Status.HOSTILE_CLAIM,

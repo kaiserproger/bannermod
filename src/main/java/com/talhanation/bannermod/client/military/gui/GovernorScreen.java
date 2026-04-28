@@ -39,9 +39,9 @@ public class GovernorScreen extends ScreenBase<GovernorContainer> {
         super.init();
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
-        addPolicyButtons(BannerModGovernorPolicy.GARRISON_PRIORITY, 108);
-        addPolicyButtons(BannerModGovernorPolicy.FORTIFICATION_PRIORITY, 132);
-        addPolicyButtons(BannerModGovernorPolicy.TAX_PRESSURE, 156);
+        addPolicyButtons(BannerModGovernorPolicy.GARRISON_PRIORITY, 120);
+        addPolicyButtons(BannerModGovernorPolicy.FORTIFICATION_PRIORITY, 144);
+        addPolicyButtons(BannerModGovernorPolicy.TAX_PRESSURE, 168);
         BannerModMain.SIMPLE_CHANNEL.sendToServer(new MessageOpenGovernorScreen(this.recruit.getUUID(), false));
     }
 
@@ -76,7 +76,9 @@ public class GovernorScreen extends ScreenBase<GovernorContainer> {
         y += 12;
         guiGraphics.drawString(font, Component.literal("Citizens: " + state.citizenCount), x, y, 4210752, false);
         y += 12;
-        guiGraphics.drawString(font, Component.literal("Taxes: " + state.taxesCollected + "/" + state.taxesDue), x, y, 4210752, false);
+        guiGraphics.drawString(font, text("gui.bannermod.governor.tax_obligation", state.taxesCollected, state.taxesDue, text(taxObligationStateKey(state)).getString()), x, y, taxObligationColor(state), false);
+        y += 12;
+        guiGraphics.drawString(font, text(taxObligationConsequenceKey(state)), x, y, taxObligationColor(state), false);
         y += 12;
         guiGraphics.drawString(font, Component.literal("Treasury: " + state.treasuryBalance + " (net " + state.lastTreasuryNet + ")"), x, y, 4210752, false);
         y += 12;
@@ -86,17 +88,21 @@ public class GovernorScreen extends ScreenBase<GovernorContainer> {
         y += 12;
         guiGraphics.drawString(font, Component.literal("Incidents:"), x, y, 4210752, false);
         y += 12;
-        for (String incident : state.incidents) {
-            guiGraphics.drawString(font, Component.literal("- " + incident), x, y, 4210752, false);
+        int visibleIncidents = Math.min(1, state.incidents.size());
+        for (int i = 0; i < visibleIncidents; i++) {
+            guiGraphics.drawString(font, Component.literal("- " + state.incidents.get(i)), x, y, 4210752, false);
             y += 10;
         }
         if (state.incidents.isEmpty()) {
             guiGraphics.drawString(font, Component.literal("- none"), x, y, 4210752, false);
             y += 10;
+        } else if (state.incidents.size() > visibleIncidents) {
+            guiGraphics.drawString(font, text("gui.bannermod.governor.incidents_more", state.incidents.size() - visibleIncidents), x, y, 4210752, false);
+            y += 10;
         }
-        guiGraphics.drawString(font, Component.literal("garrison priority: " + BannerModGovernorPolicy.GARRISON_PRIORITY.valueLabel(state.garrisonPriority)), leftPos + 10, topPos + 112, 4210752, false);
-        guiGraphics.drawString(font, Component.literal("fortification priority: " + BannerModGovernorPolicy.FORTIFICATION_PRIORITY.valueLabel(state.fortificationPriority)), leftPos + 10, topPos + 136, 4210752, false);
-        guiGraphics.drawString(font, Component.literal("tax pressure: " + BannerModGovernorPolicy.TAX_PRESSURE.valueLabel(state.taxPressure)), leftPos + 10, topPos + 160, 4210752, false);
+        guiGraphics.drawString(font, Component.literal("garrison priority: " + BannerModGovernorPolicy.GARRISON_PRIORITY.valueLabel(state.garrisonPriority)), leftPos + 10, topPos + 124, 4210752, false);
+        guiGraphics.drawString(font, Component.literal("fortification priority: " + BannerModGovernorPolicy.FORTIFICATION_PRIORITY.valueLabel(state.fortificationPriority)), leftPos + 10, topPos + 148, 4210752, false);
+        guiGraphics.drawString(font, Component.literal("tax pressure: " + BannerModGovernorPolicy.TAX_PRESSURE.valueLabel(state.taxPressure)), leftPos + 10, topPos + 172, 4210752, false);
 
         int logisticsX = leftPos + 210;
         int logisticsY = topPos + 10;
@@ -151,6 +157,40 @@ public class GovernorScreen extends ScreenBase<GovernorContainer> {
             return value == null ? "" : value;
         }
         return value.substring(0, Math.max(0, maxLength - 3)) + "...";
+    }
+
+    private static Component text(String key, Object... args) {
+        return Component.translatable(key, args);
+    }
+
+    private static String taxObligationStateKey(GovernorViewState state) {
+        if (state.taxesDue <= 0) {
+            return "gui.bannermod.governor.tax_state.none";
+        }
+        if (state.taxesCollected >= state.taxesDue) {
+            return "gui.bannermod.governor.tax_state.satisfied";
+        }
+        return "gui.bannermod.governor.tax_state.unpaid";
+    }
+
+    private static String taxObligationConsequenceKey(GovernorViewState state) {
+        if (state.taxesDue <= 0) {
+            return "gui.bannermod.governor.tax_consequence.none";
+        }
+        if (state.taxesCollected >= state.taxesDue) {
+            return "gui.bannermod.governor.tax_consequence.satisfied";
+        }
+        return "gui.bannermod.governor.tax_consequence.unpaid";
+    }
+
+    private static int taxObligationColor(GovernorViewState state) {
+        if (state.taxesDue <= 0) {
+            return 0x555555;
+        }
+        if (state.taxesCollected >= state.taxesDue) {
+            return 0x2E7D32;
+        }
+        return 0x8A1F11;
     }
 
     private record GovernorViewState(UUID recruitId,
