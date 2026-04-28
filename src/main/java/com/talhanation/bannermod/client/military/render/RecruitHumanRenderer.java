@@ -21,6 +21,7 @@ import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.MobRenderer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
@@ -54,6 +55,7 @@ public class RecruitHumanRenderer extends MobRenderer<AbstractRecruitEntity, Hum
 
     @Override
     public ResourceLocation getTextureLocation(AbstractRecruitEntity recruit) {
+        RecruitRenderProfiling.textureStateSwitch("base_model");
         return TEXTURE[recruit.getVariant()];
     }
 
@@ -75,13 +77,31 @@ public class RecruitHumanRenderer extends MobRenderer<AbstractRecruitEntity, Hum
 
 
     public void render(AbstractRecruitEntity recruit, float p_117789_, float p_117790_, PoseStack p_117791_, MultiBufferSource p_117792_, int p_117793_) {
+        long poseStart = RecruitRenderProfiling.start();
         this.setModelProperties(recruit);
+        RecruitRenderProfiling.duration("animation_pose", poseStart);
+        RecruitRenderProfiling.beginNormalRender();
+        long renderStart = RecruitRenderProfiling.start();
         super.render(recruit, p_117789_, p_117790_, p_117791_, p_117792_, p_117793_);
+        RecruitRenderProfiling.endNormalRender(renderStart);
     }
 
     @Override
     protected boolean shouldShowName(AbstractRecruitEntity recruit) {
-        return RecruitRenderLod.shouldRenderName(recruit) && super.shouldShowName(recruit);
+        boolean showName = RecruitRenderLod.shouldRenderName(recruit) && super.shouldShowName(recruit);
+        if (showName) {
+            RecruitRenderProfiling.increment("nameplates.visible");
+        } else {
+            RecruitRenderProfiling.skipped("nameplates");
+        }
+        return showName;
+    }
+
+    @Override
+    protected void renderNameTag(AbstractRecruitEntity recruit, Component displayName, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+        long start = RecruitRenderProfiling.start();
+        super.renderNameTag(recruit, displayName, poseStack, bufferSource, packedLight);
+        RecruitRenderProfiling.duration("nameplates", start);
     }
 
     private void setModelProperties(AbstractRecruitEntity recruit) {

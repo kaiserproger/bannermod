@@ -21,6 +21,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.HumanoidArm;
@@ -35,6 +36,7 @@ public class RecruitVillagerRenderer extends MobRenderer<AbstractRecruitEntity, 
             new ResourceLocation(BannerModMain.MOD_ID,"textures/entity/villager/villager_1.png"),
     };
     public ResourceLocation getTextureLocation(AbstractRecruitEntity recruit) {
+        RecruitRenderProfiling.textureStateSwitch("base_model");
         return TEXTURE[0];
     }
 
@@ -54,13 +56,31 @@ public class RecruitVillagerRenderer extends MobRenderer<AbstractRecruitEntity, 
 
     @Override
     public void render(AbstractRecruitEntity entityIn, float entityYaw, float partialTicks, PoseStack matrixStackIn, MultiBufferSource bufferIn, int packedLightIn) {
+        long poseStart = RecruitRenderProfiling.start();
         this.setModelVisibilities(entityIn);
+        RecruitRenderProfiling.duration("animation_pose", poseStart);
+        RecruitRenderProfiling.beginNormalRender();
+        long renderStart = RecruitRenderProfiling.start();
         super.render(entityIn, entityYaw, partialTicks, matrixStackIn, bufferIn, packedLightIn);
+        RecruitRenderProfiling.endNormalRender(renderStart);
     }
 
     @Override
     protected boolean shouldShowName(AbstractRecruitEntity recruit) {
-        return RecruitRenderLod.shouldRenderName(recruit) && super.shouldShowName(recruit);
+        boolean showName = RecruitRenderLod.shouldRenderName(recruit) && super.shouldShowName(recruit);
+        if (showName) {
+            RecruitRenderProfiling.increment("nameplates.visible");
+        } else {
+            RecruitRenderProfiling.skipped("nameplates");
+        }
+        return showName;
+    }
+
+    @Override
+    protected void renderNameTag(AbstractRecruitEntity recruit, Component displayName, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight) {
+        long start = RecruitRenderProfiling.start();
+        super.renderNameTag(recruit, displayName, poseStack, bufferSource, packedLight);
+        RecruitRenderProfiling.duration("nameplates", start);
     }
 
     //PlayerRenderer
