@@ -54,6 +54,7 @@ final class RecruitCommandTargetResolver {
         CommandTargeting.GroupCommandSelection selection = CommandTargeting.forGroupCommand(
                 sender.getUUID(),
                 sender.getTeam() == null ? null : sender.getTeam().getName(),
+                sender.hasPermissions(2),
                 group,
                 nearby.stream().map(recruit -> new CommandTargeting.RecruitSnapshot(
                         recruit.getUUID(),

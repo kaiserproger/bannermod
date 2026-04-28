@@ -13,8 +13,8 @@ import java.util.UUID;
 /**
  * Server-side authority boundary for recruit command ownership.
  *
- * <p>Command hierarchy is intentionally simple: player -> owned groups -> owned recruits.
- * Selection may narrow command targets later, but it must not grant ownership.</p>
+ * <p>Command hierarchy is intentionally simple and centralized in {@link CommandHierarchy}.
+ * Selection may narrow command targets later, but it must not grant authority.</p>
  */
 public final class RecruitCommandAuthority {
     private RecruitCommandAuthority() {
