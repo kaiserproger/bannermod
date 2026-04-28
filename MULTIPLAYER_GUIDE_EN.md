@@ -84,6 +84,8 @@ Build Area screens show scan/build status at the bottom. Invalid names, empty sc
 
 Storage Area route fields use an explicit `Apply route` button. The screen validates destination UUID, item-id filters, count, and priority before sending, normalizes valid values, and shows the current destination/blocked reason without relying on close-to-save.
 
+For long land storage routes, eligible merchants/couriers can automatically use a nearby unoccupied horse or server-approved mount. If no valid mount is available, they continue the same route on foot; clearing or failing the route makes them dismount.
+
 Citizens can fill building vacancies and convert into workers or recruits when they reach the assigned building anchor. Starter-fort bootstrap gives a normal survival settlement four free citizens immediately. If vacancies remain empty, there may be no free citizen close enough or unassigned yet. Manual validated houses count as housing capacity, validated storage counts toward settlement stockpile infrastructure, and validated farm/mine/lumber/architect buildings create vacancy jobs like prefab completions.
 
 The worker command screen (`X`) supports simple group orders: follow, guard, move to position, stop.

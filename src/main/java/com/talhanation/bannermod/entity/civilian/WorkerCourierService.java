@@ -72,6 +72,9 @@ final class WorkerCourierService {
 
     void setActiveCourierTask(@Nullable BannerModCourierTask activeCourierTask) {
         this.activeCourierTask = activeCourierTask;
+        if (activeCourierTask == null) {
+            this.worker.transportService().releaseTransport();
+        }
         this.clearCourierBlockedState();
         this.syncActiveCourierTaskNeeds();
     }
@@ -81,6 +84,7 @@ final class WorkerCourierService {
             BannerModLogisticsRuntime.service().releaseReservation(this.activeCourierTask.reservation().reservationId());
         }
         this.activeCourierTask = null;
+        this.worker.transportService().releaseTransport();
         if (this.activeCourierNeededItem != null) {
             this.worker.neededItems.remove(this.activeCourierNeededItem);
             this.activeCourierNeededItem = null;
