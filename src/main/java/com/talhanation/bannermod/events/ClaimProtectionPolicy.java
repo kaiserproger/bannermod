@@ -3,7 +3,9 @@ package com.talhanation.bannermod.events;
 import com.talhanation.bannermod.config.RecruitsServerConfig;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.persistence.military.RecruitsClaimManager;
+import com.talhanation.bannermod.war.WarRuntimeContext;
 import com.talhanation.bannermod.war.config.WarServerConfig;
+import com.talhanation.bannermod.war.runtime.OccupationRecord;
 import com.talhanation.bannermod.war.runtime.WarSiegeQueries;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -11,6 +13,10 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.ChunkPos;
+
+import java.util.Collection;
+import java.util.UUID;
 
 final class ClaimProtectionPolicy {
 
@@ -26,6 +32,9 @@ final class ClaimProtectionPolicy {
         if (claim == null) {
             return RecruitsServerConfig.BlockPlacingBreakingOnlyWhenClaimed.get();
         }
+        OccupationAccess occupationAccess = occupationAccess(level, claim, new ChunkPos(pos), player);
+        if (occupationAccess == OccupationAccess.OCCUPIED_DENIED) return true;
+        if (occupationAccess == OccupationAccess.OCCUPIER_ALLOWED) return false;
         if (siegeBlocksManualAction(level, claim, player)) return true;
         return !claim.isBlockBreakingAllowed() && !ClaimAccessQueries.isFriendlyToClaim(player, claim);
     }
@@ -35,6 +44,11 @@ final class ClaimProtectionPolicy {
         RecruitsClaim claim = ClaimAccessQueries.getClaim(claimManager, level, pos);
         if (claim == null) {
             return RecruitsServerConfig.BlockPlacingBreakingOnlyWhenClaimed.get();
+        }
+        if (entity instanceof Player p) {
+            OccupationAccess occupationAccess = occupationAccess(level, claim, new ChunkPos(pos), p);
+            if (occupationAccess == OccupationAccess.OCCUPIED_DENIED) return true;
+            if (occupationAccess == OccupationAccess.OCCUPIER_ALLOWED) return false;
         }
         if (entity instanceof Player p && siegeBlocksManualAction(level, claim, p)) return true;
         return !claim.isBlockPlacementAllowed() && !ClaimAccessQueries.isFriendlyToClaim(entity, claim);
@@ -60,7 +74,11 @@ final class ClaimProtectionPolicy {
     boolean shouldDenyBlockInteraction(LevelAccessor level, BlockPos pos, Player player, InteractionHand hand) {
         if (ClaimAccessQueries.hasAdminBypass(player)) return false;
         RecruitsClaim claim = ClaimAccessQueries.getClaim(claimManager, level, pos);
-        if (claim == null || ClaimAccessQueries.isFriendlyToClaim(player, claim)) return false;
+        if (claim == null) return false;
+        OccupationAccess occupationAccess = occupationAccess(level, claim, new ChunkPos(pos), player);
+        if (occupationAccess == OccupationAccess.OCCUPIED_DENIED) return true;
+        if (occupationAccess == OccupationAccess.OCCUPIER_ALLOWED) return false;
+        if (ClaimAccessQueries.isFriendlyToClaim(player, claim)) return false;
         if (siegeBlocksManualAction(level, claim, player)) return true;
 
         if (!claim.isBlockInteractionAllowed()) {
@@ -74,6 +92,9 @@ final class ClaimProtectionPolicy {
         if (ClaimAccessQueries.hasAdminBypass(player)) return false;
         RecruitsClaim claim = ClaimAccessQueries.getClaim(claimManager, player.level(), target.blockPosition());
         if (claim == null) return false;
+        OccupationAccess occupationAccess = occupationAccess(player.level(), claim, new ChunkPos(target.blockPosition()), player);
+        if (occupationAccess == OccupationAccess.OCCUPIED_DENIED) return true;
+        if (occupationAccess == OccupationAccess.OCCUPIER_ALLOWED) return false;
         if (siegeBlocksManualAction(player.level(), claim, player)) return true;
         return !claim.isBlockInteractionAllowed() && !ClaimAccessQueries.isFriendlyToClaim(player, claim);
     }
@@ -81,7 +102,30 @@ final class ClaimProtectionPolicy {
     boolean shouldDenyEntityAttack(Player player, Entity target) {
         if (ClaimAccessQueries.hasAdminBypass(player)) return false;
         RecruitsClaim claim = ClaimAccessQueries.getClaim(claimManager, player.level(), target.blockPosition());
+        if (claim != null) {
+            OccupationAccess occupationAccess = occupationAccess(player.level(), claim, new ChunkPos(target.blockPosition()), player);
+            if (occupationAccess == OccupationAccess.OCCUPIED_DENIED) return true;
+            if (occupationAccess == OccupationAccess.OCCUPIER_ALLOWED) return false;
+        }
         return claim != null && !ClaimAccessQueries.isFriendlyToClaim(player, claim);
+    }
+
+    private OccupationAccess occupationAccess(LevelAccessor level, RecruitsClaim claim, ChunkPos claimChunk, Player player) {
+        if (!(level instanceof ServerLevel serverLevel) || claim.getOwnerPoliticalEntityId() == null) {
+            return OccupationAccess.UNOCCUPIED;
+        }
+        Collection<OccupationRecord> records = WarRuntimeContext.occupations(serverLevel)
+                .forOccupiedClaimChunk(claim.getOwnerPoliticalEntityId(), claimChunk);
+        if (records.isEmpty()) {
+            return OccupationAccess.UNOCCUPIED;
+        }
+        UUID playerFaction = WarRuntimeContext.factionOf(serverLevel, player);
+        for (OccupationRecord record : records) {
+            if (record.occupierEntityId().equals(playerFaction)) {
+                return OccupationAccess.OCCUPIER_ALLOWED;
+            }
+        }
+        return OccupationAccess.OCCUPIED_DENIED;
     }
 
     /**
@@ -95,5 +139,11 @@ final class ClaimProtectionPolicy {
         if (!WarServerConfig.SiegeProtectionAttackersExplosivesOnly.get()) return false;
         if (ClaimAccessQueries.isFriendlyToClaim(player, claim)) return false;
         return WarSiegeQueries.isClaimUnderSiege(serverLevel, claim);
+    }
+
+    private enum OccupationAccess {
+        UNOCCUPIED,
+        OCCUPIED_DENIED,
+        OCCUPIER_ALLOWED
     }
 }

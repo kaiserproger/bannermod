@@ -12,6 +12,7 @@ import com.talhanation.bannermod.war.runtime.WarDeclarationRecord;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.world.level.ChunkPos;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -115,6 +116,39 @@ public final class WarClientState {
 
     public static OccupationRecord occupationById(UUID id) {
         return occupationsById.get(id);
+    }
+
+    public static boolean isClaimOccupied(RecruitsClaim claim) {
+        return occupationForClaim(claim) != null;
+    }
+
+    public static boolean isClaimChunkOccupied(RecruitsClaim claim, ChunkPos chunk) {
+        return occupationForClaimChunk(claim, chunk) != null;
+    }
+
+    public static OccupationRecord occupationForClaim(RecruitsClaim claim) {
+        if (claim == null || claim.getOwnerPoliticalEntityId() == null) return null;
+        for (OccupationRecord occupation : occupations) {
+            if (!claim.getOwnerPoliticalEntityId().equals(occupation.occupiedEntityId())) {
+                continue;
+            }
+            for (net.minecraft.world.level.ChunkPos chunk : claim.getClaimedChunks()) {
+                if (occupation.chunks().contains(chunk)) {
+                    return occupation;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static OccupationRecord occupationForClaimChunk(RecruitsClaim claim, ChunkPos chunk) {
+        if (claim == null || chunk == null || claim.getOwnerPoliticalEntityId() == null) return null;
+        for (OccupationRecord occupation : occupations) {
+            if (claim.getOwnerPoliticalEntityId().equals(occupation.occupiedEntityId()) && occupation.chunks().contains(chunk)) {
+                return occupation;
+            }
+        }
+        return null;
     }
 
     public static PoliticalEntityRecord entityById(UUID id) {
