@@ -238,6 +238,11 @@ public class CommandEvents {
         MovementFormationCommandService.initializePlayerCommandState(event.getEntity());
     }
 
+    @SubscribeEvent
+    public static void onPlayerClone(PlayerEvent.Clone event) {
+        MovementFormationCommandService.copyPersistentCommandPreferences(event.getOriginal(), event.getEntity());
+    }
+
     public static int getSavedFormation(Player player) {
         return MovementFormationCommandService.getSavedFormation(player);
     }

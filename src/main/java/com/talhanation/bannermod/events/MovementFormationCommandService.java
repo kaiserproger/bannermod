@@ -31,6 +31,9 @@ import java.util.UUID;
 
 final class MovementFormationCommandService {
 
+    private static final String ACTIVE_GROUPS_KEY = "ActiveGroups";
+    private static final String FORMATION_KEY = "Formation";
+
     private MovementFormationCommandService() {
     }
 
@@ -270,7 +273,7 @@ final class MovementFormationCommandService {
             return;
         }
 
-        List<UUID> activeGroups = getSavedUUIDList(serverPlayer, "ActiveGroups");
+        List<UUID> activeGroups = getSavedUUIDList(serverPlayer, ACTIVE_GROUPS_KEY);
         recruits.removeIf(recruit -> !activeGroups.contains(recruit.getGroup()));
         groups.removeIf(group -> !activeGroups.contains(group.getUUID()));
 
@@ -280,10 +283,14 @@ final class MovementFormationCommandService {
 
     static void initializePlayerCommandState(Player player) {
         CompoundTag playerData = player.getPersistentData();
+        initializePlayerCommandState(playerData, (int) player.getX(), (int) player.getZ(), RecruitsServerConfig.MaxRecruitsForPlayer.get());
+    }
+
+    static void initializePlayerCommandState(CompoundTag playerData, int playerX, int playerZ, int maxRecruits) {
         CompoundTag data = playerData.getCompound(Player.PERSISTED_NBT_TAG);
 
         if (!data.contains("MaxRecruits")) {
-            data.putInt("MaxRecruits", RecruitsServerConfig.MaxRecruitsForPlayer.get());
+            data.putInt("MaxRecruits", maxRecruits);
         }
         if (!data.contains("CommandingGroup")) {
             data.putInt("CommandingGroup", 0);
@@ -291,26 +298,45 @@ final class MovementFormationCommandService {
         if (!data.contains("TotalRecruits")) {
             data.putInt("TotalRecruits", 0);
         }
-        if (!data.contains("ActiveGroups")) {
-            data.put("ActiveGroups", new ListTag());
+        if (!data.contains(ACTIVE_GROUPS_KEY)) {
+            data.put(ACTIVE_GROUPS_KEY, new ListTag());
         }
-        if (!data.contains("Formation")) {
-            data.putInt("Formation", 0);
+        if (!data.contains(FORMATION_KEY)) {
+            data.putInt(FORMATION_KEY, 0);
         }
         if (!data.contains("FormationPos")) {
-            data.putIntArray("FormationPos", new int[]{(int) player.getX(), (int) player.getZ()});
+            data.putIntArray("FormationPos", new int[]{playerX, playerZ});
         }
 
         playerData.put(Player.PERSISTED_NBT_TAG, data);
     }
 
+    static void copyPersistentCommandPreferences(Player original, Player clone) {
+        copyPersistentCommandPreferences(original.getPersistentData(), clone.getPersistentData());
+        initializePlayerCommandState(clone);
+    }
+
+    static void copyPersistentCommandPreferences(CompoundTag originalPlayerData, CompoundTag clonePlayerData) {
+        CompoundTag originalData = originalPlayerData.getCompound(Player.PERSISTED_NBT_TAG);
+        CompoundTag cloneData = clonePlayerData.getCompound(Player.PERSISTED_NBT_TAG);
+
+        if (originalData.contains(FORMATION_KEY, Tag.TAG_INT)) {
+            cloneData.putInt(FORMATION_KEY, originalData.getInt(FORMATION_KEY));
+        }
+        if (originalData.contains(ACTIVE_GROUPS_KEY, Tag.TAG_LIST)) {
+            cloneData.put(ACTIVE_GROUPS_KEY, originalData.getList(ACTIVE_GROUPS_KEY, Tag.TAG_COMPOUND).copy());
+        }
+
+        clonePlayerData.put(Player.PERSISTED_NBT_TAG, cloneData);
+    }
+
     static int getSavedFormation(Player player) {
-        return getPersistedData(player).getInt("Formation");
+        return getPersistedData(player).getInt(FORMATION_KEY);
     }
 
     static void saveFormation(Player player, int formation) {
         CompoundTag persisted = getPersistedData(player);
-        persisted.putInt("Formation", formation);
+        persisted.putInt(FORMATION_KEY, formation);
         savePersistedData(player, persisted);
     }
 
