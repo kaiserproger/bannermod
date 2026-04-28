@@ -43,45 +43,47 @@ public class MessageClaimIntent implements Message<MessageClaimIntent> {
     @Override
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = context.getSender();
-        if (player == null || claimUuid == null) return;
+        applyServerSide(player, decode(action), claimUuid, new ChunkPos(chunkLong));
+    }
+
+    public static boolean applyServerSide(ServerPlayer player, Action decoded, UUID claimUuid, ChunkPos chunk) {
+        if (player == null || claimUuid == null) return false;
         if (!RecruitsServerConfig.AllowClaiming.get()) {
             deny(player, "Claim editing is disabled on this server.");
-            return;
+            return false;
         }
         if (player.level().dimension() != Level.OVERWORLD) {
             deny(player, "Claims can only be edited in the Overworld.");
-            return;
+            return false;
         }
-        if (ClaimEvents.recruitsClaimManager == null) return;
+        if (ClaimEvents.recruitsClaimManager == null) return false;
         RecruitsClaim claim = MessageUpdateClaim.getExistingClaim(claimUuid);
         if (claim == null) {
             deny(player, "Claim not found on server.");
-            return;
+            return false;
         }
         boolean admin = MessageUpdateClaim.isAdmin(player);
         if (!ClaimPacketAuthority.canEditClaim(player.getUUID(), admin, claim, MessageUpdateClaim.resolvePoliticalOwner(player, claim))) {
             deny(player, "You do not have authority to edit this claim.");
-            return;
+            return false;
         }
-        Action decoded = decode(action);
-        ChunkPos chunk = new ChunkPos(chunkLong);
         if (decoded != Action.DELETE && tooFar(player, chunk)) {
             deny(player, "Claim edit target is too far away.");
-            return;
+            return false;
         }
         if (decoded == Action.ADD_CHUNK) {
             if (ClaimEvents.recruitsClaimManager.getClaim(chunk) != null) {
                 deny(player, "Chunk is already claimed.");
-                return;
+                return false;
             }
             if (claim.getClaimedChunks().size() >= RecruitsClaim.MAX_SIZE) {
                 deny(player, "Claim is already at max size.");
-                return;
+                return false;
             }
             int cost = RecruitsServerConfig.ChunkCost.get();
             if (!canPay(player, cost)) {
                 deny(player, "Not enough currency for claim chunk.");
-                return;
+                return false;
             }
             charge(player, cost);
             claim.addChunk(chunk);
@@ -90,7 +92,7 @@ public class MessageClaimIntent implements Message<MessageClaimIntent> {
         } else if (decoded == Action.REMOVE_CHUNK) {
             if (!claim.containsChunk(chunk)) {
                 deny(player, "Chunk is not part of this claim.");
-                return;
+                return false;
             }
             claim.removeChunk(chunk);
             recalculateCenter(claim);
@@ -100,6 +102,7 @@ public class MessageClaimIntent implements Message<MessageClaimIntent> {
         }
         ClaimEvents.recruitsClaimManager.broadcastClaimsToAll((ServerLevel) player.getCommandSenderWorld());
         player.sendSystemMessage(Component.literal("Claim edit accepted: " + decoded.name().toLowerCase(java.util.Locale.ROOT)));
+        return true;
     }
 
     private static boolean tooFar(ServerPlayer player, ChunkPos chunk) {
