@@ -40,30 +40,34 @@ public class MessageFaceCommand implements Message<MessageFaceCommand> {
 
     public void executeServerSide(NetworkEvent.Context context){
         ServerPlayer sender = Objects.requireNonNull(context.getSender());
+        dispatchToServer(sender, this.player_uuid, this.group, this.formation, this.tight);
+    }
+
+    public static void dispatchToServer(ServerPlayer sender, UUID playerUuid, UUID group, int formation, boolean tight) {
         AABB commandBox = sender.getBoundingBox().inflate(100);
         List<AbstractRecruitEntity> list = RecruitIndex.instance().groupInRange(
                 sender.getCommandSenderWorld(),
-                this.group,
+                group,
                 sender.position(),
                 200.0D
         );
         if (list == null) {
             RuntimeProfilingCounters.increment("recruit.index.fallback_scans");
             list = sender.getCommandSenderWorld().getEntitiesOfClass(
-                    AbstractRecruitEntity.class, commandBox);
+                AbstractRecruitEntity.class, commandBox);
         } else {
             list.removeIf(recruit -> !recruit.getBoundingBox().intersects(commandBox));
         }
-        UUID actorUuid = authorizedPlayerUuid(sender.getUUID(), this.player_uuid);
-        list.removeIf(recruit -> !recruit.isEffectedByCommand(actorUuid, this.group));
+        UUID actorUuid = authorizedPlayerUuid(sender.getUUID(), playerUuid);
+        list.removeIf(recruit -> !recruit.isEffectedByCommand(actorUuid, group));
 
         long gameTime = sender.getCommandSenderWorld().getGameTime();
         CommandIntent intent = new CommandIntent.Face(
                 gameTime,
                 CommandIntentPriority.NORMAL,
                 false,
-                this.formation,
-                this.tight
+                formation,
+                tight
         );
         CommandIntentDispatcher.dispatch(sender, intent, list);
     }

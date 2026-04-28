@@ -3,8 +3,16 @@ package com.talhanation.bannermod.army.command;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import net.minecraft.server.level.ServerPlayer;
 
+import javax.annotation.Nullable;
 import java.util.Objects;
+import java.util.UUID;
 
+/**
+ * Canonical recruit command authority roles.
+ *
+ * <p>Supported authority is owner, same scoreboard team, and server admin. Nation-level authority is
+ * intentionally unsupported until recruits have a server-authoritative nation command membership.</p>
+ */
 public final class CommandHierarchy {
     private CommandHierarchy() {
     }
@@ -13,14 +21,35 @@ public final class CommandHierarchy {
         if (commander == null || recruit == null || !recruit.isAlive() || !recruit.isOwned()) {
             return CommandRole.NONE;
         }
-        if (Objects.equals(commander.getUUID(), recruit.getOwnerUUID())) {
-            return CommandRole.UNIT_COMMANDER;
+        return roleFor(
+                commander.getUUID(),
+                teamName(commander),
+                commander.hasPermissions(2),
+                recruit.getOwnerUUID(),
+                teamName(recruit),
+                recruit.isOwned()
+        );
+    }
+
+    public static CommandRole roleFor(
+            @Nullable UUID commanderUuid,
+            @Nullable String commanderTeam,
+            boolean commanderAdmin,
+            @Nullable UUID recruitOwnerUuid,
+            @Nullable String recruitTeam,
+            boolean recruitOwned
+    ) {
+        if (commanderUuid == null || !recruitOwned) {
+            return CommandRole.NONE;
         }
-        if (isNationLeaderFor(commander, recruit)) {
-            return CommandRole.NATION_LEADER;
+        if (Objects.equals(commanderUuid, recruitOwnerUuid)) {
+            return CommandRole.OWNER;
         }
-        if (isTownLeaderFor(commander, recruit)) {
-            return CommandRole.TOWN_LEADER;
+        if (commanderTeam != null && recruitTeam != null && commanderTeam.equals(recruitTeam)) {
+            return CommandRole.TEAMMATE;
+        }
+        if (commanderAdmin) {
+            return CommandRole.ADMIN;
         }
         return CommandRole.NONE;
     }
@@ -29,17 +58,11 @@ public final class CommandHierarchy {
         return roleFor(commander, recruit) != CommandRole.NONE;
     }
 
-    private static boolean isNationLeaderFor(ServerPlayer commander, AbstractRecruitEntity recruit) {
-        return false;
+    private static String teamName(ServerPlayer commander) {
+        return commander.getTeam() == null ? null : commander.getTeam().getName();
     }
 
-    private static boolean isTownLeaderFor(ServerPlayer commander, AbstractRecruitEntity recruit) {
-        if (commander.getTeam() == null || recruit.getTeam() == null) {
-            return false;
-        }
-        if (!commander.getTeam().getName().equals(recruit.getTeam().getName())) {
-            return false;
-        }
-        return true;
+    private static String teamName(AbstractRecruitEntity recruit) {
+        return recruit.getTeam() == null ? null : recruit.getTeam().getName();
     }
 }

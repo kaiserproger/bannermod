@@ -150,11 +150,6 @@ public class BannerModMain {
         MinecraftForge.EVENT_BUS.register(new com.talhanation.bannermod.war.events.WarOccupationTaxTicker());
         MinecraftForge.EVENT_BUS.register(new SettlementMutationRefreshEvents());
         MinecraftForge.EVENT_BUS.register(new SettlementWorkOrderClaimReleaseEvents());
-        if (MergedRuntimeCleanupPolicy.enableLegacyUpdateCheckers()) {
-            // Legacy recruits/workers update checkers target retired mod ids and stay disabled
-            // until bannermod has one release-facing update contract.
-        }
-
         // Create shared channel; recruits at [0..N), workers at [N..N+M)
         SIMPLE_CHANNEL = BannerModNetworkBootstrap.createSharedChannel();
 

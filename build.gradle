@@ -175,7 +175,7 @@ dependencies {
     implementation fg.deobf('curse.maven:cloth-config-348521:4973441')
     implementation fg.deobf('curse.maven:ewewukeks-musket-mod-354562:5779561')
     implementation fg.deobf('curse.maven:worldedit-225608:4586218')
-    implementation fg.deobf('curse.maven:small-ships-450659:5566900')
+    runtimeOnly fg.deobf('curse.maven:small-ships-450659:5566900')
     compileOnly fg.deobf('maven.modrinth:better-combat:1.9.0+1.20.1-forge')
     runtimeOnly fg.deobf('maven.modrinth:better-combat:1.9.0+1.20.1-forge')
     runtimeOnly fg.deobf('maven.modrinth:playeranimator:1.0.2-rc1+1.20-forge')

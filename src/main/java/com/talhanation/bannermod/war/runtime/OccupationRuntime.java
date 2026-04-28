@@ -99,6 +99,38 @@ public class OccupationRuntime {
         return matches;
     }
 
+    public Collection<OccupationRecord> forOccupiedClaim(UUID occupiedEntityId, List<ChunkPos> claimChunks) {
+        if (occupiedEntityId == null || claimChunks == null || claimChunks.isEmpty()) {
+            return List.of();
+        }
+        List<OccupationRecord> matches = new ArrayList<>();
+        for (OccupationRecord record : recordsById.values()) {
+            if (!occupiedEntityId.equals(record.occupiedEntityId())) {
+                continue;
+            }
+            for (ChunkPos chunk : claimChunks) {
+                if (record.chunks().contains(chunk)) {
+                    matches.add(record);
+                    break;
+                }
+            }
+        }
+        return matches;
+    }
+
+    public Collection<OccupationRecord> forOccupiedClaimChunk(UUID occupiedEntityId, ChunkPos claimChunk) {
+        if (occupiedEntityId == null || claimChunk == null) {
+            return List.of();
+        }
+        List<OccupationRecord> matches = new ArrayList<>();
+        for (OccupationRecord record : recordsById.values()) {
+            if (occupiedEntityId.equals(record.occupiedEntityId()) && record.chunks().contains(claimChunk)) {
+                matches.add(record);
+            }
+        }
+        return matches;
+    }
+
     public Collection<OccupationRecord> forOccupier(UUID occupierEntityId) {
         if (occupierEntityId == null) {
             return List.of();

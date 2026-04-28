@@ -44,6 +44,8 @@ public class MessageScoutTask implements Message<MessageScoutTask> {
         List<ScoutEntity> list = targetScout == null ? List.of() : List.of(targetScout);
         CommandTargeting.SingleRecruitSelection selection = CommandTargeting.forSingleRecruit(
                 player.getUUID(),
+                player.getTeam() == null ? null : player.getTeam().getName(),
+                player.hasPermissions(2),
                 recruitId,
                 list.stream().map(scout -> new CommandTargeting.RecruitSnapshot(
                         scout.getUUID(),

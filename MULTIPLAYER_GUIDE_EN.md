@@ -84,6 +84,8 @@ Build Area screens show scan/build status at the bottom. Invalid names, empty sc
 
 Storage Area route fields use an explicit `Apply route` button. The screen validates destination UUID, item-id filters, count, and priority before sending, normalizes valid values, and shows the current destination/blocked reason without relying on close-to-save.
 
+For long land storage routes, eligible merchants/couriers can automatically use a nearby unoccupied horse or server-approved mount. If no valid mount is available, they continue the same route on foot; clearing or failing the route makes them dismount.
+
 Citizens can fill building vacancies and convert into workers or recruits when they reach the assigned building anchor. Starter-fort bootstrap gives a normal survival settlement four free citizens immediately. If vacancies remain empty, there may be no free citizen close enough or unassigned yet. Manual validated houses count as housing capacity, validated storage counts toward settlement stockpile infrastructure, and validated farm/mine/lumber/architect buildings create vacancy jobs like prefab completions.
 
 The worker command screen (`X`) supports simple group orders: follow, guard, move to position, stop.
@@ -203,7 +205,7 @@ War Room is the main in-game UI for war and politics:
 
 - **Battle window banner**: top of the screen shows the current battle-window phase ("OPEN FRI 19:00-20:30 — closes in 45m" / "CLOSED — next SUN 18:00-19:30 in 1d 22h"). Green = open, gray = closed. The schedule is server-configured (`BattleWindows` in `bannermod-war-server.toml`) and synced to the client automatically.
 - **Active wars list** on the left: each war shows state (`DECLARED`/`ACTIVE`/`IN_SIEGE_WINDOW`/`RESOLVED`/`CANCELLED`), attacker, defender.
-- **Detail panel** on the right: attacker, defender, war state, goal type, casus belli, declaration time, allies, target positions, siege standards.
+- **Detail panel** on the right: attacker, defender, war state, goal type, casus belli, declaration time, allies, target positions, siege standards, occupations, and revolt status.
 - Buttons: `Attacker info` / `Defender info` (open `PoliticalEntityInfoScreen`), `States` (state list), `Declare war`, `Cancel war`, `Occupy here`, `Annex here`, `Tribute: op only`, `Place siege here` (drop a siege standard at your current position), `Refresh`, `Close`.
 
 `Place siege here` is enabled only when you are the leader of one of the war's sides and the war is not `RESOLVED`/`CANCELLED`. It sends `MessagePlaceSiegeStandardHere`, and the server validates against the same rules as `/bannermod siege place`.
@@ -211,6 +213,8 @@ War Room is the main in-game UI for war and politics:
 `Declare war` opens a small War Room wizard where a state leader picks attacker, defender, goal, and optional casus belli text. The server still applies the same validation and cooldown denial reasons as `/bannermod war declare`, and the command remains available.
 
 War outcome buttons are server-authoritative. `Cancel war`, `Occupy here`, and `Annex here` unlock for the attacking state leader on live wars and report success or denial in chat. `Tribute: op only` is visibly locked for normal leaders; forced tribute/peace/vassalization/demilitarization remain admin outcomes.
+
+If an occupation outcome starts on claim chunks, players can see `OCCUPIED` in the claim HUD when standing in the occupied claim and see occupation lines in the War Room detail panel. Occupation is server-authoritative: the occupied owner loses manual block/entity control in the occupied claim chunks, while the occupier's political entity can act there; occupation tax remains visible in the War Room as `tax=t...`.
 
 When you stand inside the radius of a siege standard belonging to an active war, an additional HUD banner shows the war name, owning side, and current war state.
 

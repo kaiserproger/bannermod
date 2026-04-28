@@ -2,6 +2,7 @@ package com.talhanation.bannermod.client.military.render.layer;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
+import com.talhanation.bannermod.client.military.render.RecruitRenderProfiling;
 import com.talhanation.bannermod.client.military.render.RecruitRenderLod;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;;
 import net.minecraft.client.model.HumanoidModel;
@@ -48,14 +49,19 @@ public class RecruitHumanTeamColorLayer extends RenderLayer<AbstractRecruitEntit
     }
 
     public void render(PoseStack poseStack, MultiBufferSource bufferSource, int p_117722_, AbstractRecruitEntity recruit, float p_117724_, float p_117725_, float p_117726_, float p_117727_, float p_117728_, float p_117729_) {
-        if(!recruit.isInvisible() && RecruitRenderLod.shouldRenderCosmeticModelLayer(recruit)){
-            if (recruit.getTeam() != null) {
-                this.getParentModel().renderToBuffer(poseStack, bufferSource.getBuffer(RenderType.entityCutout(TEXTURE[recruit.getColor()])), p_117722_, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
-            }
-            else{
-                this.getParentModel().renderToBuffer(poseStack, bufferSource.getBuffer(RenderType.entityCutout(TEXTURE2)), p_117722_, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
-            }
+        if(recruit.isInvisible() || !RecruitRenderLod.shouldRenderCosmeticModelLayer(recruit)){
+            RecruitRenderProfiling.layerSkipped("team_color");
+            return;
         }
+        RecruitRenderProfiling.textureStateSwitch("team_color");
+        long start = RecruitRenderProfiling.start();
+        if (recruit.getTeam() != null) {
+            this.getParentModel().renderToBuffer(poseStack, bufferSource.getBuffer(RenderType.entityCutout(TEXTURE[recruit.getColor()])), p_117722_, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        }
+        else{
+            this.getParentModel().renderToBuffer(poseStack, bufferSource.getBuffer(RenderType.entityCutout(TEXTURE2)), p_117722_, OverlayTexture.NO_OVERLAY, 1.0F, 1.0F, 1.0F, 1.0F);
+        }
+        RecruitRenderProfiling.layerDuration("team_color", start);
     }
 
 }

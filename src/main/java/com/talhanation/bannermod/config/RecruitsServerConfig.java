@@ -63,7 +63,6 @@ public class RecruitsServerConfig {
     public static ForgeConfigSpec.BooleanValue RecruitHorseUnitsHorse;
     public static ForgeConfigSpec.BooleanValue RangedRecruitsNeedArrowsToShoot;
     public static ForgeConfigSpec.BooleanValue RecruitsChunkLoading;
-    public static ForgeConfigSpec.BooleanValue UpdateCheckerServerside;
     public static ForgeConfigSpec.BooleanValue CompatCorpseMod;
     public static ForgeConfigSpec.BooleanValue UseAsyncPathfinding;
     public static ForgeConfigSpec.BooleanValue UseTrueAsyncPathfinding;
@@ -143,18 +142,6 @@ public class RecruitsServerConfig {
 
     static {
         BUILDER.comment("Recruits Config:").push("Recruits");
-
-        UpdateCheckerServerside = BUILDER.comment("""
-                        
-                        UpdateCheckerServerside
-                        \t(takes effect after restart)
-                        \t
-                        Should the client side update checker be active?
-                        It is recommended to keep it enabled to receive information about new bug fixes and features.""
-                        default: true""")
-
-                .worldRestart()
-                .define("UpdateCheckerServerside", true);
 
         RecruitCurrency = BUILDER.comment("""
                         

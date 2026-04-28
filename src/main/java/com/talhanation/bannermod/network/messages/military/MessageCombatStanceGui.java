@@ -43,6 +43,8 @@ public class MessageCombatStanceGui implements Message<MessageCombatStanceGui> {
 
         CommandTargeting.SingleRecruitSelection selection = CommandTargeting.forSingleRecruit(
                 serverPlayer.getUUID(),
+                serverPlayer.getTeam() == null ? null : serverPlayer.getTeam().getName(),
+                serverPlayer.hasPermissions(2),
                 this.recruitUuid,
                 List.of(new CommandTargeting.RecruitSnapshot(
                         recruit.getUUID(),
