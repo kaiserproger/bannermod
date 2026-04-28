@@ -58,6 +58,11 @@ public class SmallShips {
         return access.findClass(SHIP_CLASS_NAME).filter(shipClass -> shipClass.isInstance(entity)).isPresent();
     }
 
+    static boolean hasSmallShipEntityClass(ReflectiveClassResolver classResolver) {
+        ReflectiveCompatAccess access = new ReflectiveCompatAccess(classResolver::resolve);
+        return access.findClass(SHIP_CLASS_NAME).isPresent();
+    }
+
     public boolean isCaptainDriver(){
         List<Entity> passengers = boat.getPassengers();
         return !passengers.isEmpty() && passengers.get(0).equals(captain);
