@@ -1,6 +1,7 @@
 package com.talhanation.bannermod.entity.military;
 
 import com.talhanation.bannermod.compat.IWeapon;
+import com.talhanation.bannermod.compat.MedievalBoomsticksCompat;
 import com.talhanation.bannermod.config.RecruitsServerConfig;
 import com.talhanation.bannermod.ai.military.RecruitMoveTowardsTargetGoal;
 import com.talhanation.bannermod.ai.military.RecruitRangedCrossbowAttackGoal;
@@ -10,7 +11,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.*;
@@ -23,7 +23,6 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraftforge.common.ForgeMod;
-import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -102,9 +101,10 @@ public class CrossBowmanEntity extends AbstractStrategicFireRecruitEntity implem
         if(RecruitsServerConfig.RangedRecruitsNeedArrowsToShoot.get()){
             if(isMusketModLoaded && IWeapon.isMusketModWeapon(this.getMainHandItem())){
                 int i = this.getRandom().nextInt(32);
-                ItemStack arrows = ForgeRegistries.ITEMS.getDelegateOrThrow(ResourceLocation.tryParse("musketmod:cartridge")).get().getDefaultInstance();
-                arrows.setCount(14 + i);
-                this.inventory.setItem(6, arrows);
+                MedievalBoomsticksCompat.ammoContract(this.getMainHandItem())
+                        .map(ammoId -> MedievalBoomsticksCompat.createAmmoStack(ammoId, 14 + i))
+                        .filter(stack -> !stack.isEmpty())
+                        .ifPresent(arrows -> this.inventory.setItem(6, arrows));
             }
             else RecruitsPatrolSpawn.setRangedArrows(this);
         }
@@ -120,7 +120,7 @@ public class CrossBowmanEntity extends AbstractStrategicFireRecruitEntity implem
     }
     @Override
     public boolean wantsToPickUp(@NotNull ItemStack itemStack) {
-        if(isMusketModLoaded && IWeapon.isMusketModWeapon(itemStack)) return true;
+        if(isMusketModLoaded && MedievalBoomsticksCompat.isMedievalBoomsticksItem(itemStack)) return MedievalBoomsticksCompat.isSupportedRecruitItem(itemStack);
         else if ((itemStack.getItem() instanceof BowItem || itemStack.getItem() instanceof ProjectileWeaponItem || itemStack.getItem() instanceof SwordItem) && this.getMainHandItem().isEmpty()){
             return !hasSameTypeOfItem(itemStack);
         }
