@@ -34,8 +34,9 @@
 
 ## Команды объявления войны
 
-- Current UI coverage начинается после того, как war уже существует. В текущем коде нет declare-war button в `WarListScreen`; новая война объявляется через command path.
-- Declare: `/war declare <attacker> <defender> <goal> [casusBelli]`.
+- War Room exposes a declare-war wizard in `WarListScreen`; it reuses the same server-side validation and cooldown denial reasons as the command path.
+- War Room also exposes an outcome panel: attacking leaders can cancel, occupy the current chunk, or annex the current chunk; tribute and forced peace/vassalize/demilitarize remain visibly op-only.
+- Declare command remains available: `/war declare <attacker> <defender> <goal> [casusBelli]`.
 - Info: `/war info <warId>`.
 - List: `/war list`.
 - Cancel: `/war cancel <warId>`.
@@ -89,5 +90,5 @@
 ## Текущие ограничения
 
 - Часть outcomes command/admin-driven, а не полностью автоматизированный player UI flow.
-- War objective AI, occupation tax/control depth, morale, cavalry/ranged backline behavior и siege objective AI остаются known open areas.
+- War objective AI, occupation control depth, morale и ranged-backline polish остаются known open areas. Occupation records/tax, objective-presence revolt resolution, consent-based allies и basic siege-standard attack/escort уже live в `WarOutcomeApplier`, `WarOccupationTaxTicker`, `WarRevoltScheduler`/`WarRevoltAutoResolver`, `WarAllyService`, `RecruitSiegeObjectiveAttackGoal` и `RecruitSiegeEscortGoal`.
 - Sea trade существует как logistics hooks и settlement hints, но не как полный war/economy loop.
