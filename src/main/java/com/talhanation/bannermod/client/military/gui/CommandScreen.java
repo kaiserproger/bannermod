@@ -1,6 +1,7 @@
 package com.talhanation.bannermod.client.military.gui;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
+import com.talhanation.bannermod.army.command.MovementCommandState;
 import com.talhanation.bannermod.client.military.ClientManager;
 import com.talhanation.bannermod.client.military.events.ClientEvent;
 import com.talhanation.bannermod.client.military.events.CommandCategoryManager;
@@ -218,7 +219,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
     }
 
     public void sendMovementCommandToServer(int state) {
-        if(state != 1){
+        if(state != MovementCommandState.FOLLOW){
             BannerModMain.SIMPLE_CHANNEL.sendToServer(new MessageSaveFormationFollowMovement(player.getUUID(), new ArrayList<>(), -1));
         }
         if(!ClientManager.groups.isEmpty()){
@@ -234,7 +235,7 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         }
         for (RecruitsGroup group : getActiveGroups()) {
             BannerModMain.SIMPLE_CHANNEL.sendToServer(
-                    new MessageMovement(player.getUUID(), 2, group.getUUID(), formation.getIndex(), tightFormation)
+                    new MessageMovement(player.getUUID(), MovementCommandState.HOLD_POSITION, group.getUUID(), formation.getIndex(), tightFormation)
             );
         }
     }
@@ -253,15 +254,15 @@ public class CommandScreen extends ScreenBase<CommandMenu> {
         }
 
         switch (state) {
-            case 0 -> this.player.sendSystemMessage(TEXT_WANDER(group_string.toString()));
-            case 1 -> this.player.sendSystemMessage(TEXT_FOLLOW(group_string.toString()));
-            case 2 -> this.player.sendSystemMessage(TEXT_HOLD_POS(group_string.toString()));
-            case 3 -> this.player.sendSystemMessage(TEXT_BACK_TO_POS(group_string.toString()));
-            case 4 -> this.player.sendSystemMessage(TEXT_HOLD_MY_POS(group_string.toString()));
-            case 5 -> this.player.sendSystemMessage(TEXT_PROTECT(group_string.toString()));
-            case 6 -> this.player.sendSystemMessage(TEXT_MOVE(group_string.toString()));
-            case 7 -> this.player.sendSystemMessage(TEXT_FORWARD(group_string.toString()));
-            case 8 -> this.player.sendSystemMessage(TEXT_BACKWARD(group_string.toString()));
+            case MovementCommandState.WANDER -> this.player.sendSystemMessage(TEXT_WANDER(group_string.toString()));
+            case MovementCommandState.FOLLOW -> this.player.sendSystemMessage(TEXT_FOLLOW(group_string.toString()));
+            case MovementCommandState.HOLD_POSITION -> this.player.sendSystemMessage(TEXT_HOLD_POS(group_string.toString()));
+            case MovementCommandState.BACK_TO_POSITION -> this.player.sendSystemMessage(TEXT_BACK_TO_POS(group_string.toString()));
+            case MovementCommandState.HOLD_OWNER_POSITION -> this.player.sendSystemMessage(TEXT_HOLD_MY_POS(group_string.toString()));
+            case MovementCommandState.PROTECT -> this.player.sendSystemMessage(TEXT_PROTECT(group_string.toString()));
+            case MovementCommandState.MOVE_TO_POSITION -> this.player.sendSystemMessage(TEXT_MOVE(group_string.toString()));
+            case MovementCommandState.FORWARD -> this.player.sendSystemMessage(TEXT_FORWARD(group_string.toString()));
+            case MovementCommandState.BACKWARD -> this.player.sendSystemMessage(TEXT_BACKWARD(group_string.toString()));
             case 9 -> this.player.sendSystemMessage(TEXT_CLEAR_TARGETS(group_string.toString()));
 
             case 10 -> this.player.sendSystemMessage(TEXT_NEUTRAL(group_string.toString()));

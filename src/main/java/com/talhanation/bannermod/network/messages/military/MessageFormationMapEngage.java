@@ -4,6 +4,7 @@ import com.talhanation.bannermod.army.command.CommandHierarchy;
 import com.talhanation.bannermod.army.command.CommandIntent;
 import com.talhanation.bannermod.army.command.CommandIntentDispatcher;
 import com.talhanation.bannermod.army.command.CommandIntentPriority;
+import com.talhanation.bannermod.army.command.MovementCommandState;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.entity.military.RecruitIndex;
 import com.talhanation.bannermod.events.CommandEvents;
@@ -105,7 +106,7 @@ public class MessageFormationMapEngage implements Message<MessageFormationMapEng
                 level.getGameTime(),
                 CommandIntentPriority.NORMAL,
                 false,
-                6,
+                MovementCommandState.MOVE_TO_POSITION,
                 formation,
                 false,
                 Vec3.atCenterOf(engagementTarget)

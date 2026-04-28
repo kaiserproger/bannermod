@@ -43,11 +43,13 @@ public sealed interface CommandIntent {
     /**
      * Move the selected recruits. Mirrors {@code onMovementCommand(player, recruits, state, formation, tight)}.
      *
-     * <p>{@link #movementState()} uses the existing follow-state enum (0=wander, 1=follow,
-     * 2=hold, 3=hold-my-pos, 4=hold-owner-pos, 5=protect, 6=move-to-point, 7=forward, 8=backward).
+     * <p>{@link #movementState()} uses {@link MovementCommandState}: 0=wander, 1=follow,
+     * 2=hold current position or regroup formation, 3=back to saved position,
+     * 4=hold owner position or move formation to owner, 5=protect, 6=move to position,
+     * 7=formation/single forward, 8=formation/single backward.
      * {@link #formation()} uses the existing formation enum (0=none, 1=line, 2=line-up,
      * 3=square, 4=triangle, 5=circle, 6=movement). {@link #targetPos()} is optional — only
-     * meaningful for move-to-point and formation-building variants.</p>
+     * meaningful for move-to-position and formation-building variants.</p>
      */
     record Movement(
             long issuedAtGameTime,

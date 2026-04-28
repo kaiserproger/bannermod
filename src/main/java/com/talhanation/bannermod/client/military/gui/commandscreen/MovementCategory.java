@@ -1,6 +1,7 @@
 package com.talhanation.bannermod.client.military.gui.commandscreen;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
+import com.talhanation.bannermod.army.command.MovementCommandState;
 import com.talhanation.bannermod.client.military.gui.CommandScreen;
 import com.talhanation.bannermod.client.military.gui.group.RecruitsCommandButton;
 import com.talhanation.bannermod.client.military.gui.group.RecruitsFormationButton;
@@ -69,8 +70,8 @@ public class MovementCategory implements ICommandCategory {
         boolean isOneGroupActive = groups.stream().anyMatch(g -> !g.isDisabled());
         RecruitsCommandButton moveButton = new RecruitsCommandButton(x, y - 50, TEXT_MOVE,
                 button -> {
-                    screen.sendMovementCommandToServer(6);
-                    screen.sendCommandInChat(6);
+                    screen.sendMovementCommandToServer(MovementCommandState.MOVE_TO_POSITION);
+                    screen.sendCommandInChat(MovementCommandState.MOVE_TO_POSITION);
                 });
         moveButton.setTooltip(Tooltip.create(TOOLTIP_MOVE));
         moveButton.active = isOneGroupActive && screen.rayBlockPos != null;
@@ -89,8 +90,8 @@ public class MovementCategory implements ICommandCategory {
         //FORWARD
         RecruitsCommandButton forwardButton = new RecruitsCommandButton(x - 60, y - 25, TEXT_FORWARD,
                 button -> {
-                    screen.sendMovementCommandToServer(7);
-                    screen.sendCommandInChat(7);
+                    screen.sendMovementCommandToServer(MovementCommandState.FORWARD);
+                    screen.sendCommandInChat(MovementCommandState.FORWARD);
                 });
         forwardButton.setTooltip(Tooltip.create(TOOLTIP_FORWARD));
         forwardButton.active = isOneGroupActive;
@@ -107,9 +108,9 @@ public class MovementCategory implements ICommandCategory {
 
                         BannerModMain.SIMPLE_CHANNEL.sendToServer(new MessageSaveFormationFollowMovement(player.getUUID(), activeGroups, CommandScreen.formation.getIndex()));
                     } else {
-                        screen.sendMovementCommandToServer(1);
+                        screen.sendMovementCommandToServer(MovementCommandState.FOLLOW);
                     }
-                    screen.sendCommandInChat(1);
+                    screen.sendCommandInChat(MovementCommandState.FOLLOW);
                 });
         followButton.setTooltip(Tooltip.create(TOOLTIP_FOLLOW));
         followButton.active = isOneGroupActive;
@@ -118,8 +119,8 @@ public class MovementCategory implements ICommandCategory {
         //WANDER FREELY
         RecruitsCommandButton wanderButton = new RecruitsCommandButton(x + 120, y, TEXT_WANDER,
                 button -> {
-                    screen.sendMovementCommandToServer(0);
-                    screen.sendCommandInChat(0);
+                    screen.sendMovementCommandToServer(MovementCommandState.WANDER);
+                    screen.sendCommandInChat(MovementCommandState.WANDER);
 
                 });
         wanderButton.setTooltip(Tooltip.create(TOOLTIP_WANDER));
@@ -129,8 +130,8 @@ public class MovementCategory implements ICommandCategory {
         //BACK TO POS
         RecruitsCommandButton backToPosButton = new RecruitsCommandButton(x - 120, y, TEXT_BACK_TO_POS,
                 button -> {
-                    screen.sendMovementCommandToServer(3);
-                    screen.sendCommandInChat(3);
+                    screen.sendMovementCommandToServer(MovementCommandState.BACK_TO_POSITION);
+                    screen.sendCommandInChat(MovementCommandState.BACK_TO_POSITION);
 
                 });
         backToPosButton.setTooltip(Tooltip.create(TOOLTIP_BACK_TO_POS));
@@ -140,8 +141,8 @@ public class MovementCategory implements ICommandCategory {
         //HOLDPOS
         RecruitsCommandButton holdPosButton = new RecruitsCommandButton(x + 60, y + 25, TEXT_HOLD_POS,
                 button -> {
-                    screen.sendMovementCommandToServer(2);
-                    screen.sendCommandInChat(2);
+                    screen.sendMovementCommandToServer(MovementCommandState.HOLD_POSITION);
+                    screen.sendCommandInChat(MovementCommandState.HOLD_POSITION);
                 });
         holdPosButton.setTooltip(Tooltip.create(TOOLTIP_HOLD_POS));
         holdPosButton.active = isOneGroupActive;
@@ -150,8 +151,8 @@ public class MovementCategory implements ICommandCategory {
         //BACKWARD
         RecruitsCommandButton backwardButton = new RecruitsCommandButton(x - 60, y + 25, TEXT_BACKWARD,
                 button -> {
-                    screen.sendMovementCommandToServer(8);
-                    screen.sendCommandInChat(8);
+                    screen.sendMovementCommandToServer(MovementCommandState.BACKWARD);
+                    screen.sendCommandInChat(MovementCommandState.BACKWARD);
                 });
         backwardButton.setTooltip(Tooltip.create(TOOLTIP_BACKWARD));
         backwardButton.active = isOneGroupActive;

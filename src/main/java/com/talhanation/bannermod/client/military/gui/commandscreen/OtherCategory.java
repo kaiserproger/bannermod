@@ -1,6 +1,7 @@
 package com.talhanation.bannermod.client.military.gui.commandscreen;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
+import com.talhanation.bannermod.army.command.MovementCommandState;
 import com.talhanation.bannermod.client.military.gui.CommandScreen;
 import com.talhanation.bannermod.client.military.gui.group.RecruitsCommandButton;
 import com.talhanation.bannermod.network.messages.military.*;
@@ -63,10 +64,10 @@ public class OtherCategory implements ICommandCategory {
                         for(RecruitsGroup group : groups) {
                             if (!group.isDisabled()) {
                                 BannerModMain.SIMPLE_CHANNEL.sendToServer(new MessageProtectEntity(player.getUUID(), screen.rayEntity.getUUID(), group.getUUID()));
-                                BannerModMain.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), 5, group.getUUID(), CommandScreen.formation.getIndex(), CommandScreen.tightFormation));
+                                BannerModMain.SIMPLE_CHANNEL.sendToServer(new MessageMovement(player.getUUID(), MovementCommandState.PROTECT, group.getUUID(), CommandScreen.formation.getIndex(), CommandScreen.tightFormation));
                             }
                         }
-                        screen.sendCommandInChat(5);
+                        screen.sendCommandInChat(MovementCommandState.PROTECT);
                     }
                 });
         protectButton.setTooltip(Tooltip.create(TOOLTIP_PROTECT));

@@ -24,7 +24,7 @@ import java.util.UUID;
  *
  * <p>Completion is intent-type specific:</p>
  * <ul>
- *   <li><b>Movement (move-to-point, state 6)</b>: recruit is within
+ *   <li><b>Movement ({@link MovementCommandState#MOVE_TO_POSITION})</b>: recruit is within
  *       {@link #MOVE_TO_POINT_THRESHOLD} blocks of its hold_pos, <em>or</em> the per-intent
  *       time budget elapsed (stuck-recover).</li>
  *   <li><b>Movement (other states, e.g. hold/follow/wander)</b>: never auto-completes. The
@@ -174,7 +174,7 @@ public final class CommandIntentQueueRuntime {
 
     private static boolean isComplete(CommandIntent intent, AbstractRecruitEntity recruit, long activeTicks) {
         if (intent instanceof CommandIntent.Movement move) {
-            if (move.movementState() == 6 || move.targetPos() != null) {
+            if (MovementCommandState.isPointMove(move.movementState()) || move.targetPos() != null) {
                 Vec3 target = move.targetPos() != null ? move.targetPos() : recruit.holdPosVec;
                 if (target == null) {
                     return activeTicks >= MOVE_TO_POINT_TIMEOUT_TICKS;
