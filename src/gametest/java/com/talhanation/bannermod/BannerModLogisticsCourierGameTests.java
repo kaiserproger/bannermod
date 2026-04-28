@@ -12,6 +12,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -92,6 +94,68 @@ public class BannerModLogisticsCourierGameTests {
                     "Expected the destination port route to publish an export sea-trade entrypoint.");
             helper.assertTrue(seaEntrypoints.get(0).portStorageAreaId().equals(destinationStorage.getUUID()),
                     "Expected the published sea-trade entrypoint to point at the destination port storage.");
+        });
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty", timeoutTicks = 100)
+    public static void courierUsesNearbyHorseOnSupportedRoute(GameTestHelper helper) {
+        BannerModLogisticsRuntime.resetForTests();
+        ServerLevel level = helper.getLevel();
+        Player owner = helper.makeMockPlayer();
+        MerchantEntity courier = BannerModGameTestSupport.spawnOwnedMerchant(helper, owner, new BlockPos(2, 2, 4));
+        Horse horse = BannerModGameTestSupport.spawnEntity(helper, EntityType.HORSE, new BlockPos(3, 2, 4));
+        StorageArea sourceStorage = BannerModGameTestSupport.spawnOwnedStorageArea(helper, owner, new BlockPos(2, 2, 2));
+        StorageArea destinationStorage = BannerModGameTestSupport.spawnOwnedStorageArea(helper, owner, new BlockPos(24, 2, 2));
+
+        int merchantMask = sourceStorage.getStorageMask(EnumSet.of(StorageArea.StorageType.MERCHANTS));
+        sourceStorage.setStorageTypes(merchantMask);
+        destinationStorage.setStorageTypes(merchantMask);
+        sourceStorage.setLogisticsRoute(BannerModLogisticsAuthoringState.parse(destinationStorage.getUUID().toString(), "minecraft:oak_planks", "1", "NORMAL"));
+
+        BannerModCourierTask task = BannerModLogisticsRuntime.service()
+                .claimNextTask(courier.getUUID(), List.of(sourceStorage.getAuthoredLogisticsRoute().orElseThrow()), route -> true, level.getGameTime(), 200L)
+                .orElseThrow();
+        courier.getInventory().addItem(new ItemStack(Items.OAK_PLANKS));
+        courier.setActiveCourierTask(task);
+        double initialHorseDistanceToDestination = horse.distanceToSqr(destinationStorage);
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(courier.isPassenger(), "Expected courier to mount an approved nearby horse for a supported route.");
+            helper.assertTrue(courier.getVehicle() == horse, "Expected courier to keep its assigned horse transport.");
+            helper.assertTrue(horse.distanceToSqr(destinationStorage) < initialHorseDistanceToDestination,
+                    "Expected mounted transport to move the courier toward the active route target.");
+            helper.assertTrue(courier.getActiveCourierTask() == task, "Expected mounted transport to leave courier route ownership intact.");
+            courier.clearActiveCourierTask();
+            helper.assertFalse(courier.isPassenger(), "Expected courier to dismount when the courier route is cleared.");
+        });
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty", timeoutTicks = 100)
+    public static void courierFallsBackWhenNoMountAvailable(GameTestHelper helper) {
+        BannerModLogisticsRuntime.resetForTests();
+        ServerLevel level = helper.getLevel();
+        Player owner = helper.makeMockPlayer();
+        MerchantEntity courier = BannerModGameTestSupport.spawnOwnedMerchant(helper, owner, new BlockPos(2, 2, 4));
+        StorageArea sourceStorage = BannerModGameTestSupport.spawnOwnedStorageArea(helper, owner, new BlockPos(2, 2, 2));
+        StorageArea destinationStorage = BannerModGameTestSupport.spawnOwnedStorageArea(helper, owner, new BlockPos(24, 2, 2));
+
+        int merchantMask = sourceStorage.getStorageMask(EnumSet.of(StorageArea.StorageType.MERCHANTS));
+        sourceStorage.setStorageTypes(merchantMask);
+        destinationStorage.setStorageTypes(merchantMask);
+        sourceStorage.setLogisticsRoute(BannerModLogisticsAuthoringState.parse(destinationStorage.getUUID().toString(), "minecraft:oak_planks", "1", "NORMAL"));
+
+        BannerModCourierTask task = BannerModLogisticsRuntime.service()
+                .claimNextTask(courier.getUUID(), List.of(sourceStorage.getAuthoredLogisticsRoute().orElseThrow()), route -> true, level.getGameTime(), 200L)
+                .orElseThrow();
+        courier.getInventory().addItem(new ItemStack(Items.OAK_PLANKS));
+        courier.setActiveCourierTask(task);
+
+        helper.runAfterDelay(20, () -> {
+            helper.assertFalse(courier.isPassenger(), "Expected courier to keep normal unmounted movement when no approved mount is available.");
+            helper.assertTrue(courier.getActiveCourierTask() == task, "Expected unmounted fallback to preserve courier route ownership.");
+            helper.succeed();
         });
     }
 

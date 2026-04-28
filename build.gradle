@@ -125,6 +125,22 @@ dependencies {
     compileOnly 'maven.modrinth:better-combat:2.2.4+1.21.1-neoforge'
     runtimeOnly 'maven.modrinth:better-combat:2.2.4+1.21.1-neoforge'
     runtimeOnly 'maven.modrinth:playeranimator:2.0.1+1.21.1'
+    implementation fg.deobf('curse.maven:corpse-316582:5157034')
+    implementation fg.deobf('curse.maven:epic-knights-armor-and-weapons-509041:5254836')
+    implementation fg.deobf('curse.maven:architectury-api-419699:5137938')
+    implementation fg.deobf('curse.maven:cloth-config-348521:4973441')
+    implementation fg.deobf('curse.maven:ewewukeks-musket-mod-354562:5779561')
+    implementation fg.deobf('curse.maven:worldedit-225608:4586218')
+    runtimeOnly fg.deobf('curse.maven:small-ships-450659:5566900')
+    compileOnly fg.deobf('maven.modrinth:better-combat:1.9.0+1.20.1-forge')
+    runtimeOnly fg.deobf('maven.modrinth:better-combat:1.9.0+1.20.1-forge')
+    runtimeOnly fg.deobf('maven.modrinth:playeranimator:1.0.2-rc1+1.20-forge')
+
+    implementation fg.deobf('curse.maven:lets-do-herbal-brews-951221:6458889')
+    implementation fg.deobf('curse.maven:supplementaries-412082:6615104')
+    implementation fg.deobf('curse.maven:selene-499980:6681465')
+    implementation fg.deobf('curse.maven:debug-utils-forge-783008:5337491')
+    implementation fg.deobf('curse.maven:farmers-delight-398521:6597298')
 }
 
 // Refmap is produced by the mixin annotation processor into the normal Java output; do not

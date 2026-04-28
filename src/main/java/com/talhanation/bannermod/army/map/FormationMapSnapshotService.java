@@ -6,6 +6,7 @@ import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.entity.military.IStrategicFire;
 import com.talhanation.bannermod.entity.military.RecruitPoliticalContext;
 import com.talhanation.bannermod.entity.military.RecruitIndex;
+import com.talhanation.bannermod.util.AdaptiveRuntimeBudgets;
 import com.talhanation.bannermod.util.RuntimeProfilingCounters;
 import com.talhanation.bannermod.war.WarRuntimeContext;
 import com.talhanation.bannermod.war.registry.PoliticalRelations;
@@ -40,8 +41,13 @@ public final class FormationMapSnapshotService {
         ServerLevel level = viewer.serverLevel();
         CacheKey key = new CacheKey(viewer.getUUID(), level.dimension());
         long gameTime = level.getGameTime();
+        int throttleTicks = AdaptiveRuntimeBudgets.throttleTicks(
+                "formation_map.snapshot_throttle",
+                THROTTLE_TICKS,
+                THROTTLE_TICKS * 4
+        );
         Long lastRequestTick = LAST_REQUEST_TICK.put(key, gameTime);
-        if (lastRequestTick != null && gameTime - lastRequestTick < THROTTLE_TICKS) {
+        if (lastRequestTick != null && gameTime - lastRequestTick < throttleTicks) {
             RuntimeProfilingCounters.increment(COUNTER_PREFIX + ".throttles");
             return SnapshotRequestResult.throttledResult();
         }

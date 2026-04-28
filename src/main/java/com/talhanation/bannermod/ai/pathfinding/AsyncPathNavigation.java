@@ -6,6 +6,7 @@ import com.talhanation.bannermod.ai.pathfinding.async.PathResult;
 import com.talhanation.bannermod.ai.pathfinding.async.PathResultStatus;
 import com.talhanation.bannermod.ai.pathfinding.async.TrueAsyncPathfindingRuntime;
 import com.talhanation.bannermod.config.RecruitsServerConfig;
+import com.talhanation.bannermod.util.AdaptiveRuntimeBudgets;
 import com.talhanation.bannermod.util.RuntimeProfilingCounters;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
@@ -280,7 +281,14 @@ public abstract class AsyncPathNavigation extends PathNavigation {
                                               int reachRange,
                                               float followRange) {
         long gameTime = this.level.getGameTime();
-        int throttleTicks = Math.max(0, RecruitsServerConfig.AsyncPathfindingPerMobThrottleTicks.get());
+        int configuredThrottleTicks = Math.max(0, RecruitsServerConfig.AsyncPathfindingPerMobThrottleTicks.get());
+        int throttleTicks = configuredThrottleTicks <= 0
+                ? 0
+                : AdaptiveRuntimeBudgets.throttleTicks(
+                        "pathfinding.true_async.per_mob_throttle",
+                        configuredThrottleTicks,
+                        Math.max(configuredThrottleTicks, configuredThrottleTicks * 4)
+                );
         if (this.path != null && !this.path.isDone() && throttleTicks > 0 && gameTime - this.lastTrueAsyncRequestGameTime < throttleTicks) {
             RuntimeProfilingCounters.increment("pathfinding.true_async.request.throttled");
             return new TrueAsyncRequest(true, this.path);

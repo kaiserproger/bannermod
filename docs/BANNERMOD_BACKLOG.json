@@ -2272,7 +2272,7 @@
     {
       "id": "DOC-003",
       "title": "Reconcile status and backlog narrative with live runtime",
-      "status": "open",
+      "status": "done",
       "updated": "2026-04-28",
       "why": "Current status and review docs describe several war and governance systems as still pending even though active code already ships parts of them, which distorts planning and review baselines.",
       "scope": [
@@ -2282,9 +2282,15 @@
         "STATUS and related planning narrative no longer contradict shipped runtime behavior for allies, occupations, revolts, siege AI, and related systems; verification cites the live code paths used to justify each status line."
       ],
       "progress": [],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-04-28",
+          "result": "Verified with ctx status (clean baseline before edits), tools/backlog show DOC-003, ctx file/exact on docs/STATUS.md and .planning/STATE.md, ctx searches/files for live ally paths (WarAllyService, WarAllyCommands, MessageInviteAlly, MessageRespondAllyInvite, WarAlliesScreen), occupation/outcome/tax paths (WarOutcomeApplier, OccupationRuntime, OccupationTaxRuntime, WarOccupationTaxTicker, MessageResolveWarOutcome), revolt paths (WarRevoltScheduler, WarRevoltAutoResolver, ServerLevelObjectivePresenceProbe, RevoltRuntime), and siege AI paths (RecruitSiegeObjectiveAttackGoal, RecruitSiegeEscortGoal, SiegeObjectivePolicy, SiegeStandardBlock). Updated STATUS plus EN/RU politics docs so shipped systems are not listed as absent and remaining gaps are described as depth/coverage limits. tools/backlog validate passes."
+        }
+      ],
       "evidence": [],
-      "dependencies": []
+      "dependencies": [],
+      "doneDate": "2026-04-28"
     },
     {
       "id": "DOC-004",

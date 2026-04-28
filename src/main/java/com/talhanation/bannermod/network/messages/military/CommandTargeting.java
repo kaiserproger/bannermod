@@ -1,5 +1,8 @@
 package com.talhanation.bannermod.network.messages.military;
 
+import com.talhanation.bannermod.army.command.CommandHierarchy;
+import com.talhanation.bannermod.army.command.CommandRole;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -11,7 +14,7 @@ import javax.annotation.Nullable;
 
 /**
  * Pure command-target selection contract shared by Phase 4 packet handlers.
-     * Group commands preserve the existing 100-block nearby-owned-or-allied-recruits radius,
+ * Group commands preserve the existing 100-block nearby-owned-or-allied-recruits radius,
  * while invalid or unauthorized inputs degrade to stable empty results.
  */
 public final class CommandTargeting {
@@ -22,7 +25,7 @@ public final class CommandTargeting {
     private CommandTargeting() {
     }
 
-    public static GroupCommandSelection forGroupCommand(UUID senderUuid, @Nullable String senderTeamId, UUID groupUuid, Iterable<RecruitSnapshot> nearbyRecruits) {
+    public static GroupCommandSelection forGroupCommand(UUID senderUuid, @Nullable String senderTeamId, boolean senderAdmin, UUID groupUuid, Iterable<RecruitSnapshot> nearbyRecruits) {
         if (senderUuid == null) {
             return GroupCommandSelection.empty(Failure.INVALID_SENDER);
         }
@@ -33,7 +36,7 @@ public final class CommandTargeting {
 
         List<RecruitSnapshot> selectedRecruits = new ArrayList<>();
         for (RecruitSnapshot recruit : nearbyRecruits) {
-            if (recruit == null || !recruit.canReceiveCommandFrom(senderUuid, senderTeamId)) {
+            if (recruit == null || !recruit.canReceiveCommandFrom(senderUuid, senderTeamId, senderAdmin)) {
                 continue;
             }
 
@@ -47,7 +50,7 @@ public final class CommandTargeting {
         return new GroupCommandSelection(selectedRecruits, Failure.NONE);
     }
 
-    public static SingleRecruitSelection forSingleRecruit(UUID senderUuid, UUID recruitUuid, Iterable<RecruitSnapshot> nearbyRecruits) {
+    public static SingleRecruitSelection forSingleRecruit(UUID senderUuid, @Nullable String senderTeamId, boolean senderAdmin, UUID recruitUuid, Iterable<RecruitSnapshot> nearbyRecruits) {
         if (senderUuid == null) {
             return SingleRecruitSelection.empty(Failure.INVALID_SENDER);
         }
@@ -69,8 +72,8 @@ public final class CommandTargeting {
                 return SingleRecruitSelection.empty(Failure.NOT_COMMANDABLE);
             }
 
-            if (!senderUuid.equals(recruit.ownerUuid())) {
-                return SingleRecruitSelection.empty(Failure.NOT_OWNED_BY_SENDER);
+            if (!recruit.canReceiveCommandFrom(senderUuid, senderTeamId, senderAdmin)) {
+                return SingleRecruitSelection.empty(Failure.NOT_AUTHORIZED);
             }
 
             if (!recruit.isWithinCommandRadius()) {
@@ -90,7 +93,7 @@ public final class CommandTargeting {
         INVALID_RECRUIT_SOURCE,
         RECRUIT_NOT_FOUND,
         NOT_COMMANDABLE,
-        NOT_OWNED_BY_SENDER,
+        NOT_AUTHORIZED,
         OUT_OF_RADIUS,
         WRONG_GROUP
     }
@@ -120,10 +123,9 @@ public final class CommandTargeting {
             return owned && alive && listening;
         }
 
-        public boolean canReceiveCommandFrom(UUID senderUuid, @Nullable String senderTeamId) {
-            boolean sameOwner = senderUuid.equals(ownerUuid);
-            boolean sameTeam = senderTeamId != null && teamId != null && senderTeamId.equals(teamId);
-            return isCommandable() && (sameOwner || sameTeam) && isWithinCommandRadius();
+        public boolean canReceiveCommandFrom(UUID senderUuid, @Nullable String senderTeamId, boolean senderAdmin) {
+            CommandRole role = CommandHierarchy.roleFor(senderUuid, senderTeamId, senderAdmin, ownerUuid, teamId, owned);
+            return isCommandable() && role != CommandRole.NONE && isWithinCommandRadius();
         }
 
         public boolean matchesGroup(UUID requestedGroup) {

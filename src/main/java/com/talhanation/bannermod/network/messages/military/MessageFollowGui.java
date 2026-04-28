@@ -38,6 +38,8 @@ public class MessageFollowGui implements Message<MessageFollowGui> {
 
         CommandTargeting.SingleRecruitSelection selection = CommandTargeting.forSingleRecruit(
                 serverPlayer.getUUID(),
+                serverPlayer.getTeam() == null ? null : serverPlayer.getTeam().getName(),
+                serverPlayer.hasPermissions(2),
                 this.uuid,
                 List.of(new CommandTargeting.RecruitSnapshot(
                         recruit.getUUID(),

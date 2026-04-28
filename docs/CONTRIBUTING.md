@@ -52,6 +52,8 @@ BannerMod is a brownfield merge workspace. Contributions should be small, verifi
 6. For dependency chains, continue this pattern step by step: finish `A`, branch `B` from `A`, finish `B`, branch `C` from `B`, and so on.
 7. If two tasks are truly parallel, give them separate worktrees and separate branches even if they touch nearby code.
 
+Use `tools/task-worktree <TASK-ID> --base origin/master` for an independent task. For a dependency chain, commit the parent task first, then run `tools/task-worktree <TASK-ID> --parent-branch feature/<parent-task>` so the child branch starts at the updated parent branch tip.
+
 ## Finish Or Split Rule
 
 1. Starting a task means committing to carry it to acceptance in the same work slice unless a real blocker appears.

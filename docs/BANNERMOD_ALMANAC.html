@@ -289,9 +289,11 @@
 
       <article class="page" id="p6" data-page="6">
         <h2>6. Economy And Logistics</h2>
-        <p>The governor logistics panel is the best in-game ledger. It shows pending/claimed/completed work orders, shortages, stockpile capacity, missing goods, project hints, strategic role, route cost, specialties, war objectives, and loyalty pressure.</p>
+        <p>The governor logistics panel is the best in-game ledger. It shows pending/claimed/completed work orders, shortages, stockpile capacity, missing goods, project hints, strategic role, route cost, specialties, war objectives, loyalty pressure, and the current tax obligation.</p>
+        <p>Read taxes as <strong>collected / due</strong>. Satisfied taxes fund the treasury this heartbeat; unpaid taxes show why payment failed and warn that treasury growth, upkeep, and defense funding can stall.</p>
         <h3>Storage routes</h3>
         <p>Storage Area route fields use <code>Apply route</code>. The screen validates destination UUID, item filters, amount, and priority before sending. Valid entries show destination or blocked reason.</p>
+        <p>On long land routes, eligible merchants/couriers may automatically ride a nearby unoccupied horse or other server-approved mount. If no mount is available, they keep hauling on foot; route clear/failure makes them dismount.</p>
         <h3>Strategic roles</h3>
         <ul>
           <li><span class="tag">surplus hub</span> farms plus storage.</li>
@@ -307,7 +309,7 @@
           <li>If a route is single and important, defend it: it is a future war objective.</li>
           <li>If a port exists, use it as a strategic gate, not just a warehouse.</li>
         </ul>
-        <div class="ru"><p><strong>Экономика:</strong> склад показывает ресурсы, рынок связывает торговлю, вода удешевляет снабжение, один маршрут уязвим, landlocked-поселение должно специализироваться.</p></div>
+        <div class="ru"><p><strong>Экономика:</strong> склад показывает ресурсы, рынок связывает торговлю, вода удешевляет снабжение, один маршрут уязвим, landlocked-поселение должно специализироваться. Налоги читаются как собрано/требуется: оплачено пополняет казну, не оплачено показывает причину и риск остановки жалованья и обороны.</p></div>
       </article>
     </section>
 
@@ -401,11 +403,15 @@
         </ul>
         <h3>War commands</h3>
         <p><code>/bannermod war declare</code>, <code>list</code>, <code>info</code>, <code>cancel</code>, <code>whitepeace</code>, <code>tribute</code>, <code>vassalize</code>, <code>demilitarize</code>, <code>occupations</code>, and <code>revolts</code> mirror UI/admin flows.</p>
+        <p>Revolt rows in the War Room explain why pressure exists, which occupied chunk matters during an open battle window, and the aftermath after success or failure.</p>
+        <h3>Occupation control</h3>
+        <p>When occupation covers claim chunks, the claim HUD shows <span class="tag">OCCUPIED</span> and War Room details list the occupied chunks. The server locks the occupied owner's manual block/entity actions in those chunks and lets the occupier's political entity control them.</p>
         <h3>Battle windows</h3>
         <p>The top banner tells whether battle is open or closed and when it changes. PvP war damage requires active/in-siege war state, open battle window, and registered participants.</p>
         <h3>Allies</h3>
         <p>Allies are consent-based before war activation: invite, accept, decline, or cancel. Peaceful entities cannot join attackers.</p>
-        <div class="ru"><p><strong>Война:</strong> War Room показывает фазы, стороны, цели, союзников и кнопки итогов. Союзы требуют согласия. Некоторые исходы доступны только операторам.</p></div>
+        <div class="ru"><p><strong>Война:</strong> War Room показывает фазы, стороны, цели, союзников и кнопки итогов. Строки восстаний объясняют давление, целевой чанк и итог после успеха или провала. Союзы требуют согласия. Некоторые исходы доступны только операторам.</p></div>
+        <div class="ru"><p><strong>Война:</strong> War Room показывает фазы, стороны, цели, союзников, оккупации и кнопки итогов. При оккупации HUD клейма пишет «ОККУПИРОВАНО», а сервер передает ручной контроль блоков/сущностей оккупанту. Союзы требуют согласия. Некоторые исходы доступны только операторам.</p></div>
       </article>
     </section>
 

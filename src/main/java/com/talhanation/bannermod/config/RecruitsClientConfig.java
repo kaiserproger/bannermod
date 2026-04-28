@@ -14,7 +14,6 @@ public class RecruitsClientConfig {
     public static ForgeConfigSpec.BooleanValue PlayVillagerAmbientSound;
     public static ForgeConfigSpec.BooleanValue CommandScreenToggle;
     public static ForgeConfigSpec.BooleanValue RecruitsLookLikeVillagers;
-    public static ForgeConfigSpec.BooleanValue UpdateCheckerClientside;
     public static ForgeConfigSpec.BooleanValue DisableClaimGUIOverlay;
     public static ForgeConfigSpec.BooleanValue UpdateMapTiles;
 
@@ -46,17 +45,6 @@ public class RecruitsClientConfig {
 
                 .worldRestart()
                 .define("CommandScreenToggle", false);
-
-        UpdateCheckerClientside = BUILDER.comment("""
-                        ----UpdateCheckerClientside----
-                        \t(takes effect after restart)
-                        \t
-                        Should the client side update checker be active?""
-                        It is recommended to keep it enabled to receive information about new bug fixes and features.""
-                        default: true""")
-
-                .worldRestart()
-                .define("UpdateCheckerClientside", true);
 
         DisableClaimGUIOverlay = BUILDER.comment("""
                         ----DisableClaimGUIOverlay----
