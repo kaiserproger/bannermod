@@ -46,6 +46,8 @@ public class MessagePatrolLeaderSetPatrolState implements Message<MessagePatrolL
         List<AbstractLeaderEntity> leaders = targetLeader == null ? List.of() : List.of(targetLeader);
         CommandTargeting.SingleRecruitSelection selection = CommandTargeting.forSingleRecruit(
                 player.getUUID(),
+                player.getTeam() == null ? null : player.getTeam().getName(),
+                player.hasPermissions(2),
                 recruitId,
                 leaders.stream().map(leader -> new CommandTargeting.RecruitSnapshot(
                         leader.getUUID(),

@@ -48,6 +48,18 @@ Once a task is actively being executed, the executor should either carry it to d
 
 When parallelizing execution with subagents, use one dedicated git worktree and one dedicated feature branch per task. Review the exact diff from each task worktree before merge. For dependency chains, branch the next task from the updated tip of the previous task branch rather than from a stale common base.
 
+Use `tools/task-worktree` as the one-command bootstrap flow:
+
+```bash
+# Independent task from the current base branch tip.
+tools/task-worktree WAR-007 --base origin/master
+
+# Dependency-chain task after WAR-007 has been completed and committed.
+tools/task-worktree UI-008 --parent-branch feature/war-007
+```
+
+The helper creates `feature/<lowercase-task-id>` under `/home/user/bannermod-task-worktrees/<TASK-ID>` by default. Use `--dry-run` to verify the resolved branch, worktree path, and base before creating anything.
+
 ### Acceptance Verification Loop
 
 Use this loop for every backlog task:

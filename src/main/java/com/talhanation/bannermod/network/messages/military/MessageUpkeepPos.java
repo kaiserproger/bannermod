@@ -36,24 +36,33 @@ public class MessageUpkeepPos implements Message<MessageUpkeepPos> {
 
     public void executeServerSide(NetworkEvent.Context context) {
         ServerPlayer player = Objects.requireNonNull(context.getSender());
-        List<AbstractRecruitEntity> recruits = this.group == null
-                ? RecruitIndex.instance().ownerInRange(player.getCommandSenderWorld(), this.player, player.position(), 100.0D)
-                : RecruitIndex.instance().groupInRange(player.getCommandSenderWorld(), this.group, player.position(), 100.0D);
+        dispatchToServer(player, this.player, this.group, this.pos);
+    }
+
+    public static void dispatchToServer(ServerPlayer sender, UUID playerUuid, UUID group, BlockPos pos) {
+        UUID actorUuid = authorizedPlayerUuid(sender.getUUID(), playerUuid);
+        List<AbstractRecruitEntity> recruits = group == null
+                ? RecruitIndex.instance().ownerInRange(sender.getCommandSenderWorld(), actorUuid, sender.position(), 100.0D)
+                : RecruitCommandTargetResolver.resolveGroupTargets(sender, playerUuid, group, "upkeep-pos");
         if (recruits == null) {
             RuntimeProfilingCounters.increment("recruit.index.fallback_scans");
-            recruits = player.getCommandSenderWorld().getEntitiesOfClass(
+            recruits = sender.getCommandSenderWorld().getEntitiesOfClass(
                     AbstractRecruitEntity.class,
-                    player.getBoundingBox().inflate(100)
+                    sender.getBoundingBox().inflate(100)
             );
         }
         recruits.forEach((recruit) -> CommandEvents.onUpkeepCommand(
-                this.player,
+                actorUuid,
                 recruit,
                 group,
                 false,
                 null,
                 pos)
         );
+    }
+
+    static UUID authorizedPlayerUuid(UUID senderUuid, UUID ignoredWireUuid) {
+        return senderUuid;
     }
 
     public MessageUpkeepPos fromBytes(FriendlyByteBuf buf) {

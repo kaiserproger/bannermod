@@ -86,6 +86,14 @@ public final class CommandIntentQueueRuntime {
         return Optional.ofNullable(issuerByRecruit.get(recruitUuid));
     }
 
+    public static boolean canExecuteQueued(CommandIntent intent) {
+        return intent instanceof CommandIntent.Movement
+                || intent instanceof CommandIntent.Face
+                || intent instanceof CommandIntent.Attack
+                || intent instanceof CommandIntent.StrategicFire
+                || intent instanceof CommandIntent.Aggro;
+    }
+
     /**
      * Append {@code intent} to the queue of every actor. Applies the head immediately if the
      * queue was empty before the append. Returns the number of recruits whose queue was
@@ -96,6 +104,9 @@ public final class CommandIntentQueueRuntime {
                                             List<AbstractRecruitEntity> actors,
                                             long gameTime) {
         Objects.requireNonNull(intent, "intent");
+        if (!canExecuteQueued(intent)) {
+            throw new IllegalArgumentException("Unsupported queued command intent: " + intent.type());
+        }
         if (actors == null || actors.isEmpty()) {
             return 0;
         }

@@ -60,6 +60,10 @@ public final class CommandIntentDispatcher {
         CommandIntentQueueRuntime queueRuntime = CommandIntentQueueRuntime.instance();
 
         if (intent.queueMode()) {
+            if (!CommandIntentQueueRuntime.canExecuteQueued(intent)) {
+                player.sendSystemMessage(Component.literal("Command rejected: queued " + intent.type() + " orders are not supported."));
+                return intent;
+            }
             // Append to each actor's queue. If the queue was empty, the runtime applies
             // the intent immediately so there's no perceived delay for the first waypoint.
             int modified = queueRuntime.appendForActors(player, intent, safeActors, gameTime);

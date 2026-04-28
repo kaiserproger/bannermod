@@ -3,6 +3,7 @@ package com.talhanation.bannermod.client.military.render.layer;
 import com.mojang.authlib.GameProfile;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import com.talhanation.bannermod.client.military.render.RecruitRenderProfiling;
 import com.talhanation.bannermod.client.military.render.RecruitRenderLod;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import net.minecraft.client.model.EntityModel;
@@ -53,8 +54,11 @@ public class VillagerRecruitCustomHeadLayer<T extends LivingEntity, M extends En
 
     public void render(PoseStack poseStack, MultiBufferSource bufferSource, int p_116733_, T entity, float p_116735_, float p_116736_, float p_116737_, float p_116738_, float p_116739_, float p_116740_) {
         if (entity instanceof AbstractRecruitEntity recruit && !RecruitRenderLod.shouldRenderCustomHead(recruit)) {
+            RecruitRenderProfiling.layerSkipped("custom_head");
             return;
         }
+        RecruitRenderProfiling.textureStateSwitch("custom_head");
+        long start = RecruitRenderProfiling.start();
         ItemStack itemstack = entity.getItemBySlot(EquipmentSlot.HEAD);
         if (!itemstack.isEmpty()) {
             Item item = itemstack.getItem();
@@ -95,6 +99,7 @@ public class VillagerRecruitCustomHeadLayer<T extends LivingEntity, M extends En
             poseStack.popPose();
 
         }
+        RecruitRenderProfiling.layerDuration("custom_head", start);
     }
 
     public static void translateToHead(PoseStack p_174484_, boolean p_174485_) {
