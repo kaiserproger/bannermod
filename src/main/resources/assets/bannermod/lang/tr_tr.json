@@ -807,6 +807,7 @@
   "gui.workers.area.overlapping": "Alanlar çakışamaz!",
   "gui.workers.text.dailyRefresh": "Günlük Yenileme",
   "category.recruits": "Piyadeler",
+  "key.workers.open_command_screen": "İşçi Komut Ekranını Aç",
   "key.recruits.command_screen_key": "Komut Ekranını Aç",
   "key.recruits.team_screen_key": "Beylik Ekranını Aç",
   "key.recruits.map_screen_key": "Open Claim-Map Screen",

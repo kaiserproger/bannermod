@@ -2,6 +2,7 @@ package com.talhanation.bannermod.client.military.events;
 
 import com.talhanation.bannermod.events.CommandEvents;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
+import com.talhanation.bannermod.client.civilian.gui.WorkerCommandScreen;
 import com.talhanation.bannermod.client.civilian.render.WorkerAreaRenderer;
 import com.talhanation.bannermod.client.military.gui.war.WarListScreen;
 import com.talhanation.bannermod.client.military.gui.worldmap.WorldMapScreen;
@@ -11,7 +12,9 @@ import com.talhanation.bannermod.network.messages.military.MessageRequestFormati
 import com.talhanation.bannermod.network.messages.military.MessageWriteSpawnEgg;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
@@ -30,6 +33,12 @@ public class KeyEvents {
             return;
 
         if (ModShortcuts.COMMAND_SCREEN_KEY.isDown()) {
+            CommandEvents.openCommandScreen(clientPlayerEntity);
+        }
+
+        if (com.talhanation.bannermod.registry.civilian.ModShortcuts.COMMAND_SCREEN_KEY != null
+                && com.talhanation.bannermod.registry.civilian.ModShortcuts.COMMAND_SCREEN_KEY.consumeClick()) {
+            selectWorkerCommandCategory(clientPlayerEntity);
             CommandEvents.openCommandScreen(clientPlayerEntity);
         }
 
@@ -67,6 +76,16 @@ public class KeyEvents {
                 event.setCanceled(true);
             }
         }
+    }
+
+    private static void selectWorkerCommandCategory(LocalPlayer player) {
+        int workerCategory = CommandCategoryManager.getIndex(WorkerCommandScreen.class);
+        if (workerCategory < 0) return;
+
+        CompoundTag playerNBT = player.getPersistentData();
+        CompoundTag nbt = playerNBT.getCompound(Player.PERSISTED_NBT_TAG);
+        nbt.putInt("RecruitsCategory", workerCategory);
+        playerNBT.put(Player.PERSISTED_NBT_TAG, nbt);
     }
 
 }

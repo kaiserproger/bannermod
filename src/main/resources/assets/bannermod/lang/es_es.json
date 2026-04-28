@@ -785,5 +785,6 @@
   "key.bannermod.command_screen_key": "Open Command Screen",
   "key.bannermod.war_room_key": "Open War Room",
   "key.bannermod.map_screen_key": "Open Claim-Map Screen",
+  "key.workers.open_command_screen": "Open Worker Command Screen",
   "category.bannermod": "BannerMod"
 }

@@ -807,6 +807,7 @@
   "gui.workers.area.overlapping": "Зоны не могут пересекаться!",
   "gui.workers.text.dailyRefresh": "Ежедневное обновление",
   "category.recruits": "Рекруты",
+  "key.workers.open_command_screen": "Открыть экран командования работников",
   "key.workers.toggle_prefab_render": "Переключить предпросмотр префаба",
   "key.workers.toggle_prefab_render.enabled": "Предпросмотр префаба включен",
   "key.workers.toggle_prefab_render.disabled": "Предпросмотр префаба выключен",

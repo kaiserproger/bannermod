@@ -820,6 +820,7 @@
   "gui.workers.area.authoring.open_failed": "The work-area screen could not be opened.",
   "gui.workers.text.dailyRefresh": "Daily Restock",
   "category.recruits": "Recruits",
+  "key.workers.open_command_screen": "Open Worker Command Screen",
   "key.workers.toggle_prefab_render": "Toggle Prefab Preview",
   "key.workers.toggle_prefab_render.enabled": "Prefab preview enabled",
   "key.workers.toggle_prefab_render.disabled": "Prefab preview disabled",

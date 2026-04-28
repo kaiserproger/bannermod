@@ -35,6 +35,14 @@ public final class CommandCategoryManager {
         return cats.isEmpty() ? null : cats.get(0);
     }
 
+    public static int getIndex(Class<? extends ICommandCategory> categoryClass) {
+        List<ICommandCategory> cats = getCategories();
+        for (int i = 0; i < cats.size(); i++) {
+            if (categoryClass.isInstance(cats.get(i))) return i;
+        }
+        return -1;
+    }
+
     public static ICommandCategory getNext(ICommandCategory current) {
         List<ICommandCategory> cats = getCategories();
         int i = cats.indexOf(current);

@@ -807,6 +807,7 @@
   "gui.workers.area.overlapping": "Bereiche dürfen sich nicht überschneiden!",
   "gui.workers.text.dailyRefresh": "Tägliche Restock",
   "category.recruits": "Rekruten",
+  "key.workers.open_command_screen": "Worker Command Screen öffnen",
   "key.recruits.command_screen_key": "Befehlsbildschirm öffnen",
   "key.recruits.team_screen_key": "Fraktion-Bildschirm öffnen",
   "key.recruits.map_screen_key": "Open Claim-Map Screen",

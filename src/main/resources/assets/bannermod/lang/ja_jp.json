@@ -598,6 +598,7 @@
   "gui.bannermod.workers.tooltip.travel_start": "Start following the travel route.",
   "gui.bannermod.workers.tooltip.travel_stop": "Stop following the travel route.",
   "category.recruits": "兵士",
+  "key.workers.open_command_screen": "作業員指令画面を開く",
   "key.recruits.command_screen_key": "指令画面を開く",
   "key.recruits.team_screen_key": "勢力画面を開く",
   "key.recruits.map_screen_key": "クレームマップ画面を開く",
