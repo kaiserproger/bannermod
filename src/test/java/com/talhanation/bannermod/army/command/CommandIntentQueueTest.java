@@ -1,11 +1,16 @@
 package com.talhanation.bannermod.army.command;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CommandIntentQueueTest {
@@ -97,6 +102,19 @@ class CommandIntentQueueTest {
         assertEquals(1, runtime.sizeFor(recruitB));
     }
 
+    @ParameterizedTest
+    @MethodSource("unsupportedQueuedIntents")
+    void runtimeRejectsUnsupportedQueuedIntentsBeforeEnqueue(CommandIntent intent) {
+        CommandIntentQueueRuntime runtime = CommandIntentQueueRuntime.instance();
+        runtime.clearAllForTest();
+
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class,
+                () -> runtime.appendForActors(null, intent, List.of(), 0L));
+
+        assertTrue(thrown.getMessage().contains(intent.type().name()));
+        assertEquals(0, runtime.size());
+    }
+
     private static CommandIntent movement(long tick) {
         return new CommandIntent.Movement(
                 tick,
@@ -106,6 +124,14 @@ class CommandIntentQueueTest {
                 0,
                 false,
                 null
+        );
+    }
+
+    private static Stream<CommandIntent> unsupportedQueuedIntents() {
+        UUID groupUuid = UUID.randomUUID();
+        return Stream.of(
+                new CommandIntent.CombatStanceChange(1L, CommandIntentPriority.NORMAL, true, null, groupUuid),
+                new CommandIntent.SiegeMachine(1L, CommandIntentPriority.NORMAL, true, UUID.randomUUID(), groupUuid, false)
         );
     }
 }
