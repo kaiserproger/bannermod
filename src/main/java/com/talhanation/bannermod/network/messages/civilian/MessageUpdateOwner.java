@@ -42,7 +42,9 @@ public class MessageUpdateOwner implements Message<MessageUpdateOwner> {
             return;
         }
 
-        this.updateWorkArea(workArea);
+        if (!this.updateWorkArea(workArea)) {
+            return;
+        }
 
         if (player.level() instanceof ServerLevel serverLevel) {
             BannerModSettlementRefreshSupport.refreshSnapshot(serverLevel, workArea.blockPosition());
@@ -50,16 +52,47 @@ public class MessageUpdateOwner implements Message<MessageUpdateOwner> {
 
     }
 
-    public void updateWorkArea(AbstractWorkAreaEntity workArea){
-        workArea.setPlayerUUID(this.playerUUID);
-        workArea.setPlayerName(this.playerName);
-        workArea.setTeamStringID("");
-
+    public boolean updateWorkArea(AbstractWorkAreaEntity workArea){
         Player player = workArea.level().getPlayerByUUID(playerUUID);
+        return WorkAreaOwnerUpdate.apply(this.playerUUID, resolvedOwner(player), new WorkAreaOwnerUpdate.MutableWorkArea() {
+            @Override
+            public void setPlayerUUID(UUID playerUUID) {
+                workArea.setPlayerUUID(playerUUID);
+            }
 
-        if(player == null || player.getTeam() == null) return;
+            @Override
+            public void setPlayerName(String playerName) {
+                workArea.setPlayerName(playerName);
+            }
 
-        workArea.setTeamStringID(player.getTeam().getName());
+            @Override
+            public void setTeamStringID(String teamStringID) {
+                workArea.setTeamStringID(teamStringID);
+            }
+        });
+    }
+
+    private WorkAreaOwnerUpdate.ResolvedOwner resolvedOwner(Player player) {
+        if (player == null) {
+            return null;
+        }
+
+        return new WorkAreaOwnerUpdate.ResolvedOwner() {
+            @Override
+            public UUID uuid() {
+                return player.getUUID();
+            }
+
+            @Override
+            public String name() {
+                return player.getName().getString();
+            }
+
+            @Override
+            public String teamName() {
+                return player.getTeam() == null ? null : player.getTeam().getName();
+            }
+        };
     }
     public MessageUpdateOwner fromBytes(FriendlyByteBuf buf) {
         this.uuid = buf.readUUID();
