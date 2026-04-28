@@ -1,26 +1,12 @@
-buildscript {
-    repositories {
-        maven { url = 'https://maven.minecraftforge.net' }
-        maven { url = 'https://repo.spongepowered.org/maven' }
-        jcenter()
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '6.0.52'
-        classpath group: 'org.spongepowered', name: 'mixingradle', version: '0.7.38'
-    }
-}
-
 plugins {
+    id 'net.neoforged.moddev' version '2.0.107'
     id 'com.matthewprenger.cursegradle' version '1.4.0'
     id 'com.github.johnrengelman.shadow' version '7.1.0'
     id 'jacoco'
 }
 
-apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'idea'
 apply plugin: 'com.github.johnrengelman.shadow'
-apply plugin: 'org.spongepowered.mixin'
 
 idea {
     module {
@@ -29,21 +15,13 @@ idea {
     }
 }
 
-mixin {
-    add sourceSets.main, 'mixins.bannermod.refmap.json'
-    config 'mixins.bannermod.json'
-
-    disableTargetValidator = true
-    overwriteErrorLevel = 'error'
-}
-
 def configuredVersion = (project.findProperty('mod_version') ?: 'v1').toString().trim()
 def releaseVersionOverride = (project.findProperty('release_version') ?: '').toString().trim()
 version = releaseVersionOverride ? releaseVersionOverride : configuredVersion
 group = 'com.talhanation.bannermod'
 archivesBaseName = 'bannermod'
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 // The repository builds from one root Gradle entrypoint that composes the merged runtime.
 sourceSets {
@@ -74,67 +52,44 @@ configurations {
 
 }
 
-minecraft {
-    mappings channel: 'official', version: '1.20.1'
-    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+neoForge {
+    version = project.neo_version
+    accessTransformers = files('src/main/resources/META-INF/accesstransformer.cfg')
 
     runs {
+        configureEach {
+            logLevel = org.slf4j.event.Level.DEBUG
+            systemProperty 'neoforge.enabledGameTestNamespaces', 'bannermod'
+        }
+
         client {
-            workingDirectory project.file('run')
-
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
-            property 'forge.enabledGameTestNamespaces', 'bannermod'
-            args = ['--username', 'talhanation']
-
-            mods {
-                'bannermod' {
-                    source sourceSets.main
-                }
-            }
+            client()
+            gameDirectory = project.file('run')
+            programArgument '--username'
+            programArgument 'talhanation'
         }
 
         server {
-            workingDirectory project.file('run')
-
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
-            property 'forge.enabledGameTestNamespaces', 'bannermod'
-
-            mods {
-                'bannermod' {
-                    source sourceSets.main
-                }
-            }
+            server()
+            gameDirectory = project.file('run')
         }
 
         gameTestServer {
-            workingDirectory project.file('run_gametest')
-
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
-            property 'forge.enabledGameTestNamespaces', 'bannermod'
-
-            mods {
-                'bannermod' {
-                    source sourceSets.main
-                    source sourceSets.gametest
-                }
-            }
+            type = 'gameTestServer'
+            gameDirectory = project.file('run_gametest')
         }
 
         data {
-            workingDirectory project.file('run')
+            data()
+            gameDirectory = project.file('run')
+            programArguments.addAll '--mod', 'bannermod', '--all', '--output', file('src/generated/resources/').absolutePath, '--existing', file('src/main/resources/').absolutePath
+        }
+    }
 
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'debug'
-            args '--mod', 'bannermod', '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
-
-            mods {
-                'bannermod' {
-                    source sourceSets.main
-                }
-            }
+    mods {
+        bannermod {
+            sourceSet sourceSets.main
+            sourceSet sourceSets.gametest
         }
     }
 }
@@ -157,40 +112,23 @@ repositories {
 }
 
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.20.1-47.4.10'
-
-    shadow fg.deobf('de.maxhenkel.corelib:corelib:1.20.1-1.1.3:api')
-    runtimeOnly fg.deobf('de.maxhenkel.corelib:corelib:1.20.1-1.1.3')
-    runtimeOnly fg.deobf('de.maxhenkel.corelib:corelib:1.20.1-1.1.3:javadoc')
+    shadow 'de.maxhenkel.corelib:corelib:1.21.1-2.1.11:api'
+    runtimeOnly 'de.maxhenkel.corelib:corelib:1.21.1-2.1.11'
+    runtimeOnly 'de.maxhenkel.corelib:corelib:1.21.1-2.1.11:javadoc'
 
     testImplementation platform('org.junit:junit-bom:5.10.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation fg.deobf('de.maxhenkel.corelib:corelib:1.20.1-1.1.3:api')
+    testImplementation 'de.maxhenkel.corelib:corelib:1.21.1-2.1.11:api'
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    implementation fg.deobf('curse.maven:corpse-316582:5157034')
-    implementation fg.deobf('curse.maven:epic-knights-armor-and-weapons-509041:5254836')
-    implementation fg.deobf('curse.maven:architectury-api-419699:5137938')
-    implementation fg.deobf('curse.maven:cloth-config-348521:4973441')
-    implementation fg.deobf('curse.maven:ewewukeks-musket-mod-354562:5779561')
-    implementation fg.deobf('curse.maven:worldedit-225608:4586218')
-    implementation fg.deobf('curse.maven:small-ships-450659:5566900')
-    compileOnly fg.deobf('maven.modrinth:better-combat:1.9.0+1.20.1-forge')
-    runtimeOnly fg.deobf('maven.modrinth:better-combat:1.9.0+1.20.1-forge')
-    runtimeOnly fg.deobf('maven.modrinth:playeranimator:1.0.2-rc1+1.20-forge')
-
-    implementation fg.deobf('curse.maven:lets-do-herbal-brews-951221:6458889')
-    implementation fg.deobf('curse.maven:supplementaries-412082:6615104')
-    implementation fg.deobf('curse.maven:selene-499980:6681465')
-    implementation fg.deobf('curse.maven:debug-utils-forge-783008:5337491')
-    implementation fg.deobf('curse.maven:farmers-delight-398521:6597298')
+    compileOnly 'maven.modrinth:better-combat:2.2.4+1.21.1-neoforge'
+    runtimeOnly 'maven.modrinth:better-combat:2.2.4+1.21.1-neoforge'
+    runtimeOnly 'maven.modrinth:playeranimator:2.0.1+1.21.1'
 }
 
 // Refmap is produced by the mixin annotation processor into the normal Java output; do not
 // also copy it from tmp/compileJava or Gradle 8 fails with duplicate archive entries.
-
-jar.finalizedBy('reobfJar')
 
 artifacts {
     archives shadowJar
@@ -200,10 +138,6 @@ shadowJar {
     project.configurations.shadow.setTransitive(true)
     configurations = [project.configurations.shadow]
     relocate 'de.maxhenkel.corelib', 'de.maxhenkel.bannermod.corelib'
-}
-
-reobf {
-    shadowJar {}
 }
 
 test {
@@ -300,6 +234,21 @@ tasks.register('mergeStatus') {
 // processResources remains the single merged resource entrypoint for the shipped artifact.
 tasks.named('processResources') {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    def replaceProperties = [
+            minecraft_version_range: minecraft_version_range,
+            neo_version_range      : neo_version_range,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : mod_description
+    ]
+    inputs.properties replaceProperties
+    filesMatching('META-INF/neoforge.mods.toml') {
+        expand replaceProperties
+    }
 }
 
 
