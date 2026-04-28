@@ -333,6 +333,23 @@ public class WarListScreen extends Screen {
             graphics.drawString(font, font.plainSubstrByWidth(s, w), x, y + 14 + line * 11, 0xFFFFFF, false);
             line++;
         }
+        for (RevoltRecord revolt : WarClientState.revoltsForWar(war.id())) {
+            int color = revoltLineColor(revolt.state());
+            graphics.drawString(font,
+                    font.plainSubstrByWidth(revoltPressureLine(revolt), w),
+                    x, y + 14 + line * 11, color, false);
+            line++;
+            if (line >= 18) {
+                return;
+            }
+            graphics.drawString(font,
+                    font.plainSubstrByWidth(revoltObjectiveLine(revolt), w),
+                    x, y + 14 + line * 11, 0xFFAAAAAA, false);
+            line++;
+            if (line >= 18) {
+                return;
+            }
+        }
         for (SiegeStandardRecord siege : WarClientState.sieges()) {
             if (!siege.warId().equals(war.id())) {
                 continue;
@@ -357,30 +374,6 @@ public class WarListScreen extends Screen {
             line++;
             if (line >= 18) {
                 return;
-            }
-        }
-        for (RevoltRecord revolt : WarClientState.revoltsForWar(war.id())) {
-            String label = switch (revolt.state()) {
-                case PENDING -> text("gui.bannermod.war_list.revolt.pending").getString();
-                case SUCCESS -> text("gui.bannermod.war_list.revolt.success").getString();
-                case FAILED -> text("gui.bannermod.war_list.revolt.failed").getString();
-            };
-            int color = switch (revolt.state()) {
-                case PENDING -> 0xFFFFFF55;
-                case SUCCESS -> 0xFFAAFFAA;
-                case FAILED -> 0xFFFF8888;
-            };
-            String rebel = entityName(revolt.rebelEntityId());
-            String objective = objectiveLabel(revolt);
-            String when = revolt.state() == RevoltState.PENDING
-                    ? text("gui.bannermod.war_list.revolt.scheduled", revolt.scheduledAtGameTime()).getString()
-                    : text("gui.bannermod.war_list.revolt.resolved", revolt.resolvedAtGameTime()).getString();
-            graphics.drawString(font,
-                    font.plainSubstrByWidth(text("gui.bannermod.war_list.revolt.line", label, rebel, objective, when).getString(), w),
-                    x, y + 14 + line * 11, color, false);
-            line++;
-            if (line >= 18) {
-                break;
             }
         }
     }
@@ -419,6 +412,31 @@ public class WarListScreen extends Screen {
         if (occupation == null || occupation.chunks().isEmpty()) return text("gui.bannermod.common.unknown").getString();
         ChunkPos chunk = occupation.chunks().get(0);
         return text("gui.bannermod.war_list.chunk", chunk.x, chunk.z).getString();
+    }
+
+    private String revoltPressureLine(RevoltRecord revolt) {
+        String rebel = entityName(revolt.rebelEntityId());
+        return switch (revolt.state()) {
+            case PENDING -> text("gui.bannermod.war_list.revolt.pending_pressure", rebel, revolt.scheduledAtGameTime()).getString();
+            case SUCCESS -> text("gui.bannermod.war_list.revolt.success_aftermath", rebel, revolt.resolvedAtGameTime()).getString();
+            case FAILED -> text("gui.bannermod.war_list.revolt.failed_aftermath", rebel, revolt.resolvedAtGameTime()).getString();
+        };
+    }
+
+    private String revoltObjectiveLine(RevoltRecord revolt) {
+        return switch (revolt.state()) {
+            case PENDING -> text("gui.bannermod.war_list.revolt.pending_objective", objectiveLabel(revolt)).getString();
+            case SUCCESS -> text("gui.bannermod.war_list.revolt.success_result").getString();
+            case FAILED -> text("gui.bannermod.war_list.revolt.failed_result", objectiveLabel(revolt)).getString();
+        };
+    }
+
+    private int revoltLineColor(RevoltState state) {
+        return switch (state) {
+            case PENDING -> 0xFFFFFF55;
+            case SUCCESS -> 0xFFAAFFAA;
+            case FAILED -> 0xFFFF8888;
+        };
     }
 
     private int activeSiegeCount(UUID warId) {

@@ -299,8 +299,10 @@ PvP damage between players during a war is allowed only while:
 When your territory is occupied by a hostile state you can declare a revolt from that occupation:
 
 - `/bannermod state revolt declare <occupationId>` — declare a revolt (use a UUID fragment from `/bannermod war occupations`).
-- `/bannermod war revolts` — list pending revolts.
-- `/bannermod war revolt resolve <revoltId> <outcome>` — admin-side resolution while objective-based revolts are still being implemented.
+- `/bannermod war revolts` — list pending and resolved revolts.
+- `/bannermod war revolt resolve <revoltId> <outcome>` — admin-side resolution for operators.
+
+The War Room detail panel also shows revolt pressure. Pending revolts explain that occupied land is rebelling, the due tick, and the objective chunk that rebels must hold during an open battle window with no defenders present. Resolved revolts show the aftermath: success removes the occupation, while failure means the occupier held the objective and the occupation remains.
 
 ## When An Action Is Denied
 
