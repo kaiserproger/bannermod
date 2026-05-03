@@ -1,8 +1,8 @@
 package com.talhanation.bannermod.settlement.goal.impl;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
-import com.talhanation.bannermod.settlement.SettlementResidentAssignmentState;
-import com.talhanation.bannermod.settlement.SettlementResidentRole;
+import com.talhanation.bannermod.settlement.BannerModSettlementResidentAssignmentState;
+import com.talhanation.bannermod.settlement.BannerModSettlementResidentRole;
 import com.talhanation.bannermod.settlement.goal.ResidentGoal;
 import com.talhanation.bannermod.settlement.goal.ResidentGoalContext;
 import com.talhanation.bannermod.settlement.goal.ResidentTask;
@@ -27,7 +27,17 @@ public final class WorkResidentGoal implements ResidentGoal {
 
     @Override
     public int computePriority(ResidentGoalContext ctx) {
-        return ctx.isActivePhase() ? WORK_PRIORITY : 0;
+        if (!ctx.isActivePhase()) {
+            return 0;
+        }
+        int priority = WORK_PRIORITY;
+        priority -= ctx.fatigueNeed() / 4;
+        priority -= ctx.hungerNeed() / 6;
+        priority -= ctx.socialNeed() / 10;
+        if (ctx.isAdolescent()) {
+            priority -= 10;
+        }
+        return Math.max(0, priority);
     }
 
     @Override
@@ -35,12 +45,15 @@ public final class WorkResidentGoal implements ResidentGoal {
         if (!ctx.isActivePhase()) {
             return false;
         }
-        if (ctx.resident().role() == SettlementResidentRole.GOVERNOR_RECRUIT) {
+        if (ctx.fatigueNeed() >= 90) {
             return false;
         }
-        SettlementResidentAssignmentState state = ctx.resident().assignmentState();
-        return state == SettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
-                || state == SettlementResidentAssignmentState.ASSIGNED_MISSING_BUILDING;
+        if (ctx.resident().role() == BannerModSettlementResidentRole.GOVERNOR_RECRUIT) {
+            return false;
+        }
+        BannerModSettlementResidentAssignmentState state = ctx.resident().assignmentState();
+        return state == BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
+                || state == BannerModSettlementResidentAssignmentState.ASSIGNED_MISSING_BUILDING;
     }
 
     @Override

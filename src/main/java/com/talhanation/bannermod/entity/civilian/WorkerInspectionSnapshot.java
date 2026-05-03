@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.entity.civilian;
 
+import com.talhanation.bannermod.society.NpcPhaseOneSnapshot;
 import net.minecraft.network.FriendlyByteBuf;
 
 import javax.annotation.Nullable;
@@ -16,6 +17,7 @@ public record WorkerInspectionSnapshot(
         String assignmentLabel,
         String problemLabel,
         String transportLabel,
+        NpcPhaseOneSnapshot phaseOne,
         boolean canConvert,
         @Nullable String convertBlockedReasonKey,
         String currentProfessionTag
@@ -31,6 +33,7 @@ public record WorkerInspectionSnapshot(
         buf.writeUtf(assignmentLabel);
         buf.writeUtf(problemLabel);
         buf.writeUtf(transportLabel);
+        (phaseOne == null ? NpcPhaseOneSnapshot.empty() : phaseOne).toBytes(buf);
         buf.writeBoolean(canConvert);
         buf.writeBoolean(convertBlockedReasonKey != null);
         if (convertBlockedReasonKey != null) {
@@ -51,6 +54,7 @@ public record WorkerInspectionSnapshot(
                 buf.readUtf(),
                 buf.readUtf(),
                 buf.readUtf(),
+                NpcPhaseOneSnapshot.fromBytes(buf),
                 buf.readBoolean(),
                 buf.readBoolean() ? buf.readUtf() : null,
                 buf.readUtf()

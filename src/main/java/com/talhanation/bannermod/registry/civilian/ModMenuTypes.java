@@ -14,6 +14,7 @@ import com.talhanation.bannermod.inventory.civilian.CitizenProfileMenu;
 import com.talhanation.bannermod.inventory.civilian.MerchantAddEditTradeContainer;
 import com.talhanation.bannermod.inventory.civilian.MerchantTradeContainer;
 import com.talhanation.bannermod.persistence.civilian.WorkersMerchantTrade;
+import com.talhanation.bannermod.society.NpcPhaseOneSnapshot;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.registries.Registries;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
@@ -69,7 +70,7 @@ public class ModMenuTypes {
                 if (citizen == null) {
                     return null;
                 }
-                return new CitizenProfileMenu(windowId, citizen, inv);
+                return new CitizenProfileMenu(windowId, citizen, inv, NpcPhaseOneSnapshot.fromBytes(data));
             }));
 
     @Nullable

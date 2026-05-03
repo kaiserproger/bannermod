@@ -2,6 +2,7 @@ package com.talhanation.bannermod.inventory.civilian;
 
 import com.talhanation.bannermod.entity.citizen.CitizenEntity;
 import com.talhanation.bannermod.registry.civilian.ModMenuTypes;
+import com.talhanation.bannermod.society.NpcPhaseOneSnapshot;
 import de.maxhenkel.corelib.inventory.ContainerBase;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
@@ -11,17 +12,27 @@ import net.minecraft.world.inventory.Slot;
 public class CitizenProfileMenu extends ContainerBase {
     private final CitizenEntity citizen;
     private final Container citizenInventory;
+    private final NpcPhaseOneSnapshot phaseOneSnapshot;
 
     public CitizenProfileMenu(int id, CitizenEntity citizen, Inventory playerInventory) {
+        this(id, citizen, playerInventory, NpcPhaseOneSnapshot.empty());
+    }
+
+    public CitizenProfileMenu(int id, CitizenEntity citizen, Inventory playerInventory, NpcPhaseOneSnapshot phaseOneSnapshot) {
         super(ModMenuTypes.CITIZEN_PROFILE_CONTAINER_TYPE.get(), id, playerInventory, citizen.getInventory());
         this.citizen = citizen;
         this.citizenInventory = citizen.getInventory();
+        this.phaseOneSnapshot = phaseOneSnapshot == null ? NpcPhaseOneSnapshot.empty() : phaseOneSnapshot;
         addCitizenInventorySlots();
         addPlayerInventorySlots(playerInventory);
     }
 
     public CitizenEntity getCitizen() {
         return citizen;
+    }
+
+    public NpcPhaseOneSnapshot getPhaseOneSnapshot() {
+        return this.phaseOneSnapshot;
     }
 
     @Override

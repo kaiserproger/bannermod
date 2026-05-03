@@ -27,6 +27,7 @@ public class CitizenRenderer extends MobRenderer<CitizenEntity, HumanoidModel<Ci
 
     @Override
     protected void scale(CitizenEntity entity, PoseStack poseStack, float partialTickTime) {
-        poseStack.scale(0.9375F, 0.9375F, 0.9375F);
+        float scale = 0.9375F * entity.renderScaleFactor();
+        poseStack.scale(scale, scale, scale);
     }
 }

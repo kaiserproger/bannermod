@@ -57,6 +57,9 @@ public final class LeaveHomeResidentGoal implements ResidentGoal {
         if (this.runtime.homeFor(ctx.residentId()).isEmpty()) {
             return false;
         }
+        if (ctx.fatigueNeed() >= 85) {
+            return false;
+        }
         return isEarlyActive(ctx);
     }
 

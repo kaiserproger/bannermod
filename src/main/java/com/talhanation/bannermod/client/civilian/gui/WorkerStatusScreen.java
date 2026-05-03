@@ -3,13 +3,12 @@ package com.talhanation.bannermod.client.civilian.gui;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.citizen.CitizenProfession;
 import com.talhanation.bannermod.citizen.CitizenRole;
-import com.talhanation.bannermod.client.civilian.input.AssignHomeTargetSelector;
 import com.talhanation.bannermod.client.military.gui.MilitaryGuiStyle;
 import com.talhanation.bannermod.client.military.gui.widgets.ActionMenuButton;
 import com.talhanation.bannermod.client.military.gui.widgets.ContextMenuEntry;
 import com.talhanation.bannermod.entity.civilian.WorkerInspectionSnapshot;
+import com.talhanation.bannermod.society.NpcPhaseOneSnapshot;
 import com.talhanation.bannermod.network.messages.civilian.MessageConvertWorkerToCitizen;
-import com.talhanation.bannermod.network.messages.civilian.MessageDismissWorker;
 import com.talhanation.bannermod.network.messages.civilian.MessageOpenWorkerScreen;
 import com.talhanation.bannermod.network.messages.civilian.MessageReassignWorkerProfession;
 import net.minecraft.client.Minecraft;
@@ -24,11 +23,9 @@ import java.util.List;
 import java.util.Locale;
 
 public class WorkerStatusScreen extends Screen {
-    private static final int WIDTH = 300;
-    // 210 gives 22 px clearance between the bottom transport text box (ends at top+168)
-    // and the action button row (starts at top + HEIGHT - 26 = top+184) so they never overlap.
-    private static final int HEIGHT = 210;
-    private static final int BTN_W = 54;
+    private static final int WIDTH = 252;
+    private static final int HEIGHT = 280;
+    private static final int BTN_W = 58;
     private static final int BTN_H = 20;
 
     private final WorkerInspectionSnapshot snapshot;
@@ -46,10 +43,10 @@ public class WorkerStatusScreen extends Screen {
         this.left = (this.width - WIDTH) / 2;
         this.top = (this.height - HEIGHT) / 2;
 
-        // Bottom action row: 5 evenly spaced buttons inside WIDTH.
-        // Stride between centers = (WIDTH - 16) / 5 = 56 -> stays inside parchment frame.
+        // Bottom action row: 4 evenly spaced buttons inside WIDTH.
+        // Stride between centers = (WIDTH - 16) / 4 = 59 -> stays inside parchment frame.
         int rowY = this.top + HEIGHT - 26;
-        int strideX = (WIDTH - 16) / 5;
+        int strideX = (WIDTH - 16) / 4;
         int firstCenter = this.left + 8 + strideX / 2;
 
         SmallCommandButton refresh = this.addRenderableWidget(new SmallCommandButton(
@@ -59,35 +56,20 @@ public class WorkerStatusScreen extends Screen {
         ));
         refresh.setTooltip(Tooltip.create(text("gui.bannermod.worker_screen.refresh.tooltip")));
 
-        SmallCommandButton assignHome = this.addRenderableWidget(new SmallCommandButton(
-                firstCenter + 3 * strideX - BTN_W / 2, rowY, BTN_W, BTN_H,
-                clamped("bannermod.assign_home.button"),
+        SmallCommandButton convert = this.addRenderableWidget(new SmallCommandButton(
+                firstCenter + strideX - BTN_W / 2, rowY, BTN_W, BTN_H,
+                clamped("gui.bannermod.worker_screen.convert"),
                 button -> {
-                    AssignHomeTargetSelector.start(this.snapshot.workerUuid());
+                    BannerModMain.SIMPLE_CHANNEL.sendToServer(new MessageConvertWorkerToCitizen(this.snapshot.workerUuid()));
                     this.onClose();
                 }
         ));
-        assignHome.setTooltip(Tooltip.create(text("bannermod.assign_home.tooltip")));
-
-        SmallCommandButton close = this.addRenderableWidget(new SmallCommandButton(
-                firstCenter + 4 * strideX - BTN_W / 2, rowY, BTN_W, BTN_H,
-                clamped("gui.bannermod.worker_screen.close"),
-                button -> this.onClose()
-        ));
-        close.setTooltip(Tooltip.create(text("gui.bannermod.worker_screen.close.tooltip")));
-
-        ActionMenuButton workerActions = new ActionMenuButton(
-                firstCenter + strideX - BTN_W / 2, rowY, BTN_W, BTN_H,
-                clamped("gui.bannermod.worker_screen.actions"),
-                buildWorkerActionEntries()
-        );
-        workerActions.setOpenUpward(true);
+        convert.active = this.snapshot.canConvert();
         if (this.snapshot.convertBlockedReasonKey() != null) {
-            workerActions.setTooltip(Tooltip.create(text(this.snapshot.convertBlockedReasonKey())));
+            convert.setTooltip(Tooltip.create(text(this.snapshot.convertBlockedReasonKey())));
         } else {
-            workerActions.setTooltip(Tooltip.create(text("gui.bannermod.worker_screen.actions.tooltip")));
+            convert.setTooltip(Tooltip.create(text("gui.bannermod.worker_screen.convert.tooltip.dismiss_path")));
         }
-        this.addRenderableWidget(workerActions);
 
         // Reassign — opens an ActionMenuButton with one row per available
         // CONTROLLED_WORKER profession (current one filtered out). Server is
@@ -101,6 +83,13 @@ public class WorkerStatusScreen extends Screen {
         reassign.setTooltip(Tooltip.create(text("gui.bannermod.worker_screen.reassign.tooltip")));
         reassign.active = this.snapshot.canConvert();
         this.addRenderableWidget(reassign);
+
+        SmallCommandButton close = this.addRenderableWidget(new SmallCommandButton(
+                firstCenter + 3 * strideX - BTN_W / 2, rowY, BTN_W, BTN_H,
+                clamped("gui.bannermod.worker_screen.close"),
+                button -> this.onClose()
+        ));
+        close.setTooltip(Tooltip.create(text("gui.bannermod.worker_screen.close.tooltip")));
     }
 
     private List<ContextMenuEntry> buildReassignEntries() {
@@ -126,27 +115,6 @@ public class WorkerStatusScreen extends Screen {
         return entries;
     }
 
-    private List<ContextMenuEntry> buildWorkerActionEntries() {
-        List<ContextMenuEntry> entries = new ArrayList<>();
-        entries.add(new ContextMenuEntry(
-                Component.translatable("gui.bannermod.worker_screen.convert").getString(),
-                () -> {
-                    BannerModMain.SIMPLE_CHANNEL.sendToServer(new MessageConvertWorkerToCitizen(this.snapshot.workerUuid()));
-                    this.onClose();
-                },
-                this.snapshot.canConvert()
-        ));
-        entries.add(new ContextMenuEntry(
-                Component.translatable("gui.bannermod.worker_screen.dismiss").getString(),
-                () -> {
-                    BannerModMain.SIMPLE_CHANNEL.sendToServer(new MessageDismissWorker(this.snapshot.workerUuid()));
-                    this.onClose();
-                },
-                true
-        ));
-        return entries;
-    }
-
     @Override
     public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.renderBackground(graphics, mouseX, mouseY, partialTick);
@@ -154,22 +122,67 @@ public class WorkerStatusScreen extends Screen {
         MilitaryGuiStyle.titleStrip(graphics, this.left + 8, this.top + 8, WIDTH - 16, 16);
         MilitaryGuiStyle.drawCenteredTitle(graphics, this.font, this.title, this.left + 8, this.top + 12, WIDTH - 16);
         MilitaryGuiStyle.drawBadge(graphics, this.font, Component.translatable(this.snapshot.claimRelationKey()), this.left + 16, this.top + 32, 110, MilitaryGuiStyle.TEXT_WARN);
-        graphics.drawString(this.font, this.snapshot.workerName(), this.left + 132, this.top + 35, MilitaryGuiStyle.TEXT_DARK, false);
+        MilitaryGuiStyle.drawBadge(graphics, this.font, Component.translatable(this.snapshot.professionKey()), this.left + 132, this.top + 32, 104, MilitaryGuiStyle.TEXT_WARN);
+        graphics.drawString(this.font, this.snapshot.workerName(), this.left + 132, this.top + 47, MilitaryGuiStyle.TEXT_DARK, false);
 
         renderInfoBlock(graphics, this.left + 14, this.top + 52, WIDTH - 28, 58);
-        drawLabelValue(graphics, text("gui.bannermod.worker_screen.profession"), Component.translatable(this.snapshot.professionKey()), this.left + 20, this.top + 58);
-        drawLabelValue(graphics, text("gui.bannermod.worker_screen.owner"), Component.literal(this.snapshot.ownerLabel()), this.left + 20, this.top + 72);
-        drawLabelValue(graphics, text("gui.bannermod.worker_screen.political"), Component.literal(this.snapshot.politicalLabel()), this.left + 20, this.top + 86);
-        drawLabelValue(graphics, text("gui.bannermod.worker_screen.assignment"), Component.literal(this.snapshot.assignmentLabel()), this.left + 20, this.top + 100);
+        drawLabelValue(graphics, text("gui.bannermod.worker_screen.owner"), Component.literal(this.snapshot.ownerLabel()), this.left + 20, this.top + 58);
+        drawLabelValue(graphics, text("gui.bannermod.worker_screen.political"), Component.literal(this.snapshot.politicalLabel()), this.left + 20, this.top + 72);
+        drawLabelValue(graphics, text("gui.bannermod.worker_screen.assignment"), Component.literal(this.snapshot.assignmentLabel()), this.left + 20, this.top + 86);
+        drawLabelValue(graphics, text("gui.bannermod.worker_screen.profession"), Component.translatable(this.snapshot.professionKey()), this.left + 20, this.top + 100);
 
         renderTextBox(graphics, this.left + 14, this.top + 116, WIDTH - 28, 24,
+                text("gui.bannermod.worker_screen.identity"),
+                identitySummary(),
+                MilitaryGuiStyle.TEXT_DARK);
+        renderTextBox(graphics, this.left + 14, this.top + 144, WIDTH - 28, 24,
+                text("gui.bannermod.worker_screen.routine"),
+                routineSummary(),
+                MilitaryGuiStyle.TEXT_DARK);
+        renderTextBox(graphics, this.left + 14, this.top + 172, WIDTH - 28, 24,
+                text("gui.bannermod.worker_screen.needs"),
+                needsSummary(),
+                MilitaryGuiStyle.TEXT_DARK);
+        renderTextBox(graphics, this.left + 14, this.top + 200, WIDTH - 28, 24,
                 text("gui.bannermod.worker_screen.problem"),
                 Component.literal(this.snapshot.problemLabel()),
                 isClearState(this.snapshot.problemLabel()) ? MilitaryGuiStyle.TEXT_GOOD : MilitaryGuiStyle.TEXT_DENIED);
-        renderTextBox(graphics, this.left + 14, this.top + 144, WIDTH - 28, 24,
+        renderTextBox(graphics, this.left + 14, this.top + 228, WIDTH - 28, 24,
                 text("gui.bannermod.worker_screen.transport"),
                 Component.literal(this.snapshot.transportLabel()),
                 MilitaryGuiStyle.TEXT_DARK);
+    }
+
+    private Component identitySummary() {
+        NpcPhaseOneSnapshot phaseOne = this.snapshot.phaseOne();
+        return Component.translatable(
+                "gui.bannermod.worker_screen.identity.summary",
+                Component.translatable(phaseOne.lifeStageTranslationKey()).getString(),
+                Component.translatable(phaseOne.sexTranslationKey()).getString(),
+                NpcPhaseOneSnapshot.shortId(phaseOne.householdId()),
+                NpcPhaseOneSnapshot.shortId(phaseOne.homeBuildingUuid())
+        );
+    }
+
+    private Component routineSummary() {
+        NpcPhaseOneSnapshot phaseOne = this.snapshot.phaseOne();
+        return Component.translatable(
+                "gui.bannermod.worker_screen.routine.summary",
+                Component.translatable(phaseOne.dailyPhaseTranslationKey()).getString(),
+                Component.translatable(phaseOne.currentIntentTranslationKey()).getString(),
+                Component.translatable(phaseOne.currentAnchorTranslationKey()).getString(),
+                Component.translatable(phaseOne.housingRequestTranslationKey()).getString()
+        );
+    }
+
+    private Component needsSummary() {
+        NpcPhaseOneSnapshot phaseOne = this.snapshot.phaseOne();
+        return Component.translatable(
+                "gui.bannermod.worker_screen.needs.summary",
+                phaseOne.hungerNeed(),
+                phaseOne.fatigueNeed(),
+                phaseOne.socialNeed()
+        );
     }
 
     private void renderInfoBlock(GuiGraphics graphics, int x, int y, int width, int height) {
@@ -210,7 +223,7 @@ public class WorkerStatusScreen extends Screen {
     /**
      * Narrow command button styled with the same parchment-iron palette as
      * {@link com.talhanation.bannermod.client.military.gui.group.RecruitsCommandButton}
-     * but width-configurable so the compact action row fits inside the ledger.
+     * but width-configurable so four widgets fit inside WIDTH=252.
      */
     private static class SmallCommandButton extends ExtendedButton {
         SmallCommandButton(int x, int y, int width, int height, Component label, OnPress handler) {

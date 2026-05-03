@@ -22,12 +22,18 @@ public final class RestResidentGoal implements ResidentGoal {
 
     @Override
     public int computePriority(ResidentGoalContext ctx) {
-        return ctx.isRestPhase() ? REST_PRIORITY : 0;
+        if (ctx.isRestPhase()) {
+            return REST_PRIORITY + ctx.fatigueNeed() / 5;
+        }
+        if (ctx.hasHome() && ctx.fatigueNeed() >= 80) {
+            return 70 + (ctx.fatigueNeed() - 80) / 2;
+        }
+        return 0;
     }
 
     @Override
     public boolean canStart(ResidentGoalContext ctx) {
-        return ctx.isRestPhase();
+        return ctx.isRestPhase() || ctx.hasHome() && ctx.fatigueNeed() >= 80;
     }
 
     @Override

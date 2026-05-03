@@ -70,6 +70,9 @@ public final class GoHomeResidentGoal implements ResidentGoal {
     }
 
     private static boolean isRestOrApproachingRest(ResidentGoalContext ctx) {
+        if (ctx.hasHome() && ctx.fatigueNeed() >= 80) {
+            return true;
+        }
         if (ctx.isRestPhase()) {
             return true;
         }

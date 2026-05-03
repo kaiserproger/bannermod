@@ -7,6 +7,7 @@ import com.talhanation.bannermod.citizen.CitizenProfession;
 import com.talhanation.bannermod.entity.citizen.CitizenEntity;
 import com.talhanation.bannermod.inventory.civilian.CitizenProfileMenu;
 import com.talhanation.bannermod.persistence.military.RecruitsPlayerInfo;
+import com.talhanation.bannermod.society.NpcPhaseOneSnapshot;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
@@ -23,10 +24,12 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
     private static final int GUI_HEIGHT = 254;
 
     private final CitizenEntity citizen;
+    private final NpcPhaseOneSnapshot phaseOneSnapshot;
 
     public CitizenProfileScreen(CitizenProfileMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.citizen = menu.getCitizen();
+        this.phaseOneSnapshot = menu.getPhaseOneSnapshot();
         this.imageWidth = GUI_WIDTH;
         this.imageHeight = GUI_HEIGHT;
         this.inventoryLabelY = 10000;
@@ -91,6 +94,7 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
                 (float) (this.leftPos + 48) - mouseX,
                 (float) (this.topPos + 56) - mouseY,
                 this.citizen);
+        MilitaryGuiStyle.drawBadge(graphics, this.font, professionLabel(this.citizen.activeProfession()), this.leftPos + 96, this.topPos + 30, 134, MilitaryGuiStyle.TEXT_WARN);
     }
 
     @Override
@@ -98,14 +102,16 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
         MilitaryGuiStyle.drawCenteredTitle(graphics, this.font, this.title, 0, 10, this.imageWidth);
         // Inset starts at x=92 with width=142, so we have 138px of usable text space.
         final int textBoxWidth = 134;
-        drawClamped(graphics, Component.translatable("gui.bannermod.citizen_profile.profession",
-                professionLabel(this.citizen.activeProfession()).getString()), 92, 32, textBoxWidth, MilitaryGuiStyle.TEXT_DARK);
         drawClamped(graphics, Component.translatable("gui.bannermod.citizen_profile.owner",
                 ownerLabel().getString()), 92, 46, textBoxWidth, MilitaryGuiStyle.TEXT_DARK);
         drawClamped(graphics, Component.translatable("gui.bannermod.citizen_profile.assignment",
-                assignmentLabel().getString()), 92, 60, textBoxWidth, 0xFF6E5535);
-        drawClamped(graphics, Component.translatable("gui.bannermod.citizen_profile.state",
-                stateLabel().getString()), 92, 74, textBoxWidth, 0xFF6E5535);
+                assignmentLabel().getString()), 92, 58, textBoxWidth, 0xFF6E5535);
+        drawClamped(graphics, Component.translatable("gui.bannermod.citizen_profile.home",
+                homeSummary().getString()), 92, 70, textBoxWidth, 0xFF6E5535);
+        drawClamped(graphics, Component.translatable("gui.bannermod.citizen_profile.routine",
+                routineSummary().getString()), 92, 82, textBoxWidth, 0xFF6E5535);
+        drawClamped(graphics, Component.translatable("gui.bannermod.citizen_profile.needs",
+                needsSummary().getString()), 92, 94, textBoxWidth, MilitaryGuiStyle.TEXT_DARK);
         graphics.drawString(this.font, Component.translatable("gui.bannermod.citizen_profile.inventory"), 96, 108, MilitaryGuiStyle.TEXT_DARK, false);
         graphics.drawString(this.font, Component.translatable("gui.bannermod.citizen_profile.player_inventory"), 14, 166, MilitaryGuiStyle.TEXT_DARK, false);
     }
@@ -167,10 +173,32 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
                 boundArea.toString().substring(0, 8));
     }
 
-    private Component stateLabel() {
-        return this.citizen.isWorking()
-                ? Component.translatable("gui.bannermod.citizen_profile.state.working")
-                : Component.translatable("gui.bannermod.citizen_profile.state.idle");
+    private Component homeSummary() {
+        return Component.translatable(
+                "gui.bannermod.citizen_profile.home.summary",
+                NpcPhaseOneSnapshot.shortId(this.phaseOneSnapshot.homeBuildingUuid()),
+                NpcPhaseOneSnapshot.shortId(this.phaseOneSnapshot.householdId()),
+                Component.translatable(this.phaseOneSnapshot.lifeStageTranslationKey()).getString(),
+                Component.translatable(this.phaseOneSnapshot.sexTranslationKey()).getString()
+        );
+    }
+
+    private Component routineSummary() {
+        return Component.translatable(
+                "gui.bannermod.citizen_profile.routine.summary",
+                Component.translatable(this.phaseOneSnapshot.dailyPhaseTranslationKey()).getString(),
+                Component.translatable(this.phaseOneSnapshot.currentIntentTranslationKey()).getString(),
+                Component.translatable(this.phaseOneSnapshot.housingRequestTranslationKey()).getString()
+        );
+    }
+
+    private Component needsSummary() {
+        return Component.translatable(
+                "gui.bannermod.citizen_profile.needs.summary",
+                this.phaseOneSnapshot.hungerNeed(),
+                this.phaseOneSnapshot.fatigueNeed(),
+                this.phaseOneSnapshot.socialNeed()
+        );
     }
 
     private Component professionLabel(CitizenProfession profession) {

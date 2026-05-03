@@ -7,6 +7,7 @@ import com.talhanation.bannermod.registry.citizen.ModCitizenEntityTypes;
 import com.talhanation.bannermod.registry.civilian.ModEntityTypes;
 import com.talhanation.bannermod.settlement.prefab.staffing.PrefabAutoStaffingRuntime;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementRefreshSupport;
+import com.talhanation.bannermod.society.NpcSocietyAccess;
 import com.talhanation.bannermod.war.WarRuntimeContext;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -90,6 +91,7 @@ public final class WorkerCitizenConversionService {
         }
 
         serverLevel.addFreshEntity(citizen);
+        NpcSocietyAccess.moveResidentProfile(serverLevel, worker.getUUID(), citizen.getUUID(), serverLevel.getGameTime());
         if (worker.getTeam() instanceof PlayerTeam team) {
             serverLevel.getScoreboard().addPlayerToTeam(citizen.getScoreboardName(), team);
         }
@@ -225,6 +227,7 @@ public final class WorkerCitizenConversionService {
         if (!serverLevel.addFreshEntity(replacement)) {
             return "chat.bannermod.workerui.reassign.denied.convert_failed";
         }
+        NpcSocietyAccess.moveResidentProfile(serverLevel, worker.getUUID(), replacement.getUUID(), serverLevel.getGameTime());
         if (team != null) {
             serverLevel.getScoreboard().addPlayerToTeam(replacement.getScoreboardName(), team);
         }

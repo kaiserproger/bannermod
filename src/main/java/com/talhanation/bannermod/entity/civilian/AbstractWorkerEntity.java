@@ -7,6 +7,8 @@ import com.talhanation.bannermod.citizen.CitizenRole;
 import com.talhanation.bannermod.entity.military.RecruitPoliticalContext;
 import com.talhanation.bannermod.shared.logistics.BannerModLogisticsRuntime;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementBinding;
+import com.talhanation.bannermod.society.NpcPhaseOneSnapshot;
+import com.talhanation.bannermod.society.NpcSocietyAccess;
 import com.talhanation.bannermod.config.RecruitsClientConfig;
 import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.entity.military.AbstractChunkLoaderEntity;
@@ -167,6 +169,9 @@ public abstract class AbstractWorkerEntity extends AbstractChunkLoaderEntity imp
     private WorkerInspectionSnapshot inspectionSnapshot(@Nullable Player viewer) {
         ServerPlayer serverPlayer = viewer instanceof ServerPlayer sp ? sp : null;
         String convertBlockedReasonKey = WorkerCitizenConversionService.convertDeniedReasonKey(serverPlayer, this);
+        NpcPhaseOneSnapshot phaseOneSnapshot = this.level() instanceof ServerLevel serverLevel
+                ? NpcSocietyAccess.phaseOneSnapshot(serverLevel, this.getUUID(), this.getBoundWorkAreaUUID())
+                : NpcPhaseOneSnapshot.empty();
         return new WorkerInspectionSnapshot(
                 this.getId(),
                 this.getUUID(),
@@ -178,6 +183,7 @@ public abstract class AbstractWorkerEntity extends AbstractChunkLoaderEntity imp
                 workerAssignmentLabel(),
                 workerProblemLabel(),
                 this.transportService.inspectionMessage().getString(),
+                phaseOneSnapshot,
                 convertBlockedReasonKey == null,
                 convertBlockedReasonKey,
                 WorkerCitizenConversionService.workerProfessionTag(this)
