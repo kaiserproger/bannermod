@@ -2,8 +2,7 @@ package com.talhanation.bannermod.commands.war;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.talhanation.bannermod.commands.admin.AdminDebugCommands;
-import com.talhanation.bannermod.commands.admin.AdminRecoveryCommands;
+import com.talhanation.bannermod.commands.society.BannerModSocietyCommands;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 
@@ -17,11 +16,7 @@ public final class BannerModWarCommands {
 
     private static LiteralArgumentBuilder<CommandSourceStack> root() {
         return Commands.literal("bannermod")
-                .then(AdminDebugCommands.debug())
-                .then(AdminRecoveryCommands.settlement())
-                .then(AdminRecoveryCommands.treasury())
-                .then(AdminRecoveryCommands.claim())
-                .then(AdminRecoveryCommands.worker())
+                .then(BannerModSocietyCommands.build())
                 .then(PoliticalRegistryCommands.build())
                 .then(WarDeclarationCommands.build()
                         .then(SiegeStandardCommands.build())

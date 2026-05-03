@@ -60,6 +60,19 @@ public final class NpcHousingRequestRuntime {
         return updated;
     }
 
+    public NpcHousingRequestRecord deny(UUID householdId, long gameTime) {
+        NpcHousingRequestRecord existing = this.requestsByHousehold.get(householdId);
+        if (existing == null) {
+            throw new IllegalArgumentException("No housing request exists for household " + householdId);
+        }
+        NpcHousingRequestRecord updated = existing.deny(gameTime);
+        if (!updated.equals(existing)) {
+            this.requestsByHousehold.put(householdId, updated);
+            markDirty();
+        }
+        return updated;
+    }
+
     public void fulfill(UUID householdId, long gameTime) {
         NpcHousingRequestRecord existing = this.requestsByHousehold.get(householdId);
         if (existing == null) {

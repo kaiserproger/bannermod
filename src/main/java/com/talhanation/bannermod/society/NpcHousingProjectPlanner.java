@@ -11,7 +11,11 @@ import com.talhanation.bannermod.settlement.growth.ProjectKind;
 import com.talhanation.bannermod.settlement.household.BannerModHomeAssignmentRuntime;
 import com.talhanation.bannermod.war.WarRuntimeContext;
 import com.talhanation.bannermod.war.registry.PoliticalEntityRecord;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -65,13 +69,15 @@ public final class NpcHousingProjectPlanner {
                     gameTime
             );
             if (request.status() == NpcHousingRequestStatus.REQUESTED) {
-                notifyLord(level, lordUuid, requesterResidentUuid);
-                request = NpcHousingRequestAccess.approve(level, requesterResidentUuid, gameTime);
+                if (request.requestedAtGameTime() == gameTime) {
+                    notifyLord(level, request, household);
+                }
             }
             if (request.status() == NpcHousingRequestStatus.APPROVED) {
                 projects.add(new PendingProject(
                         request.projectId(),
                         ProjectKind.NEW_BUILDING,
+                        null,
                         null,
                         BannerModSettlementBuildingProfileSeed.GENERAL.category(),
                         BannerModSettlementBuildingProfileSeed.GENERAL,
@@ -137,17 +143,60 @@ public final class NpcHousingProjectPlanner {
         return owner == null ? null : owner.leaderUuid();
     }
 
-    private static void notifyLord(ServerLevel level, @Nullable UUID lordUuid, UUID residentUuid) {
-        if (level == null || lordUuid == null) {
+    private static void notifyLord(ServerLevel level,
+                                   NpcHousingRequestRecord request,
+                                   NpcHouseholdRecord household) {
+        if (level == null || request == null || request.lordPlayerUuid() == null || household == null) {
             return;
         }
-        ServerPlayer lord = level.getServer().getPlayerList().getPlayer(lordUuid);
+        ServerPlayer lord = level.getServer().getPlayerList().getPlayer(request.lordPlayerUuid());
         if (lord == null) {
             return;
         }
+        String householdId = household.householdId().toString();
+        MutableComponent approve = actionButton(
+                "gui.bannermod.society.housing_request.action.approve",
+                "/bannermod society housing approve " + householdId,
+                ChatFormatting.GREEN,
+                "gui.bannermod.society.housing_request.action.approve.tooltip"
+        );
+        MutableComponent deny = actionButton(
+                "gui.bannermod.society.housing_request.action.deny",
+                "/bannermod society housing deny " + householdId,
+                ChatFormatting.RED,
+                "gui.bannermod.society.housing_request.action.deny.tooltip"
+        );
+        MutableComponent list = actionButton(
+                "gui.bannermod.society.housing_request.action.list",
+                "/bannermod society housing list",
+                ChatFormatting.GOLD,
+                "gui.bannermod.society.housing_request.action.list.tooltip"
+        );
+        Component housingState = Component.translatable(
+                "gui.bannermod.society.household_housing."
+                        + household.housingState().name().toLowerCase(java.util.Locale.ROOT)
+        );
         lord.sendSystemMessage(Component.translatable(
                 "gui.bannermod.society.housing_request.notice",
-                residentUuid.toString().substring(0, 8)
-        ));
+                request.residentUuid().toString().substring(0, 8),
+                housingState,
+                household.memberResidentUuids().size()
+        ).append(Component.literal(" "))
+                .append(approve)
+                .append(Component.literal(" "))
+                .append(deny)
+                .append(Component.literal(" "))
+                .append(list));
+    }
+
+    private static MutableComponent actionButton(String labelKey,
+                                                 String command,
+                                                 ChatFormatting color,
+                                                 String tooltipKey) {
+        return Component.translatable(labelKey)
+                .withStyle(style -> style.withColor(color)
+                        .withUnderlined(true)
+                        .withClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, command))
+                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable(tooltipKey))));
     }
 }

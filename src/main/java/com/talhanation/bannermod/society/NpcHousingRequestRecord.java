@@ -67,6 +67,22 @@ public record NpcHousingRequestRecord(
         );
     }
 
+    public NpcHousingRequestRecord deny(long gameTime) {
+        if (this.status == NpcHousingRequestStatus.DENIED) {
+            return this;
+        }
+        return new NpcHousingRequestRecord(
+                this.householdId,
+                this.residentUuid,
+                this.claimUuid,
+                this.projectId,
+                this.lordPlayerUuid,
+                NpcHousingRequestStatus.DENIED,
+                this.requestedAtGameTime,
+                gameTime
+        );
+    }
+
     public NpcHousingRequestRecord fulfill(long gameTime) {
         if (this.status == NpcHousingRequestStatus.FULFILLED) {
             return this;

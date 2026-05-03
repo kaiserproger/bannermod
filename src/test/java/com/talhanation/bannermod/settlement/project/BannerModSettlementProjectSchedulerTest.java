@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.settlement.project;
 
-import com.talhanation.bannermod.settlement.SettlementBuildingCategory;
-import com.talhanation.bannermod.settlement.SettlementBuildingProfileSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementBuildingCategory;
+import com.talhanation.bannermod.settlement.BannerModSettlementBuildingProfileSeed;
 import com.talhanation.bannermod.settlement.growth.PendingProject;
 import com.talhanation.bannermod.settlement.growth.ProjectBlocker;
 import com.talhanation.bannermod.settlement.growth.ProjectKind;
@@ -19,11 +19,11 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class SettlementProjectSchedulerTest {
+class BannerModSettlementProjectSchedulerTest {
 
     @Test
     void submitThenPollRoundTripsPreservesProject() {
-        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
         UUID claim = UUID.randomUUID();
         PendingProject project = ProjectTestFactory.general(100, 10);
 
@@ -43,9 +43,9 @@ class SettlementProjectSchedulerTest {
 
     @Test
     void overflowBeyondCapKeepsHighestPriorityProjects() {
-        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
         UUID claim = UUID.randomUUID();
-        int over = SettlementProjectScheduler.PER_CLAIM_QUEUE_CAP + 5;
+        int over = BannerModSettlementProjectScheduler.PER_CLAIM_QUEUE_CAP + 5;
 
         PendingProject[] submitted = new PendingProject[over];
         for (int i = 0; i < over; i++) {
@@ -53,7 +53,7 @@ class SettlementProjectSchedulerTest {
             scheduler.submit(claim, submitted[i]);
         }
 
-        assertEquals(SettlementProjectScheduler.PER_CLAIM_QUEUE_CAP,
+        assertEquals(BannerModSettlementProjectScheduler.PER_CLAIM_QUEUE_CAP,
                 scheduler.pendingCount(claim),
                 "queue must clamp to per-claim cap");
 
@@ -66,7 +66,7 @@ class SettlementProjectSchedulerTest {
 
     @Test
     void higherPrioritySubmitMovesAheadOfExistingQueue() {
-        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
         UUID claim = UUID.randomUUID();
         PendingProject low = ProjectTestFactory.general(10, 5);
         PendingProject high = ProjectTestFactory.general(90, 5);
@@ -80,7 +80,7 @@ class SettlementProjectSchedulerTest {
 
     @Test
     void cancelByProjectIdRemovesFromQueue() {
-        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
         UUID claim = UUID.randomUUID();
         PendingProject head = ProjectTestFactory.general(50, 5);
         PendingProject mid = ProjectTestFactory.general(40, 5);
@@ -102,7 +102,7 @@ class SettlementProjectSchedulerTest {
 
     @Test
     void perClaimQueuesStayIsolated() {
-        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
         UUID claimX = UUID.randomUUID();
         UUID claimY = UUID.randomUUID();
 
@@ -124,7 +124,7 @@ class SettlementProjectSchedulerTest {
 
     @Test
     void snapshotReturnsStableDefensiveCopy() {
-        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
         UUID claim = UUID.randomUUID();
         PendingProject first = ProjectTestFactory.general(10, 5);
         PendingProject second = ProjectTestFactory.general(20, 5);
@@ -150,15 +150,16 @@ class SettlementProjectSchedulerTest {
 
     @Test
     void duplicateSubmitsAreDroppedByProjectId() {
-        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
         UUID claim = UUID.randomUUID();
         UUID projectId = UUID.randomUUID();
         PendingProject project = new PendingProject(
                 projectId,
                 ProjectKind.NEW_BUILDING,
                 null,
-                SettlementBuildingCategory.GENERAL,
-                SettlementBuildingProfileSeed.GENERAL,
+                null,
+                BannerModSettlementBuildingCategory.GENERAL,
+                BannerModSettlementBuildingProfileSeed.GENERAL,
                 100,
                 0L,
                 5,
@@ -172,7 +173,7 @@ class SettlementProjectSchedulerTest {
 
     @Test
     void resetDropsEverything() {
-        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
         UUID claim = UUID.randomUUID();
         scheduler.submit(claim, ProjectTestFactory.general(10, 5));
         scheduler.cancel(UUID.randomUUID(), ProjectCancellationReason.MANUAL);
@@ -185,7 +186,7 @@ class SettlementProjectSchedulerTest {
 
     @Test
     void pollingLastProjectRemovesNonPersistedEmptyQueue() {
-        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
         AtomicInteger dirtyCount = new AtomicInteger();
         UUID claim = UUID.randomUUID();
         PendingProject project = ProjectTestFactory.general(50, 5);
@@ -202,7 +203,7 @@ class SettlementProjectSchedulerTest {
 
     @Test
     void restoreFromTagMarksDirtyOnlyWhenPersistedSchedulerStateChanges() {
-        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
         AtomicInteger dirtyCount = new AtomicInteger();
         UUID claim = UUID.randomUUID();
         PendingProject project = ProjectTestFactory.general(50, 5);
@@ -212,7 +213,7 @@ class SettlementProjectSchedulerTest {
         scheduler.restoreFromTag(new CompoundTag());
         assertEquals(0, dirtyCount.get());
 
-        SettlementProjectScheduler source = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler source = BannerModSettlementProjectScheduler.detached();
         source.submit(claim, project);
         CompoundTag tag = source.toTag();
 
@@ -225,7 +226,7 @@ class SettlementProjectSchedulerTest {
 
     @Test
     void duplicateUnknownCancellationDoesNotDirtyAgain() {
-        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
         AtomicInteger dirtyCount = new AtomicInteger();
         UUID projectId = UUID.randomUUID();
 
@@ -239,15 +240,16 @@ class SettlementProjectSchedulerTest {
 
     @Test
     void nbtRoundTripRestoresQueuesAndCancellations() {
-        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
         UUID claim = UUID.randomUUID();
         UUID target = UUID.randomUUID();
         PendingProject project = new PendingProject(
                 UUID.randomUUID(),
                 ProjectKind.REPAIR,
                 target,
-                SettlementBuildingCategory.STORAGE,
-                SettlementBuildingProfileSeed.STORAGE,
+                null,
+                BannerModSettlementBuildingCategory.STORAGE,
+                BannerModSettlementBuildingProfileSeed.STORAGE,
                 1200,
                 44L,
                 9,
@@ -258,15 +260,15 @@ class SettlementProjectSchedulerTest {
         scheduler.submit(claim, project);
         scheduler.cancel(cancelled, ProjectCancellationReason.BLOCKED);
 
-        SettlementProjectScheduler restored = SettlementProjectScheduler.fromTag(scheduler.toTag());
+        BannerModSettlementProjectScheduler restored = BannerModSettlementProjectScheduler.fromTag(scheduler.toTag());
 
         assertEquals(1, restored.pendingCount(claim));
         PendingProject restoredProject = restored.peek(claim).orElseThrow();
         assertEquals(project.projectId(), restoredProject.projectId());
         assertEquals(ProjectKind.REPAIR, restoredProject.kind());
         assertEquals(target, restoredProject.targetBuildingUuid());
-        assertEquals(SettlementBuildingCategory.STORAGE, restoredProject.buildingCategory());
-        assertEquals(SettlementBuildingProfileSeed.STORAGE, restoredProject.profileSeed());
+        assertEquals(BannerModSettlementBuildingCategory.STORAGE, restoredProject.buildingCategory());
+        assertEquals(BannerModSettlementBuildingProfileSeed.STORAGE, restoredProject.profileSeed());
         assertEquals(1000, restoredProject.priorityScore());
         assertEquals(44L, restoredProject.proposedAtGameTime());
         assertEquals(9, restoredProject.estimatedTickCost());
@@ -276,13 +278,13 @@ class SettlementProjectSchedulerTest {
 
     @Test
     void savedDataRoundTripRestoresRuntimeQueue() {
-        SettlementProjectSavedData source = new SettlementProjectSavedData();
+        BannerModSettlementProjectSavedData source = new BannerModSettlementProjectSavedData();
         UUID claim = UUID.randomUUID();
         PendingProject project = ProjectTestFactory.general(75, 6);
 
         source.runtime().scheduler().submit(claim, project);
 
-        SettlementProjectSavedData restored = SettlementProjectSavedData.load(source.save(new CompoundTag(), null), null);
+        BannerModSettlementProjectSavedData restored = BannerModSettlementProjectSavedData.load(source.save(new CompoundTag(), null), null);
 
         assertEquals(1, restored.runtime().scheduler().pendingCount(claim));
         assertEquals(project.projectId(), restored.runtime().scheduler().peek(claim).orElseThrow().projectId());
@@ -290,7 +292,7 @@ class SettlementProjectSchedulerTest {
 
     @Test
     void dirtyListenerRunsOnlyForEffectiveMutations() {
-        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
         AtomicInteger dirtyCount = new AtomicInteger();
         UUID claim = UUID.randomUUID();
         PendingProject project = ProjectTestFactory.general(50, 5);
@@ -308,12 +310,12 @@ class SettlementProjectSchedulerTest {
 
     @Test
     void forServerRejectsNullLevel() {
-        assertThrows(IllegalArgumentException.class, () -> SettlementProjectScheduler.forServer(null));
+        assertThrows(IllegalArgumentException.class, () -> BannerModSettlementProjectScheduler.forServer(null));
     }
 
     @Test
     void requeueFrontPrependsProjectAndMarksDirty() {
-        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
         AtomicInteger dirtyCount = new AtomicInteger();
         UUID claim = UUID.randomUUID();
         PendingProject queued = ProjectTestFactory.general(50, 5);
@@ -331,10 +333,10 @@ class SettlementProjectSchedulerTest {
 
     @Test
     void requeueFrontRespectsCapAndLeavesQueueUntouchedWhenFull() {
-        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
         AtomicInteger dirtyCount = new AtomicInteger();
         UUID claim = UUID.randomUUID();
-        for (int i = 0; i < SettlementProjectScheduler.PER_CLAIM_QUEUE_CAP; i++) {
+        for (int i = 0; i < BannerModSettlementProjectScheduler.PER_CLAIM_QUEUE_CAP; i++) {
             scheduler.submit(claim, ProjectTestFactory.general(200 - i, 1));
         }
         List<PendingProject> before = scheduler.snapshot(claim);

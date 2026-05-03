@@ -33,6 +33,27 @@ public final class NpcHousingRequestAccess {
         return NpcHousingRequestSavedData.get(level).runtime().approve(householdId, gameTime);
     }
 
+    public static NpcHousingRequestRecord approveHousehold(ServerLevel level, UUID householdId, long gameTime) {
+        if (householdId == null) {
+            throw new IllegalArgumentException("householdId must not be null");
+        }
+        return NpcHousingRequestSavedData.get(level).runtime().approve(householdId, gameTime);
+    }
+
+    public static NpcHousingRequestRecord denyHousehold(ServerLevel level, UUID householdId, long gameTime) {
+        if (householdId == null) {
+            throw new IllegalArgumentException("householdId must not be null");
+        }
+        return NpcHousingRequestSavedData.get(level).runtime().deny(householdId, gameTime);
+    }
+
+    public static @Nullable NpcHousingRequestRecord requestForHousehold(ServerLevel level, UUID householdId) {
+        if (householdId == null) {
+            return null;
+        }
+        return NpcHousingRequestSavedData.get(level).runtime().requestForHousehold(householdId).orElse(null);
+    }
+
     public static void markFulfilled(ServerLevel level, UUID residentUuid, long gameTime) {
         NpcHouseholdRecord household = NpcHouseholdAccess.householdForResident(level, residentUuid).orElse(null);
         if (household == null || household.housingState() != NpcHouseholdHousingState.NORMAL) {

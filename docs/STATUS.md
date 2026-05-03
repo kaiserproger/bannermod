@@ -1,6 +1,6 @@
 # Developer Status
 
-Last updated: 2026-04-28.
+Last updated: 2026-05-03.
 
 ## Runtime State
 
@@ -14,6 +14,11 @@ Last updated: 2026-04-28.
 
 - Compact Phase 25 settlement runtime is live enough to publish and persist work-order claims, growth/project hints, job scheduling gates, market/stockpile snapshots, and targeted mutation refreshes.
 - Compact Phase 26 combat AI is live: stance control, shield-wall behavior, reach weapons, second-rank poke, flank/cohesion/brace rules, unit counters, and Better Combat metadata/attack-presentation integration.
+- NPC housing requests now require explicit ruler approval in the first shipped slice: new petitions stay pending, rulers get clickable chat actions plus `/bannermod society housing list`, denied state is persisted, and only approved petitions enter the house-project path.
+- Settlements can now raise ruler-approved livelihood requests for `lumber camp`, `mine`, and `animal pen`; the new requests stay pending until approved via clickable chat or `/bannermod society livelihood list`, then flow into the prefab project path with exact prefab ids.
+- Workers now craft first-slice replacement stone tools for themselves at nearby crafting tables when they can obtain the needed materials, reducing permanent idle states after tool loss.
+- Settlement-spawned workers now start with basic profession tools and auto-bind to existing friendly claim work areas for farmer/lumberjack/miner/fisherman/animal-farmer paths when those zones already exist.
+- NPC society Phase 3 is now live: bounded resident memory saved data, derived trust/fear/anger/gratitude/loyalty state, family/household memory spread for player harm/protection, memory-driven intent pressure, and a dedicated social-memory ledger for citizen/worker inspection.
 - War Room and political UI now cover political entity list/detail actions, siege-standard placement, siege-zone HUD status, government form toggles, cooldown-backed war spam protection, a synced battle-window phase banner with humanized open/close countdown, and a consent-based ally invite flow (leader-or-op invite, leader accept/decline/cancel, picker filtered by the shared `WarAllyPolicy`).
 - War runtime is partially live beyond declarations: outcome actions can create occupations/annexations/tribute/vassalization/demilitarization, occupation tax accrues from a server ticker, due revolts auto-resolve from objective presence during battle windows, and recruits can attack enemy siege standards or escort same-side standards.
 - Worker/settlement claim binding is being normalized away from legacy faction IDs toward political-entity UUIDs and scoreboard team names.

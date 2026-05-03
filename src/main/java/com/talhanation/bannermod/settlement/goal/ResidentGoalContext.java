@@ -14,8 +14,22 @@ public record ResidentGoalContext(
         BannerModSettlementResidentRecord resident,
         @Nullable BannerModSettlementSnapshot settlement,
         long gameTime,
+        long worldDayTime,
         @Nullable NpcSocietyProfile societyProfile
 ) {
+
+    public ResidentGoalContext(BannerModSettlementResidentRecord resident,
+                               @Nullable BannerModSettlementSnapshot settlement,
+                               long gameTime) {
+        this(resident, settlement, gameTime, gameTime, null);
+    }
+
+    public ResidentGoalContext(BannerModSettlementResidentRecord resident,
+                               @Nullable BannerModSettlementSnapshot settlement,
+                               long gameTime,
+                               @Nullable NpcSocietyProfile societyProfile) {
+        this(resident, settlement, gameTime, gameTime, societyProfile);
+    }
 
     public UUID residentId() {
         return this.resident.residentUuid();
@@ -31,7 +45,7 @@ public record ResidentGoalContext(
 
     /** Minecraft day-of-time (0..23999) derived from absolute game time. */
     public int dayTime() {
-        long time = this.gameTime % 24000L;
+        long time = this.worldDayTime % 24000L;
         if (time < 0L) {
             time += 24000L;
         }
@@ -70,6 +84,26 @@ public record ResidentGoalContext(
 
     public int safetyNeed() {
         return this.societyProfile == null ? 0 : this.societyProfile.safetyNeed();
+    }
+
+    public int trustScore() {
+        return this.societyProfile == null ? 50 : this.societyProfile.trustScore();
+    }
+
+    public int fearScore() {
+        return this.societyProfile == null ? 0 : this.societyProfile.fearScore();
+    }
+
+    public int angerScore() {
+        return this.societyProfile == null ? 0 : this.societyProfile.angerScore();
+    }
+
+    public int gratitudeScore() {
+        return this.societyProfile == null ? 0 : this.societyProfile.gratitudeScore();
+    }
+
+    public int loyaltyScore() {
+        return this.societyProfile == null ? 50 : this.societyProfile.loyaltyScore();
     }
 
     public boolean canDefend() {

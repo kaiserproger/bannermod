@@ -4,9 +4,18 @@ import com.talhanation.bannermod.config.RecruitsServerConfig;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.entity.civilian.AbstractWorkerEntity;
+import com.talhanation.bannermod.entity.civilian.AnimalFarmerEntity;
 import com.talhanation.bannermod.entity.civilian.FarmerEntity;
+import com.talhanation.bannermod.entity.civilian.FishermanEntity;
+import com.talhanation.bannermod.entity.civilian.LumberjackEntity;
+import com.talhanation.bannermod.entity.civilian.MinerEntity;
 import com.talhanation.bannermod.ai.civilian.FarmerPlantingPreparation;
+import com.talhanation.bannermod.entity.civilian.workarea.AbstractWorkAreaEntity;
+import com.talhanation.bannermod.entity.civilian.workarea.AnimalPenArea;
 import com.talhanation.bannermod.entity.civilian.workarea.CropArea;
+import com.talhanation.bannermod.entity.civilian.workarea.FishingArea;
+import com.talhanation.bannermod.entity.civilian.workarea.LumberArea;
+import com.talhanation.bannermod.entity.civilian.workarea.MiningArea;
 import com.talhanation.bannermod.entity.civilian.workarea.WorkAreaIndex;
 import com.talhanation.bannermod.registry.civilian.ModEntityTypes;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementRefreshSupport;
@@ -167,7 +176,15 @@ public final class WorkerSettlementSpawner {
                                                   RecruitsClaim claim,
                                                   PoliticalEntityRecord owner,
                                                   BlockPos spawnPos) {
-        if (!(worker instanceof FarmerEntity farmer) || claim == null || owner == null) {
+        if (worker == null || claim == null || owner == null) {
+            return;
+        }
+
+        if (bindExistingClaimWorkArea(level, claim, worker)) {
+            return;
+        }
+
+        if (!(worker instanceof FarmerEntity farmer)) {
             return;
         }
 
@@ -206,6 +223,51 @@ public final class WorkerSettlementSpawner {
         farmer.setCurrentWorkArea(cropArea);
     }
 
+    private static boolean bindExistingClaimWorkArea(ServerLevel level,
+                                                     RecruitsClaim claim,
+                                                     AbstractWorkerEntity worker) {
+        if (worker instanceof FarmerEntity farmer) {
+            CropArea area = findClaimCropArea(level, claim, farmer);
+            if (area != null) {
+                farmer.setCurrentWorkArea(area);
+                return true;
+            }
+            return false;
+        }
+        if (worker instanceof LumberjackEntity lumberjack) {
+            LumberArea area = findClaimArea(level, claim, LumberArea.class, lumberjack);
+            if (area != null) {
+                lumberjack.setCurrentWorkArea(area);
+                return true;
+            }
+            return false;
+        }
+        if (worker instanceof MinerEntity miner) {
+            MiningArea area = findClaimArea(level, claim, MiningArea.class, miner);
+            if (area != null) {
+                miner.setCurrentWorkArea(area);
+                return true;
+            }
+            return false;
+        }
+        if (worker instanceof AnimalFarmerEntity animalFarmer) {
+            AnimalPenArea area = findClaimArea(level, claim, AnimalPenArea.class, animalFarmer);
+            if (area != null) {
+                animalFarmer.setCurrentWorkArea(area);
+                return true;
+            }
+            return false;
+        }
+        if (worker instanceof FishermanEntity fisherman) {
+            FishingArea area = findClaimArea(level, claim, FishingArea.class, fisherman);
+            if (area != null) {
+                fisherman.setCurrentWorkArea(area);
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Nullable
     private static CropArea findClaimCropArea(ServerLevel level, RecruitsClaim claim, FarmerEntity farmer) {
         for (CropArea cropArea : getClaimCropAreas(level, claim)) {
@@ -218,6 +280,19 @@ public final class WorkerSettlementSpawner {
 
     private static List<CropArea> getClaimCropAreas(ServerLevel level, RecruitsClaim claim) {
         return WorkAreaIndex.instance().queryInChunks(level, claim.getClaimedChunks(), CropArea.class);
+    }
+
+    @Nullable
+    private static <T extends AbstractWorkAreaEntity> T findClaimArea(ServerLevel level,
+                                                                      RecruitsClaim claim,
+                                                                      Class<T> areaType,
+                                                                      AbstractWorkerEntity worker) {
+        for (T area : WorkAreaIndex.instance().queryInChunks(level, claim.getClaimedChunks(), areaType)) {
+            if (area != null && area.canWorkHere(worker)) {
+                return area;
+            }
+        }
+        return null;
     }
 
     @Nullable

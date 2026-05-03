@@ -40,6 +40,10 @@ public final class NpcHouseholdAccess {
         return NpcHouseholdSavedData.get(level).runtime().householdForResident(residentUuid);
     }
 
+    public static Optional<NpcHouseholdRecord> householdFor(ServerLevel level, UUID householdId) {
+        return NpcHouseholdSavedData.get(level).runtime().householdFor(householdId);
+    }
+
     public static Optional<NpcHouseholdRecord> householdForHome(ServerLevel level, UUID homeBuildingUuid) {
         return NpcHouseholdSavedData.get(level).runtime().householdForHome(homeBuildingUuid);
     }

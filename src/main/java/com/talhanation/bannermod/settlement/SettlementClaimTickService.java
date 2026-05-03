@@ -2,6 +2,8 @@ package com.talhanation.bannermod.settlement;
 
 import com.talhanation.bannermod.governance.BannerModGovernorSnapshot;
 import com.talhanation.bannermod.society.NpcHousingProjectPlanner;
+import com.talhanation.bannermod.society.NpcLivelihoodProjectPlanner;
+import com.talhanation.bannermod.society.NpcMemoryAccess;
 import com.talhanation.bannermod.society.NpcSocietyNeedRuntime;
 import com.talhanation.bannermod.settlement.dispatch.BannerModSellerDispatchRuntime;
 import com.talhanation.bannermod.settlement.dispatch.SellerPhase;
@@ -65,8 +67,12 @@ final class BannerModSettlementClaimTickService {
         List<PendingProject> citizenHousingProjects = level == null
                 ? List.of()
                 : NpcHousingProjectPlanner.collectApprovedHouseProjects(level, snapshot, state.homeRuntime, gameTime);
+        List<PendingProject> livelihoodProjects = level == null
+                ? List.of()
+                : NpcLivelihoodProjectPlanner.collectApprovedProjects(level, snapshot, gameTime);
         List<PendingProject> combinedGrowthQueue = new java.util.ArrayList<>(growthQueue);
         combinedGrowthQueue.addAll(citizenHousingProjects);
+        combinedGrowthQueue.addAll(livelihoodProjects);
         // Keep settlement founding/player progression manual: passive claim ticks may bind
         // existing BuildAreas, but must not auto-spawn prefab-backed ones on their own.
         state.projectRuntime.tickClaim(
@@ -87,7 +93,8 @@ final class BannerModSettlementClaimTickService {
             }
             ResidentTask previousTask = state.goalScheduler.currentTask(resident.residentUuid()).orElse(null);
             NpcSocietyProfile profile = preScheduleSocietyTick(level, state.homeRuntime, resident, gameTime, previousTask);
-            ResidentGoalContext goalContext = new ResidentGoalContext(resident, snapshot, gameTime, profile);
+            long worldDayTime = level == null ? gameTime : level.getDayTime();
+            ResidentGoalContext goalContext = new ResidentGoalContext(resident, snapshot, gameTime, worldDayTime, profile);
             state.goalScheduler.tick(goalContext);
             runResidentJobStep(state, goalContext);
             syncResidentSocietyProfile(state, goalContext, level, buildingsByUuid);
@@ -187,7 +194,7 @@ final class BannerModSettlementClaimTickService {
         UUID residentUuid = resident.residentUuid();
         NpcSocietyProfile profile = NpcSocietyAccess.ensureResident(level, residentUuid, gameTime);
         UUID homeBuildingUuid = homeRuntime.homeFor(residentUuid).map(home -> home.homeBuildingUuid()).orElse(null);
-        ResidentGoalContext previewContext = new ResidentGoalContext(resident, null, gameTime, profile);
+        ResidentGoalContext previewContext = new ResidentGoalContext(resident, null, gameTime, level.getDayTime(), profile);
         Entity residentEntity = level == null ? null : level.getEntity(residentUuid);
         NpcSocietyProfile updatedProfile = NpcSocietyNeedRuntime.tickNeeds(
                 profile,
@@ -199,7 +206,7 @@ final class BannerModSettlementClaimTickService {
                 resident.role() == BannerModSettlementResidentRole.GOVERNOR_RECRUIT,
                 gameTime
         );
-        return NpcSocietyAccess.reconcileNeedState(
+        NpcSocietyProfile needProfile = NpcSocietyAccess.reconcileNeedState(
                 level,
                 residentUuid,
                 updatedProfile.hungerNeed(),
@@ -208,6 +215,7 @@ final class BannerModSettlementClaimTickService {
                 updatedProfile.safetyNeed(),
                 gameTime
         );
+        return NpcMemoryAccess.tickResidentState(level, needProfile, gameTime);
     }
 
     private static boolean isThreatened(@Nullable Entity entity) {

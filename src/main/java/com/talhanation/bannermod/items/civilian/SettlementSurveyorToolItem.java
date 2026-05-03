@@ -153,7 +153,11 @@ public class SettlementSurveyorToolItem extends Item {
             return;
         }
         ValidationSession session = getOrCreateSession(player, stack);
-        SurveyorSessionCodec.write(stack, session.withMode(mode));
+        ItemStackComponentData.update(stack, data -> data.remove(TAG_PENDING_CORNER));
+        ValidationSession updated = session.mode() == mode
+                ? session.withMode(mode)
+                : new ValidationSession(player.getUUID(), mode, BlockPos.ZERO, List.of(), session.showGuidePreview());
+        SurveyorSessionCodec.write(stack, updated);
         setSelectedRole(stack, defaultRoleForMode(mode));
     }
 

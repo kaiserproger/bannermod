@@ -16,6 +16,7 @@ import com.talhanation.bannermod.entity.military.AbstractChunkLoaderEntity;
 import com.talhanation.bannermod.ai.civilian.DepositItemsToStorage;
 import com.talhanation.bannermod.ai.civilian.GetNeededItemsFromStorage;
 import com.talhanation.bannermod.ai.civilian.SettlementOrderWorkGoal;
+import com.talhanation.bannermod.ai.civilian.WorkerToolCraftingGoal;
 import com.talhanation.bannermod.entity.civilian.workarea.AbstractWorkAreaEntity;
 import com.talhanation.bannermod.network.compat.BannerModPacketDistributor;
 import com.talhanation.bannermod.network.messages.civilian.MessageToClientOpenWorkerScreen;
@@ -38,6 +39,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Block;
@@ -94,6 +96,7 @@ public abstract class AbstractWorkerEntity extends AbstractChunkLoaderEntity imp
     @Override
     protected void registerGoals() {
         super.registerGoals();
+        this.goalSelector.addGoal(0, new WorkerToolCraftingGoal(this));
         this.goalSelector.addGoal(0, new SettlementOrderWorkGoal(this));
         this.goalSelector.addGoal(0, new DepositItemsToStorage(this));
         this.goalSelector.addGoal(0, new GetNeededItemsFromStorage(this));
@@ -361,6 +364,55 @@ public abstract class AbstractWorkerEntity extends AbstractChunkLoaderEntity imp
     //////////////////////////////////// SET////////////////////////////////////
 
     public void setEquipment() {
+        if (this instanceof LumberjackEntity) {
+            ensureStarterItem(new ItemStack(Items.STONE_AXE), true);
+            return;
+        }
+        if (this instanceof MinerEntity) {
+            ensureStarterItem(new ItemStack(Items.STONE_PICKAXE), true);
+            ensureStarterItem(new ItemStack(Items.STONE_SHOVEL), false);
+            ensureStarterItem(new ItemStack(Items.TORCH, 16), false);
+            ensureStarterItem(new ItemStack(Items.COBBLESTONE, 16), false);
+            return;
+        }
+        if (this instanceof FarmerEntity) {
+            ensureStarterItem(new ItemStack(Items.STONE_HOE), true);
+            return;
+        }
+        if (this instanceof AnimalFarmerEntity) {
+            ensureStarterItem(new ItemStack(Items.STONE_AXE), true);
+            return;
+        }
+        if (this instanceof BuilderEntity) {
+            ensureStarterItem(new ItemStack(Items.STONE_AXE), true);
+            ensureStarterItem(new ItemStack(Items.STONE_PICKAXE), false);
+            ensureStarterItem(new ItemStack(Items.STONE_SHOVEL), false);
+            return;
+        }
+        if (this instanceof FishermanEntity) {
+            ensureStarterItem(new ItemStack(Items.FISHING_ROD), true);
+        }
+    }
+
+    private void ensureStarterItem(ItemStack stack, boolean preferMainHand) {
+        if (stack.isEmpty()) {
+            return;
+        }
+        if (this.getMainHandItem().is(stack.getItem()) || this.getOffhandItem().is(stack.getItem())) {
+            return;
+        }
+        ItemStack existing = this.getMatchingItem(candidate -> candidate.is(stack.getItem()));
+        if (existing != null && !existing.isEmpty()) {
+            if (preferMainHand && !this.getMainHandItem().is(stack.getItem())) {
+                this.setItemInHand(InteractionHand.MAIN_HAND, existing.copy());
+            }
+            return;
+        }
+        ItemStack toStore = stack.copy();
+        if (preferMainHand) {
+            this.setItemInHand(InteractionHand.MAIN_HAND, toStore.copy());
+        }
+        this.getInventory().addItem(toStore);
     }
 
     public boolean needsToSleep() {
@@ -392,6 +444,10 @@ public abstract class AbstractWorkerEntity extends AbstractChunkLoaderEntity imp
 
     public void mineBlock(BlockPos pos) {
         this.blockBreakService.mineBlock(pos);
+    }
+
+    public void onWorkerItemAdded(ItemStack itemStack) {
+        this.supplyRuntime.onItemStackAdded(itemStack);
     }
 
 

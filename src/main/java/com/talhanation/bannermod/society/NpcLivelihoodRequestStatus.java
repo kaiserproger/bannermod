@@ -1,18 +1,18 @@
 package com.talhanation.bannermod.society;
 
-public enum NpcHousingRequestStatus {
+public enum NpcLivelihoodRequestStatus {
     NONE,
     REQUESTED,
     DENIED,
     APPROVED,
     FULFILLED;
 
-    public static NpcHousingRequestStatus fromName(String name) {
+    public static NpcLivelihoodRequestStatus fromName(String name) {
         if (name == null || name.isBlank()) {
             return NONE;
         }
         try {
-            return NpcHousingRequestStatus.valueOf(name);
+            return NpcLivelihoodRequestStatus.valueOf(name);
         } catch (IllegalArgumentException ignored) {
             return NONE;
         }

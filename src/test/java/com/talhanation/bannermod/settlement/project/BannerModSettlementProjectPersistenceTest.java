@@ -1,10 +1,11 @@
 package com.talhanation.bannermod.settlement.project;
 
-import com.talhanation.bannermod.settlement.SettlementBuildingCategory;
-import com.talhanation.bannermod.settlement.SettlementBuildingProfileSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementBuildingCategory;
+import com.talhanation.bannermod.settlement.BannerModSettlementBuildingProfileSeed;
 import com.talhanation.bannermod.settlement.growth.PendingProject;
 import com.talhanation.bannermod.settlement.growth.ProjectBlocker;
 import com.talhanation.bannermod.settlement.growth.ProjectKind;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -25,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Locks the persistence contract for the project-queue subsystem of SETTLEMENT-004
  * ("Reload does not lose active meaningful settlement work state"). Covers both leaf
  * ({@link PendingProject#toTag} / {@link PendingProject#fromTag}) and aggregate
- * ({@link SettlementProjectScheduler#toTag} / {@link SettlementProjectScheduler#fromTag})
+ * ({@link BannerModSettlementProjectScheduler#toTag} / {@link BannerModSettlementProjectScheduler#fromTag})
  * roundtrips, plus forward-compat fallbacks for every embedded enum and the
  * per-claim queue cap regression guard.
  *
@@ -53,8 +54,9 @@ class BannerModSettlementProjectPersistenceTest {
                 PROJECT_X,
                 ProjectKind.UPGRADE,
                 TARGET_BUILDING,
-                SettlementBuildingCategory.GENERAL,
-                SettlementBuildingProfileSeed.GENERAL,
+                ResourceLocation.fromNamespaceAndPath("bannermod", "mine"),
+                BannerModSettlementBuildingCategory.GENERAL,
+                BannerModSettlementBuildingProfileSeed.GENERAL,
                 420,
                 12_345L,
                 7,
@@ -76,8 +78,9 @@ class BannerModSettlementProjectPersistenceTest {
                 PROJECT_X,
                 ProjectKind.NEW_BUILDING,
                 TARGET_BUILDING, // ctor will null this out
-                SettlementBuildingCategory.GENERAL,
-                SettlementBuildingProfileSeed.GENERAL,
+                ResourceLocation.fromNamespaceAndPath("bannermod", "house"),
+                BannerModSettlementBuildingCategory.GENERAL,
+                BannerModSettlementBuildingProfileSeed.GENERAL,
                 500,
                 0L,
                 3,
@@ -99,9 +102,9 @@ class BannerModSettlementProjectPersistenceTest {
         for (ProjectKind kind : ProjectKind.values()) {
             UUID target = kind == ProjectKind.NEW_BUILDING ? null : TARGET_BUILDING;
             PendingProject original = new PendingProject(
-                    PROJECT_X, kind, target,
-                    SettlementBuildingCategory.GENERAL,
-                    SettlementBuildingProfileSeed.GENERAL,
+                    PROJECT_X, kind, target, null,
+                    BannerModSettlementBuildingCategory.GENERAL,
+                    BannerModSettlementBuildingProfileSeed.GENERAL,
                     100, 0L, 1, ProjectBlocker.NONE
             );
             PendingProject decoded = PendingProject.fromTag(original.toTag());
@@ -117,8 +120,8 @@ class BannerModSettlementProjectPersistenceTest {
         CompoundTag tag = new CompoundTag();
         tag.putUUID("Id", PROJECT_X);
         tag.putString("Kind", "KIND_FROM_THE_FUTURE");
-        tag.putString("Category", SettlementBuildingCategory.GENERAL.name());
-        tag.putString("Profile", SettlementBuildingProfileSeed.GENERAL.name());
+        tag.putString("Category", BannerModSettlementBuildingCategory.GENERAL.name());
+        tag.putString("Profile", BannerModSettlementBuildingProfileSeed.GENERAL.name());
         tag.putInt("Priority", 1);
         tag.putLong("ProposedAt", 0L);
         tag.putInt("Cost", 1);
@@ -136,9 +139,9 @@ class BannerModSettlementProjectPersistenceTest {
     void everyProjectBlockerRoundTripsExactly() {
         for (ProjectBlocker blocker : ProjectBlocker.values()) {
             PendingProject original = new PendingProject(
-                    PROJECT_X, ProjectKind.NEW_BUILDING, null,
-                    SettlementBuildingCategory.GENERAL,
-                    SettlementBuildingProfileSeed.GENERAL,
+                    PROJECT_X, ProjectKind.NEW_BUILDING, null, null,
+                    BannerModSettlementBuildingCategory.GENERAL,
+                    BannerModSettlementBuildingProfileSeed.GENERAL,
                     1, 0L, 1, blocker
             );
             PendingProject decoded = PendingProject.fromTag(original.toTag());
@@ -152,8 +155,8 @@ class BannerModSettlementProjectPersistenceTest {
         CompoundTag tag = new CompoundTag();
         tag.putUUID("Id", PROJECT_X);
         tag.putString("Kind", ProjectKind.NEW_BUILDING.name());
-        tag.putString("Category", SettlementBuildingCategory.GENERAL.name());
-        tag.putString("Profile", SettlementBuildingProfileSeed.GENERAL.name());
+        tag.putString("Category", BannerModSettlementBuildingCategory.GENERAL.name());
+        tag.putString("Profile", BannerModSettlementBuildingProfileSeed.GENERAL.name());
         tag.putInt("Priority", 1);
         tag.putLong("ProposedAt", 0L);
         tag.putInt("Cost", 1);
@@ -171,10 +174,10 @@ class BannerModSettlementProjectPersistenceTest {
 
     @Test
     void emptySchedulerRoundTripsToEmptyScheduler() {
-        SettlementProjectScheduler original = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler original = BannerModSettlementProjectScheduler.detached();
 
-        SettlementProjectScheduler decoded =
-                SettlementProjectScheduler.fromTag(original.toTag());
+        BannerModSettlementProjectScheduler decoded =
+                BannerModSettlementProjectScheduler.fromTag(original.toTag());
 
         assertTrue(decoded.snapshot(CLAIM_A).isEmpty(),
                 "empty scheduler must roundtrip to empty — no spurious decoded entries");
@@ -187,7 +190,7 @@ class BannerModSettlementProjectPersistenceTest {
         // Two claims, each with mixed-priority queues. Submission order is intentionally
         // non-priority-sorted on the input side so the priority-sort contract is the
         // observable check, not the insertion contract.
-        SettlementProjectScheduler original = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler original = BannerModSettlementProjectScheduler.detached();
         original.submit(CLAIM_A, ProjectTestFactory.general(100, 5));
         original.submit(CLAIM_A, ProjectTestFactory.general(500, 3));
         original.submit(CLAIM_A, ProjectTestFactory.general(300, 4));
@@ -198,8 +201,8 @@ class BannerModSettlementProjectPersistenceTest {
         assertEquals(500, claimABefore.get(0).priorityScore(),
                 "highest priority must lead claimA after submit() priority sort — guards the test premise");
 
-        SettlementProjectScheduler decoded =
-                SettlementProjectScheduler.fromTag(original.toTag());
+        BannerModSettlementProjectScheduler decoded =
+                BannerModSettlementProjectScheduler.fromTag(original.toTag());
 
         assertEquals(claimABefore, decoded.snapshot(CLAIM_A),
                 "claimA queue must roundtrip in priority-sorted order");
@@ -209,12 +212,12 @@ class BannerModSettlementProjectPersistenceTest {
 
     @Test
     void cancellationLogRoundTripsEntries() {
-        SettlementProjectScheduler original = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler original = BannerModSettlementProjectScheduler.detached();
         original.cancel(PROJECT_X, ProjectCancellationReason.SUPERSEDED);
         original.cancel(PROJECT_Y, ProjectCancellationReason.BLOCKED);
 
-        SettlementProjectScheduler decoded =
-                SettlementProjectScheduler.fromTag(original.toTag());
+        BannerModSettlementProjectScheduler decoded =
+                BannerModSettlementProjectScheduler.fromTag(original.toTag());
 
         assertEquals(ProjectCancellationReason.SUPERSEDED, decoded.lastCancellationReason(PROJECT_X),
                 "SUPERSEDED cancellation must survive the roundtrip");
@@ -227,11 +230,11 @@ class BannerModSettlementProjectPersistenceTest {
         // Defends against accidental enum churn on the cancellation side, mirroring the
         // ProjectKind / ProjectBlocker checks above.
         for (ProjectCancellationReason reason : ProjectCancellationReason.values()) {
-            SettlementProjectScheduler original = SettlementProjectScheduler.detached();
+            BannerModSettlementProjectScheduler original = BannerModSettlementProjectScheduler.detached();
             original.cancel(PROJECT_X, reason);
 
-            SettlementProjectScheduler decoded =
-                    SettlementProjectScheduler.fromTag(original.toTag());
+            BannerModSettlementProjectScheduler decoded =
+                    BannerModSettlementProjectScheduler.fromTag(original.toTag());
 
             assertEquals(reason, decoded.lastCancellationReason(PROJECT_X),
                     "ProjectCancellationReason." + reason.name() + " must roundtrip exactly");
@@ -251,8 +254,8 @@ class BannerModSettlementProjectPersistenceTest {
         cancellations.add(cancellationTag);
         tag.put("Cancellations", cancellations);
 
-        SettlementProjectScheduler decoded =
-                SettlementProjectScheduler.fromTag(tag);
+        BannerModSettlementProjectScheduler decoded =
+                BannerModSettlementProjectScheduler.fromTag(tag);
 
         assertEquals(ProjectCancellationReason.MANUAL, decoded.lastCancellationReason(PROJECT_X),
                 "unknown cancellation reason must fall back to MANUAL");
@@ -268,7 +271,7 @@ class BannerModSettlementProjectPersistenceTest {
         CompoundTag queueTag = new CompoundTag();
         queueTag.putUUID("Claim", CLAIM_A);
         ListTag projectTags = new ListTag();
-        int overshoot = SettlementProjectScheduler.PER_CLAIM_QUEUE_CAP + 5;
+        int overshoot = BannerModSettlementProjectScheduler.PER_CLAIM_QUEUE_CAP + 5;
         for (int i = 0; i < overshoot; i++) {
             // Build a unique-id project; reuse the toTag emission path so a regression in
             // PendingProject.toTag would fail the cap test instead of silently passing.
@@ -276,8 +279,9 @@ class BannerModSettlementProjectPersistenceTest {
                     UUID.randomUUID(),
                     ProjectKind.NEW_BUILDING,
                     null,
-                    SettlementBuildingCategory.GENERAL,
-                    SettlementBuildingProfileSeed.GENERAL,
+                    null,
+                    BannerModSettlementBuildingCategory.GENERAL,
+                    BannerModSettlementBuildingProfileSeed.GENERAL,
                     100, i, 1, ProjectBlocker.NONE
             );
             projectTags.add(project.toTag());
@@ -287,10 +291,10 @@ class BannerModSettlementProjectPersistenceTest {
         tag.put("Queues", queues);
         tag.put("Cancellations", new ListTag());
 
-        SettlementProjectScheduler decoded =
-                SettlementProjectScheduler.fromTag(tag);
+        BannerModSettlementProjectScheduler decoded =
+                BannerModSettlementProjectScheduler.fromTag(tag);
 
-        assertEquals(SettlementProjectScheduler.PER_CLAIM_QUEUE_CAP,
+        assertEquals(BannerModSettlementProjectScheduler.PER_CLAIM_QUEUE_CAP,
                 decoded.pendingCount(CLAIM_A),
                 "loader must truncate to PER_CLAIM_QUEUE_CAP, not lift the cap on load");
     }
@@ -303,7 +307,7 @@ class BannerModSettlementProjectPersistenceTest {
     void identicalRestoreFromTagDoesNotDirty() {
         // Same content via NBT roundtrip must not mark dirty — that's the "no false dirty
         // churn on identical reload/restore" half of the SETTLEMENT-004 acceptance.
-        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
         scheduler.submit(CLAIM_A, ProjectTestFactory.general(200, 1));
         scheduler.cancel(PROJECT_X, ProjectCancellationReason.MANUAL);
 
@@ -318,7 +322,7 @@ class BannerModSettlementProjectPersistenceTest {
 
     @Test
     void differentRestoreFromTagDoesDirty() {
-        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
         scheduler.submit(CLAIM_A, ProjectTestFactory.general(200, 1));
 
         AtomicInteger dirtyCount = new AtomicInteger();
@@ -339,11 +343,11 @@ class BannerModSettlementProjectPersistenceTest {
         // Defensive: a regression where fromTag returned a scheduler that shared internal
         // collections with the source would silently bleed mutations across saved-data
         // boundaries. PendingProject is a record so this is unlikely, but the test is cheap.
-        SettlementProjectScheduler original = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler original = BannerModSettlementProjectScheduler.detached();
         original.submit(CLAIM_A, ProjectTestFactory.general(100, 1));
 
-        SettlementProjectScheduler decoded =
-                SettlementProjectScheduler.fromTag(original.toTag());
+        BannerModSettlementProjectScheduler decoded =
+                BannerModSettlementProjectScheduler.fromTag(original.toTag());
 
         decoded.pollNext(CLAIM_A);
 
@@ -361,7 +365,7 @@ class BannerModSettlementProjectPersistenceTest {
         // representation as a zero-entry queue tag — that would produce save bloat over
         // long-running worlds and break the `if (queue.isEmpty()) queues.remove` invariant
         // on the runtime side.
-        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
+        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
         scheduler.submit(CLAIM_A, ProjectTestFactory.general(100, 1));
         scheduler.pollNext(CLAIM_A);
 

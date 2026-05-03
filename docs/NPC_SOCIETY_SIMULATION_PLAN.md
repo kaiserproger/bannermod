@@ -4,11 +4,29 @@
 
 - Partial implementation is now live in code.
 - Phases 0 and 1 foundations are implemented in a first server-authoritative slice.
-- Phase 2 has started: baseline needs and intent pressure are implemented, but not the full utility model.
+- Phase 2 is now live in a first complete server-authoritative gameplay slice:
+  - hunger, fatigue, social, and safety pressure are persisted and updated in runtime
+  - resident intent now runs through an explicit shared utility scorer instead of only local priority tweaks
+  - `eat`, `seek supplies`, `socialise`, `hide`, and `defend` are now first-class society intents in the scheduler/runtime layer
+  - citizens and workers now have a first real physical daily-life execution pass for anchored intent behavior
+  - Phase 2 behavior is now covered by dedicated GameTests and the full GameTest suite was restored to green after the courier-route regression fix
 - The first dedicated household and family slice is now live:
   - household membership is stored separately from the home building id
   - household housing state now distinguishes settled, homeless, and overcrowded households
   - family GUI observability now exists for citizens and workers
+- Phase 3 is now live in a first full memory-and-relationships slice:
+  - bounded resident memory records are persisted in a dedicated runtime
+  - trust, fear, anger, gratitude, and loyalty now derive from remembered events and are stored on live society profiles
+  - violent player actions and protective player actions now spread memory pressure through family and household links
+  - starvation and housing pressure now leave durable social memory instead of only transient need pressure
+  - citizen and worker inspection now expose a dedicated social-memory ledger GUI
+  - Phase 3 runtime and persistence are covered by dedicated tests and compile-time GameTest verification
+- The first ruler-approved infrastructure autonomy slice is now live:
+  - household housing petitions no longer auto-approve and now persist explicit `REQUESTED`, `DENIED`, `APPROVED`, and `FULFILLED` state
+  - rulers can approve or deny housing petitions from clickable chat actions and `/bannermod society housing ...` commands
+  - settlements can now also raise ruler-approved livelihood requests for `lumber camp`, `mine`, and `animal pen`
+  - approved livelihood requests now flow into the prefab project path with exact prefab ids instead of only coarse growth categories
+  - settlement-spawned workers now start with baseline profession tools, auto-bind to compatible existing claim work areas more aggressively, and can craft replacement stone tools for themselves at nearby crafting tables when materials are available
 - This document now serves two purposes:
   - record what was actually shipped
   - define how the next refactor pass should restructure and extend it
@@ -33,6 +51,7 @@ The current runtime already contains a first working NPC-society backbone.
   - hunger need
   - fatigue need
   - social need
+  - safety need
 - Existing settlement home assignment is now mirrored into society state from `BannerModSettlementClaimTickService`.
 - Household is no longer just a UUID alias for the home building:
   - `NpcHouseholdSavedData` and `NpcHouseholdRuntime` now persist a dedicated household layer
@@ -63,16 +82,36 @@ The current runtime already contains a first working NPC-society backbone.
   - household membership survives citizen <-> worker/recruit conversion
   - spouse/parent/child references are retargeted to the new entity UUID
 - Adolescents are now seeded for ordinary citizens and are rendered smaller via `client/citizen/render/CitizenRenderer.java` plus synced life-stage data on `CitizenEntity`.
-- Phase 2 has started in code:
-  - `NpcSocietyNeedRuntime` updates hunger, fatigue, and social need
-  - work/rest/socialise/go-home priorities now react to those needs
+- Phase 2 utility intent is now live in code:
+  - `NpcSocietyNeedRuntime` updates hunger, fatigue, social, and safety need
+  - `NpcSocietyPhaseTwoIntentScorer` compares candidate intents on a shared scale
+  - `BannerModResidentGoalScheduler` now schedules first-class society intents for `eat`, `seek supplies`, `socialise`, `hide`, and `defend`
+  - worker labor/logistics goals now yield correctly when the current society intent is non-work
+  - active courier storage flow was explicitly preserved so authored courier logistics still run under the new behavior gates
+- A first real daily-life execution pass is now live:
+  - `NpcSocietyAnchorGoal` drives citizens and workers toward home/market/street/barracks-style anchors from current intent
+  - `go home`, `rest`, `eat`, `seek supplies`, `socialise`, `hide`, and `defend` now resolve to visible anchored movement/loiter behavior
+  - `socialise` now has a cheap visible scene pass where residents gather and look toward nearby social partners
+- Phase 2 observability and verification are now live:
+  - citizen and worker screens now surface safety pressure in addition to hunger/fatigue/social
+  - dedicated GameTests now cover hunger -> `EAT`, fatigue/home -> `GO_HOME`, social -> `SOCIALISE`, threat -> `HIDE`/`DEFEND`, worker labor gating, and citizen social-anchor movement
 - House self-build has a first backend path:
   - households in housing pressure can create housing requests
   - requests are stored in dedicated saved data
   - requests are now keyed by household, with a representative resident retained for GUI/notifications
-  - requests currently notify the lord and then pass through a default auto-approval policy
+  - requests now notify the lord and wait for explicit approve/deny instead of silently auto-approving
   - approved requests become `PendingProject` house builds
   - project execution reuses the existing `HousePrefab` and settlement build-area pipeline
+- A first ruler-approved livelihood-infrastructure path now exists:
+  - settlements can create dedicated saved-data requests for `lumber camp`, `mine`, and `animal pen`
+  - requests are keyed by claim plus livelihood type rather than being folded into generic growth hints
+  - approved requests now become exact-prefab `PendingProject` entries instead of falling back to a coarse category guess
+  - the first shipped slice intentionally bootstraps the approved livelihood build immediately after placement so the village does not deadlock on “needs tools/resources before it can build the workplace that would produce those resources”
+- Worker self-sufficiency now has a first live runtime path:
+  - settlement-spawned workers start with baseline stone profession tools
+  - worker bootstrap now reuses existing compatible claim work areas for farmer, miner, lumberjack, fisherman, and animal-farmer paths where possible
+  - workers can now craft replacement stone tools for themselves at nearby crafting tables when they can obtain wood and cobblestone through their current inventory/storage flow
+  - this first slice covers basic survival tools only; it is not yet a full smithing or workshop economy
 - A first real family identity slice now exists in persisted code:
   - `NpcFamilySavedData` and `NpcFamilyRuntime` persist family records per resident
   - family records now carry spouse, mother, father, and child UUID links
@@ -98,16 +137,18 @@ The current runtime already contains a first working NPC-society backbone.
   - `settlement/project/BannerModSettlementProjectWorldExecution.java`
   - `settlement/prefab/impl/HousePrefab.java`
   - builder/build-area execution already present in the settlement runtime
+- Ruler-approved livelihood construction currently reuses the same settlement project stack:
+  - `society/NpcLivelihoodProjectPlanner.java`
+  - `society/NpcLivelihoodRequestSavedData.java`
+  - `settlement/project/BannerModSettlementProjectWorldExecution.java`
+  - prefab-backed `MinePrefab`, `LumberCampPrefab`, and `AnimalPenPrefab`
+- Worker self-crafting deliberately stays local to worker runtime instead of inventing a second crafting subsystem:
+  - a dedicated worker goal checks nearby crafting tables
+  - the worker consumes held or stored materials directly from inventory
+  - missing materials still flow through the existing storage-request mechanism
 
 ### What Is Still Missing In The Live Runtime
 
-- There is still no full physical daily-life executor for:
-  - going home
-  - resting in-place
-  - gathering at social anchors
-  - cheap visible talk scenes
-- Need pressure exists, but there is still no complete utility scorer over all candidate intents.
-- There is still no direct `eat` or `seek supplies` goal backed by society needs.
 - Household is now a real runtime with persistent members and a first housing-pressure state, but it is still not a complete social household simulation.
 - Family is now a real persisted identity layer, but it is still only a first structured slice.
 - The current family model is still incomplete:
@@ -118,17 +159,32 @@ The current runtime already contains a first working NPC-society backbone.
 - Lord permission for house building is only partially realized:
   - requests exist
   - notification exists
-  - manual approve/deny UI does not exist yet
-  - default policy currently auto-approves the request
+  - manual approve/deny now exists in a first chat-command/chat-action slice
+  - a richer dedicated GUI still does not exist yet
 - Household housing requests are now household-driven, but they are still incomplete:
   - there is still no fairness queue between competing households
   - there is still no direct reservation of the newly built home back onto the requesting household by explicit request ownership rules
 - House self-build currently reuses the existing settlement builder pipeline; it is not yet a full citizen-driven gather-carry-place loop owned by the requesting household.
+- Livelihood self-build is now live in a first practical slice, but it is still intentionally coarse:
+  - requests currently cover only `lumber camp`, `mine`, and `animal pen`
+  - the village currently asks the ruler first, then uses prefab-backed project placement instead of emergent freeform site planning
+  - the first shipped slice grants immediate build completion after ruler approval to break bootstrap deadlocks; it does not yet prove a full resource-haul-and-place construction loop
+- Worker self-crafting is now live in a first practical slice, but it is still limited:
+  - only baseline stone tool replacement is covered
+  - workers do not yet reserve recipes globally or negotiate shared access to a workshop
+  - there is still no deeper household crafting chain, smithing progression, or tool-quality economy
+- The current scheduler/runtime still had one important first-slice bug that was fixed while landing this work:
+  - resident day/night phase had been derived from absolute game time instead of visible world day time, which could produce obvious “night rest during daytime” behavior after time shifts
+  - surveyor mode-switching had also preserved the previous anchor, which could make later building validation accidentally stay tied to the starter-fort beacon until the mode change now resets the session anchor
 - Adolescents are only safely shipped for the citizen path right now; worker/recruit-wide visual and gameplay handling still needs a broader pass.
 - The family GUI is useful and live, but still limited:
   - it depends on nearby loaded entities for live model previews
   - it does not yet expose head-of-household state directly in the screen
   - it does not yet show extended kin, multiple generations, or a scrollable lineage tree
+- Phase 2 is complete for the first shipped slice, but still intentionally limited:
+  - the utility pass does not yet include belonging, morale, health stress, religion, or memory-driven emotion
+  - anchored execution is still a lightweight pass layered over existing entity behavior, not a full authored social animation system
+  - `eat` and `seek supplies` currently use simple anchor-driven behavior rather than a deep food economy or full household consumption simulation
 
 ## Required Refactor Direction
 
@@ -657,7 +713,6 @@ Current shipped result:
 - GUI snapshot plumbing exists for citizen and worker inspection surfaces
 
 Still needs refactor:
-- household still needs its own authoritative runtime instead of being approximated through home identity
 - snapshot versioning and migration rules are still lightweight and should be formalized before memory/religion land
 
 ### Phase 1. Identity And Daily Life
@@ -692,13 +747,17 @@ Deliverable goal: NPCs visibly change behavior with time and pressure.
 
 Current shipped result:
 - hunger, fatigue, and social need are implemented
-- they already bias work/rest/socialize/go-home selection
+- safety need is now implemented in the same persisted/runtime model
+- residents now choose between intents through one explicit shared utility scorer
+- `eat`, `seek supplies`, `hide`, and `defend` are now first-class society intents
+- residents now physically execute anchored daily-life behavior for `go home`, `rest`, `eat`, `seek supplies`, `socialise`, `hide`, and `defend`
+- cheap visible social scenes now exist through social-anchor gathering and nearby-partner facing behavior
+- worker labor/logistics goals now respect the current society intent instead of always pushing through as work
+- dedicated GameTests now cover the Phase 2 behavior slice and the suite is green with those tests included
 
 Still needs refactor:
 - safety, belonging, morale, and health stress are not yet part of the same shared model
-- `eat`, `hide`, and `seek supplies` are not yet first-class society intents
-- the current system still adjusts existing goal priorities instead of running one explicit utility scorer
-- cheap visible social scenes are still missing
+- the current utility model is still a first pass rather than a final long-horizon planner
 
 ### Phase 3. Memory And Relationships
 
@@ -708,6 +767,20 @@ Still needs refactor:
 - surface memory summaries in GUI
 
 Deliverable goal: NPCs remember what the player and settlement did to them.
+
+Current shipped result:
+- `NpcMemorySavedData` and `NpcMemoryRuntime` now persist bounded per-resident social memories in dedicated saved data.
+- `NpcSocietyProfile` now carries derived trust, fear, anger, gratitude, and loyalty scores alongside needs and daily-life state.
+- Player-caused harm now writes durable assault memories and propagates weaker family and household echoes through persisted kinship links.
+- Player protection now writes positive memory that raises trust, gratitude, and loyalty instead of only clearing a momentary threat.
+- Severe hunger plus homeless/overcrowded household states now create durable negative memory instead of only short-lived pressure spikes.
+- `NpcSocietyPhaseTwoIntentScorer` now lets memory-driven fear and anger influence `HIDE`, `DEFEND`, `WORK`, `GO_HOME`, `REST`, and `SOCIALISE` scoring.
+- Citizen and worker inspections now expose the new social state through a dedicated memory-ledger screen with recent remembered events.
+
+Still needs refactor:
+- memory is now durable and propagated, but it is still a lightweight event ledger rather than a full witness/rumor/history pipeline
+- social axes are currently aggregate resident scores, not per-actor relationship ledgers yet
+- memory-triggered retaliation still stops at intent pressure; explicit justice, guard response, and revolt behavior remain Phase 4+
 
 ### Phase 4. Collective Defense And Justice
 

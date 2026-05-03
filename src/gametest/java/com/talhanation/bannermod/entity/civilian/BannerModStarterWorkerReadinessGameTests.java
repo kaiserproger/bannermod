@@ -19,6 +19,10 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.AxeItem;
+import net.minecraft.world.item.HoeItem;
+import net.minecraft.world.item.PickaxeItem;
+import net.minecraft.world.item.ShovelItem;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -60,10 +64,24 @@ public class BannerModStarterWorkerReadinessGameTests {
             BuilderEntity builder = singleWorker(helper, level, BuilderEntity.class, anchor);
 
             assertAssignmentOrIdleReason(helper, farmer, "farmer_no_area");
+            assertHasItem(helper, farmer, stack -> stack.getItem() instanceof HoeItem,
+                    "Expected starter farmer to carry a hoe.");
 
             assertIdleReason(helper, miner, "miner_no_area");
+            assertHasItem(helper, miner, stack -> stack.getItem() instanceof PickaxeItem,
+                    "Expected starter miner to carry a pickaxe.");
+            assertHasItem(helper, miner, stack -> stack.getItem() instanceof ShovelItem,
+                    "Expected starter miner to carry a shovel.");
             assertIdleReason(helper, lumberjack, "lumberjack_no_area");
+            assertHasItem(helper, lumberjack, stack -> stack.getItem() instanceof AxeItem,
+                    "Expected starter lumberjack to carry an axe.");
             assertAssignmentOrIdleReason(helper, builder, "builder_no_area");
+            assertHasItem(helper, builder, stack -> stack.getItem() instanceof AxeItem,
+                    "Expected starter builder to carry an axe.");
+            assertHasItem(helper, builder, stack -> stack.getItem() instanceof PickaxeItem,
+                    "Expected starter builder to carry a pickaxe.");
+            assertHasItem(helper, builder, stack -> stack.getItem() instanceof ShovelItem,
+                    "Expected starter builder to carry a shovel.");
             WorkersServerConfig.clearAllTestOverrides();
         });
     }
@@ -113,6 +131,13 @@ public class BannerModStarterWorkerReadinessGameTests {
             return;
         }
         assertIdleReason(helper, worker, expectedIdleReason);
+    }
+
+    private static void assertHasItem(GameTestHelper helper,
+                                      AbstractWorkerEntity worker,
+                                      java.util.function.Predicate<net.minecraft.world.item.ItemStack> predicate,
+                                      String message) {
+        helper.assertTrue(worker.getMatchingItem(predicate) != null && !worker.getMatchingItem(predicate).isEmpty(), message);
     }
 
     private static void buildStarterField(ServerLevel level, BlockPos waterCenter) {

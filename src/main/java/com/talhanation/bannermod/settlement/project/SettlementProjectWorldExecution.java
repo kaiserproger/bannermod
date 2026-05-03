@@ -3,7 +3,7 @@ package com.talhanation.bannermod.settlement.project;
 import com.talhanation.bannermod.entity.civilian.workarea.BuildArea;
 import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
-import com.talhanation.bannermod.settlement.SettlementBuildingProfileSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementBuildingProfileSeed;
 import com.talhanation.bannermod.settlement.growth.PendingProject;
 import com.talhanation.bannermod.settlement.growth.ProjectBlocker;
 import com.talhanation.bannermod.settlement.prefab.BuildingPlacementService;
@@ -23,9 +23,9 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import java.util.List;
 import java.util.UUID;
 
-final class SettlementProjectWorldExecution {
+final class BannerModSettlementProjectWorldExecution {
 
-    private SettlementProjectWorldExecution() {
+    private BannerModSettlementProjectWorldExecution() {
     }
 
     static boolean ensureExecutableTarget(ServerLevel level, UUID claimUuid, PendingProject project) {
@@ -44,13 +44,29 @@ final class SettlementProjectWorldExecution {
         if (buildAreas.stream().anyMatch(buildArea -> buildArea != null && buildArea.isAlive() && !buildArea.isDone())) {
             return false;
         }
-        return BuildingPlacementService.placeForClaim(
+        BuildingPlacementService.Result result = BuildingPlacementService.placeForClaim(
                 level,
                 claim,
-                prefabIdFor(project.profileSeed()),
+                prefabIdFor(project),
                 choosePlacementPos(level, claim, buildAreas.size()),
                 Direction.SOUTH
-        ) == BuildingPlacementService.Result.PLACED;
+        );
+        if (result != BuildingPlacementService.Result.PLACED) {
+            return false;
+        }
+        if (project != null && project.prefabId() != null) {
+            BuildArea placedArea = BannerModBuildAreaProjectBridge.collectBuildAreas(level, claim).stream()
+                    .filter(buildArea -> buildArea != null && buildArea.isAlive() && !buildArea.isDone())
+                    .max(java.util.Comparator.comparingInt(net.minecraft.world.entity.Entity::getId))
+                    .orElse(null);
+            if (placedArea != null) {
+                // First autonomous livelihood slice: once the ruler approves the request,
+                // material bootstrap is granted immediately so the new workplace can start
+                // supporting the settlement instead of deadlocking on missing resources.
+                placedArea.setStartBuild(true);
+            }
+        }
+        return true;
     }
 
     private static RecruitsClaim resolveClaim(UUID claimUuid) {
@@ -62,8 +78,12 @@ final class SettlementProjectWorldExecution {
         return null;
     }
 
-    private static ResourceLocation prefabIdFor(SettlementBuildingProfileSeed profileSeed) {
-        return switch (profileSeed == null ? SettlementBuildingProfileSeed.GENERAL : profileSeed) {
+    private static ResourceLocation prefabIdFor(PendingProject project) {
+        if (project != null && project.prefabId() != null) {
+            return project.prefabId();
+        }
+        BannerModSettlementBuildingProfileSeed profileSeed = project == null ? null : project.profileSeed();
+        return switch (profileSeed == null ? BannerModSettlementBuildingProfileSeed.GENERAL : profileSeed) {
             case FOOD_PRODUCTION -> FarmPrefab.ID;
             case MATERIAL_PRODUCTION -> LumberCampPrefab.ID;
             case STORAGE -> StoragePrefab.ID;

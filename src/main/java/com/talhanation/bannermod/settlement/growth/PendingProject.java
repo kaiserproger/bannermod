@@ -1,8 +1,9 @@
 package com.talhanation.bannermod.settlement.growth;
 
-import com.talhanation.bannermod.settlement.SettlementBuildingCategory;
-import com.talhanation.bannermod.settlement.SettlementBuildingProfileSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementBuildingCategory;
+import com.talhanation.bannermod.settlement.BannerModSettlementBuildingProfileSeed;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
@@ -16,8 +17,9 @@ public record PendingProject(
         UUID projectId,
         ProjectKind kind,
         @Nullable UUID targetBuildingUuid,
-        SettlementBuildingCategory buildingCategory,
-        SettlementBuildingProfileSeed profileSeed,
+        @Nullable ResourceLocation prefabId,
+        BannerModSettlementBuildingCategory buildingCategory,
+        BannerModSettlementBuildingProfileSeed profileSeed,
         int priorityScore,
         long proposedAtGameTime,
         int estimatedTickCost,
@@ -31,7 +33,7 @@ public record PendingProject(
             throw new IllegalArgumentException("kind must not be null");
         }
         if (profileSeed == null) {
-            profileSeed = SettlementBuildingProfileSeed.GENERAL;
+            profileSeed = BannerModSettlementBuildingProfileSeed.GENERAL;
         }
         if (buildingCategory == null) {
             buildingCategory = profileSeed.category();
@@ -53,6 +55,9 @@ public record PendingProject(
         if (targetBuildingUuid != null) {
             tag.putUUID("Target", targetBuildingUuid);
         }
+        if (prefabId != null) {
+            tag.putString("PrefabId", prefabId.toString());
+        }
         tag.putString("Category", buildingCategory.name());
         tag.putString("Profile", profileSeed.name());
         tag.putInt("Priority", priorityScore);
@@ -68,8 +73,9 @@ public record PendingProject(
                 tag.getUUID("Id"),
                 kindFromTagName(tag.getString("Kind")),
                 target,
-                SettlementBuildingCategory.fromTagName(tag.getString("Category")),
-                SettlementBuildingProfileSeed.fromTagName(tag.getString("Profile")),
+                tag.contains("PrefabId") ? ResourceLocation.tryParse(tag.getString("PrefabId")) : null,
+                BannerModSettlementBuildingCategory.fromTagName(tag.getString("Category")),
+                BannerModSettlementBuildingProfileSeed.fromTagName(tag.getString("Profile")),
                 tag.getInt("Priority"),
                 tag.getLong("ProposedAt"),
                 tag.getInt("Cost"),
