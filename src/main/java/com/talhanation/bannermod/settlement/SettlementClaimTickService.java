@@ -121,6 +121,7 @@ final class BannerModSettlementClaimTickService {
         java.util.Set<UUID> prioritizedResidents = level == null
                 ? java.util.Set.of()
                 : NpcHousingProjectPlanner.approvedRequesterIdsForClaim(level, snapshot.claimUuid());
+        Map<UUID, BannerModSettlementBuildingRecord> buildingsByUuid = indexBuildings(snapshot);
         List<BannerModSettlementResidentRecord> orderedResidents = new java.util.ArrayList<>(snapshot.residents());
         orderedResidents.sort((left, right) -> {
             boolean leftPriority = left != null && left.residentUuid() != null && prioritizedResidents.contains(left.residentUuid());
@@ -147,10 +148,20 @@ final class BannerModSettlementClaimTickService {
                 if (homeBuildingUuid.isPresent()) {
                     com.talhanation.bannermod.society.NpcHousingRequestAccess.markFulfilled(level, residentUuid, gameTime);
                 }
-                NpcSocietyAccess.reconcilePhaseOneState(
+                UUID householdId = com.talhanation.bannermod.society.NpcHouseholdAccess.reconcileResidentHome(
                         level,
                         residentUuid,
                         homeBuildingUuid.orElse(null),
+                        homeBuildingUuid.map(buildingsByUuid::get)
+                                .map(BannerModSettlementBuildingRecord::residentCapacity)
+                                .orElse(0),
+                        gameTime
+                );
+                com.talhanation.bannermod.society.NpcFamilyAccess.reconcileFamilyForResident(level, residentUuid, gameTime);
+                NpcSocietyAccess.reconcilePhaseOneState(
+                        level,
+                        residentUuid,
+                        householdId,
                         homeBuildingUuid.orElse(null),
                         resident.boundWorkAreaUuid(),
                         com.talhanation.bannermod.society.NpcDailyPhase.UNSPECIFIED,

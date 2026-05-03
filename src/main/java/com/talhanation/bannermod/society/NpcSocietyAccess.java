@@ -67,9 +67,11 @@ public final class NpcSocietyAccess {
     }
 
     public static NpcSocietyProfile moveResidentProfile(ServerLevel level,
-                                                        UUID fromResidentUuid,
-                                                        UUID toResidentUuid,
-                                                        long gameTime) {
+                                                         UUID fromResidentUuid,
+                                                         UUID toResidentUuid,
+                                                         long gameTime) {
+        NpcHouseholdAccess.moveResident(level, fromResidentUuid, toResidentUuid, gameTime);
+        NpcFamilyAccess.moveResident(level, fromResidentUuid, toResidentUuid, gameTime);
         return NpcSocietySavedData.get(level).runtime().moveResident(fromResidentUuid, toResidentUuid, gameTime);
     }
 
@@ -78,10 +80,12 @@ public final class NpcSocietyAccess {
                                                        @Nullable UUID fallbackWorkBuildingUuid) {
         NpcSocietyProfile profile = ensureResident(level, residentUuid, level.getGameTime());
         UUID workBuildingUuid = profile.workBuildingUuid() != null ? profile.workBuildingUuid() : fallbackWorkBuildingUuid;
+        NpcHouseholdRecord household = NpcHouseholdAccess.householdForResident(level, residentUuid).orElse(null);
+        UUID householdId = household == null ? profile.householdId() : household.householdId();
         return new NpcPhaseOneSnapshot(
                 profile.lifeStage().name(),
                 profile.sex().name(),
-                profile.householdId(),
+                householdId,
                 profile.homeBuildingUuid(),
                 workBuildingUuid,
                 profile.cultureId(),
@@ -89,11 +93,17 @@ public final class NpcSocietyAccess {
                 profile.dailyPhase().name(),
                 profile.currentIntent().name(),
                 profile.currentAnchor().name(),
+                household == null ? 0 : household.memberResidentUuids().size(),
+                household == null ? NpcHouseholdHousingState.HOMELESS.name() : household.housingState().name(),
                 profile.hungerNeed(),
                 profile.fatigueNeed(),
                 profile.socialNeed(),
                 NpcHousingRequestAccess.statusFor(level, residentUuid).name()
         );
+    }
+
+    public static NpcFamilyTreeSnapshot familyTreeSnapshot(ServerLevel level, UUID residentUuid) {
+        return NpcFamilyAccess.familyTreeSnapshot(level, residentUuid, level.getGameTime());
     }
 
     private static NpcSocietyProfile seedProfileFor(Entity entity, long gameTime) {

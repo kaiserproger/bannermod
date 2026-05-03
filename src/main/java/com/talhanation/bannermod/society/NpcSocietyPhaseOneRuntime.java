@@ -41,10 +41,14 @@ public final class NpcSocietyPhaseOneRuntime {
                 .map(home -> home.homeBuildingUuid())
                 .orElse(null);
         UUID workBuildingUuid = resolveWorkBuildingUuid(ctx.resident());
+        BannerModSettlementBuildingRecord homeBuilding = homeBuildingUuid == null ? null : buildingsByUuid.get(homeBuildingUuid);
+        int residentCapacity = homeBuilding == null ? 0 : homeBuilding.residentCapacity();
+        UUID householdId = NpcHouseholdAccess.reconcileResidentHome(level, residentUuid, homeBuildingUuid, residentCapacity, ctx.gameTime());
+        NpcFamilyAccess.reconcileFamilyForResident(level, residentUuid, ctx.gameTime());
         NpcSocietyAccess.reconcilePhaseOneState(
                 level,
                 residentUuid,
-                homeBuildingUuid,
+                householdId,
                 homeBuildingUuid,
                 workBuildingUuid,
                 resolveDailyPhase(ctx, activeTask),

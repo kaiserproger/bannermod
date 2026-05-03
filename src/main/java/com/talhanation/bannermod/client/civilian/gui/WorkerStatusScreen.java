@@ -43,6 +43,20 @@ public class WorkerStatusScreen extends Screen {
         this.left = (this.width - WIDTH) / 2;
         this.top = (this.height - HEIGHT) / 2;
 
+        SmallCommandButton family = this.addRenderableWidget(new SmallCommandButton(
+                this.left + WIDTH - 72,
+                this.top + 46,
+                56,
+                18,
+                MilitaryGuiStyle.clampLabel(this.font, text("gui.bannermod.family_tree.open"), 50),
+                button -> {
+                    if (this.minecraft != null) {
+                        this.minecraft.setScreen(new NpcFamilyTreeScreen(this, this.snapshot.familyTree()));
+                    }
+                }
+        ));
+        family.setTooltip(Tooltip.create(text("gui.bannermod.family_tree.open.tooltip")));
+
         // Bottom action row: 4 evenly spaced buttons inside WIDTH.
         // Stride between centers = (WIDTH - 16) / 4 = 59 -> stays inside parchment frame.
         int rowY = this.top + HEIGHT - 26;
@@ -160,6 +174,7 @@ public class WorkerStatusScreen extends Screen {
                 Component.translatable(phaseOne.lifeStageTranslationKey()).getString(),
                 Component.translatable(phaseOne.sexTranslationKey()).getString(),
                 NpcPhaseOneSnapshot.shortId(phaseOne.householdId()),
+                phaseOne.householdSize(),
                 NpcPhaseOneSnapshot.shortId(phaseOne.homeBuildingUuid())
         );
     }
@@ -171,6 +186,7 @@ public class WorkerStatusScreen extends Screen {
                 Component.translatable(phaseOne.dailyPhaseTranslationKey()).getString(),
                 Component.translatable(phaseOne.currentIntentTranslationKey()).getString(),
                 Component.translatable(phaseOne.currentAnchorTranslationKey()).getString(),
+                Component.translatable(phaseOne.householdHousingStateTranslationKey()).getString(),
                 Component.translatable(phaseOne.housingRequestTranslationKey()).getString()
         );
     }

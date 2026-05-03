@@ -1,20 +1,20 @@
 package com.talhanation.bannermod.client.civilian.gui;
 
 import com.talhanation.bannermod.client.military.ClientManager;
-import com.talhanation.bannermod.client.civilian.input.AssignHomeTargetSelector;
 import com.talhanation.bannermod.client.military.gui.MilitaryGuiStyle;
 import com.talhanation.bannermod.citizen.CitizenProfession;
 import com.talhanation.bannermod.entity.citizen.CitizenEntity;
 import com.talhanation.bannermod.inventory.civilian.CitizenProfileMenu;
+import com.talhanation.bannermod.society.NpcFamilyTreeSnapshot;
 import com.talhanation.bannermod.persistence.military.RecruitsPlayerInfo;
 import com.talhanation.bannermod.society.NpcPhaseOneSnapshot;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
@@ -25,11 +25,13 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
 
     private final CitizenEntity citizen;
     private final NpcPhaseOneSnapshot phaseOneSnapshot;
+    private final NpcFamilyTreeSnapshot familyTreeSnapshot;
 
     public CitizenProfileScreen(CitizenProfileMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title);
         this.citizen = menu.getCitizen();
         this.phaseOneSnapshot = menu.getPhaseOneSnapshot();
+        this.familyTreeSnapshot = menu.getFamilyTreeSnapshot();
         this.imageWidth = GUI_WIDTH;
         this.imageHeight = GUI_HEIGHT;
         this.inventoryLabelY = 10000;
@@ -53,16 +55,18 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
                     }
                 }
         ).bounds(buttonX, buttonY, 134, 16).build());
-
-        Button assignHome = Button.builder(
-                Component.translatable("bannermod.assign_home.button"),
+        this.addRenderableWidget(new LedgerButton(
+                this.leftPos + this.imageWidth - 62,
+                this.topPos + 10,
+                48,
+                16,
+                MilitaryGuiStyle.clampLabel(this.font, Component.translatable("gui.bannermod.family_tree.open"), 42),
                 button -> {
-                    AssignHomeTargetSelector.start(this.citizen.getUUID());
-                    this.onClose();
+                    if (this.minecraft != null) {
+                        this.minecraft.setScreen(new NpcFamilyTreeScreen(this, this.familyTreeSnapshot));
+                    }
                 }
-        ).bounds(this.leftPos + 14, this.topPos + 140, 70, 16).build();
-        assignHome.setTooltip(Tooltip.create(Component.translatable("bannermod.assign_home.tooltip")));
-        this.addRenderableWidget(assignHome);
+        ));
     }
 
     @Override
@@ -178,6 +182,7 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
                 "gui.bannermod.citizen_profile.home.summary",
                 NpcPhaseOneSnapshot.shortId(this.phaseOneSnapshot.homeBuildingUuid()),
                 NpcPhaseOneSnapshot.shortId(this.phaseOneSnapshot.householdId()),
+                this.phaseOneSnapshot.householdSize(),
                 Component.translatable(this.phaseOneSnapshot.lifeStageTranslationKey()).getString(),
                 Component.translatable(this.phaseOneSnapshot.sexTranslationKey()).getString()
         );
@@ -188,6 +193,7 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
                 "gui.bannermod.citizen_profile.routine.summary",
                 Component.translatable(this.phaseOneSnapshot.dailyPhaseTranslationKey()).getString(),
                 Component.translatable(this.phaseOneSnapshot.currentIntentTranslationKey()).getString(),
+                Component.translatable(this.phaseOneSnapshot.householdHousingStateTranslationKey()).getString(),
                 Component.translatable(this.phaseOneSnapshot.housingRequestTranslationKey()).getString()
         );
     }
@@ -220,5 +226,17 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
             case RECRUIT_SHIELDMAN -> Component.translatable("gui.bannermod.citizen_profile.profession.recruit_shieldman");
             case NOBLE -> Component.translatable("gui.bannermod.citizen_profile.profession.noble");
         };
+    }
+
+    private static class LedgerButton extends ExtendedButton {
+        LedgerButton(int x, int y, int width, int height, Component label, OnPress handler) {
+            super(x, y, width, height, label, handler);
+        }
+
+        @Override
+        public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            MilitaryGuiStyle.commandButton(graphics, Minecraft.getInstance().font, mouseX, mouseY,
+                    getX(), getY(), width, height, getMessage(), active, false);
+        }
     }
 }

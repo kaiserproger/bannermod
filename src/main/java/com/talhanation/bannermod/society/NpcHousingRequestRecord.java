@@ -6,6 +6,7 @@ import javax.annotation.Nullable;
 import java.util.UUID;
 
 public record NpcHousingRequestRecord(
+        UUID householdId,
         UUID residentUuid,
         UUID claimUuid,
         UUID projectId,
@@ -15,6 +16,9 @@ public record NpcHousingRequestRecord(
         long updatedAtGameTime
 ) {
     public NpcHousingRequestRecord {
+        if (householdId == null) {
+            throw new IllegalArgumentException("householdId must not be null");
+        }
         if (residentUuid == null) {
             throw new IllegalArgumentException("residentUuid must not be null");
         }
@@ -29,12 +33,14 @@ public record NpcHousingRequestRecord(
         }
     }
 
-    public static NpcHousingRequestRecord create(UUID residentUuid,
+    public static NpcHousingRequestRecord create(UUID householdId,
+                                                 UUID residentUuid,
                                                  UUID claimUuid,
                                                  UUID projectId,
                                                  @Nullable UUID lordPlayerUuid,
                                                  long gameTime) {
         return new NpcHousingRequestRecord(
+                householdId,
                 residentUuid,
                 claimUuid,
                 projectId,
@@ -50,6 +56,7 @@ public record NpcHousingRequestRecord(
             return this;
         }
         return new NpcHousingRequestRecord(
+                this.householdId,
                 this.residentUuid,
                 this.claimUuid,
                 this.projectId,
@@ -65,6 +72,7 @@ public record NpcHousingRequestRecord(
             return this;
         }
         return new NpcHousingRequestRecord(
+                this.householdId,
                 this.residentUuid,
                 this.claimUuid,
                 this.projectId,
@@ -77,6 +85,7 @@ public record NpcHousingRequestRecord(
 
     public CompoundTag toTag() {
         CompoundTag tag = new CompoundTag();
+        tag.putUUID("HouseholdId", this.householdId);
         tag.putUUID("ResidentUuid", this.residentUuid);
         tag.putUUID("ClaimUuid", this.claimUuid);
         tag.putUUID("ProjectId", this.projectId);
@@ -90,8 +99,11 @@ public record NpcHousingRequestRecord(
     }
 
     public static NpcHousingRequestRecord fromTag(CompoundTag tag) {
+        UUID residentUuid = tag.getUUID("ResidentUuid");
+        UUID householdId = tag.contains("HouseholdId") ? tag.getUUID("HouseholdId") : residentUuid;
         return new NpcHousingRequestRecord(
-                tag.getUUID("ResidentUuid"),
+                householdId,
+                residentUuid,
                 tag.getUUID("ClaimUuid"),
                 tag.getUUID("ProjectId"),
                 tag.contains("LordPlayerUuid") ? tag.getUUID("LordPlayerUuid") : null,

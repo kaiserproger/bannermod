@@ -20,6 +20,7 @@ import com.talhanation.bannermod.registry.civilian.ModEntityTypes;
 import com.talhanation.bannermod.settlement.prefab.staffing.PrefabAutoStaffingRuntime;
 import com.talhanation.bannermod.society.NpcLifeStage;
 import com.talhanation.bannermod.society.NpcPhaseOneSnapshot;
+import com.talhanation.bannermod.society.NpcFamilyTreeSnapshot;
 import com.talhanation.bannermod.society.NpcSocietyAccess;
 import com.talhanation.bannermod.util.BannerModCurrencyHelper;
 import com.talhanation.bannermod.util.BannerModNpcNamePool;
@@ -243,13 +244,13 @@ public class CitizenEntity extends PathfinderMob implements CitizenCore {
         return InteractionResult.SUCCESS;
     }
 
-    private boolean canOpenProfile(Player player) {
+    public boolean canOpenProfile(Player player) {
         return player.hasPermissions(2)
                 || !this.isOwned()
                 || this.getOwnerUUID() != null && this.getOwnerUUID().equals(player.getUUID());
     }
 
-    private void openProfileGui(Player player) {
+    public void openProfileGui(Player player) {
         if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
             BannerModNetworkHooks.openScreen(serverPlayer, new MenuProvider() {
                 @Override
@@ -262,14 +263,19 @@ public class CitizenEntity extends PathfinderMob implements CitizenCore {
                     NpcPhaseOneSnapshot phaseOneSnapshot = CitizenEntity.this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel
                             ? NpcSocietyAccess.phaseOneSnapshot(serverLevel, CitizenEntity.this.getUUID(), CitizenEntity.this.getBoundWorkAreaUUID())
                             : NpcPhaseOneSnapshot.empty();
-                    return new CitizenProfileMenu(id, CitizenEntity.this, playerInventory, phaseOneSnapshot);
+                    NpcFamilyTreeSnapshot familyTreeSnapshot = CitizenEntity.this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel
+                            ? NpcSocietyAccess.familyTreeSnapshot(serverLevel, CitizenEntity.this.getUUID())
+                            : NpcFamilyTreeSnapshot.empty();
+                    return new CitizenProfileMenu(id, CitizenEntity.this, playerInventory, phaseOneSnapshot, familyTreeSnapshot);
                 }
             }, buffer -> {
                 buffer.writeUUID(this.getUUID());
                 if (this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
                     NpcSocietyAccess.phaseOneSnapshot(serverLevel, this.getUUID(), this.getBoundWorkAreaUUID()).toBytes(buffer);
+                    NpcSocietyAccess.familyTreeSnapshot(serverLevel, this.getUUID()).toBytes(buffer);
                 } else {
                     NpcPhaseOneSnapshot.empty().toBytes(buffer);
+                    NpcFamilyTreeSnapshot.empty().toBytes(buffer);
                 }
             });
         }

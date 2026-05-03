@@ -5,6 +5,10 @@
 - Partial implementation is now live in code.
 - Phases 0 and 1 foundations are implemented in a first server-authoritative slice.
 - Phase 2 has started: baseline needs and intent pressure are implemented, but not the full utility model.
+- The first dedicated household and family slice is now live:
+  - household membership is stored separately from the home building id
+  - household housing state now distinguishes settled, homeless, and overcrowded households
+  - family GUI observability now exists for citizens and workers
 - This document now serves two purposes:
   - record what was actually shipped
   - define how the next refactor pass should restructure and extend it
@@ -30,27 +34,65 @@ The current runtime already contains a first working NPC-society backbone.
   - fatigue need
   - social need
 - Existing settlement home assignment is now mirrored into society state from `BannerModSettlementClaimTickService`.
+- Household is no longer just a UUID alias for the home building:
+  - `NpcHouseholdSavedData` and `NpcHouseholdRuntime` now persist a dedicated household layer
+  - a household now owns its own `householdId`
+  - a household now stores member resident UUIDs separately from the house building UUID
+  - one home currently maps to one household in the safe first live slice
+- Household housing state is now live:
+  - `NORMAL`
+  - `HOMELESS`
+  - `OVERCROWDED`
+  - the state currently derives from home assignment plus validated resident capacity
 - Phase 1 GUI observability is live:
   - `client/civilian/gui/CitizenProfileScreen.java`
   - `client/civilian/gui/WorkerStatusScreen.java`
+- Both profile screens now surface more social-state detail:
+  - household id
+  - household size
+  - household housing state
+  - housing request state
+- Family GUI observability is now live:
+  - `client/civilian/gui/NpcFamilyTreeScreen.java`
+  - citizen profile now exposes a family button
+  - worker status screen now exposes a family button
+  - the family screen currently shows self, spouse, mother, father, and children
+  - loaded nearby relatives can be rendered as live entity previews in the screen
 - Entity conversion continuity is live: when a citizen becomes a worker or recruit, the society profile is moved to the new entity UUID instead of being lost.
+- Entity conversion continuity now also carries household and family continuity:
+  - household membership survives citizen <-> worker/recruit conversion
+  - spouse/parent/child references are retargeted to the new entity UUID
 - Adolescents are now seeded for ordinary citizens and are rendered smaller via `client/citizen/render/CitizenRenderer.java` plus synced life-stage data on `CitizenEntity`.
 - Phase 2 has started in code:
   - `NpcSocietyNeedRuntime` updates hunger, fatigue, and social need
   - work/rest/socialise/go-home priorities now react to those needs
 - House self-build has a first backend path:
-  - homeless adult residents can create housing requests
+  - households in housing pressure can create housing requests
   - requests are stored in dedicated saved data
+  - requests are now keyed by household, with a representative resident retained for GUI/notifications
   - requests currently notify the lord and then pass through a default auto-approval policy
   - approved requests become `PendingProject` house builds
   - project execution reuses the existing `HousePrefab` and settlement build-area pipeline
+- A first real family identity slice now exists in persisted code:
+  - `NpcFamilySavedData` and `NpcFamilyRuntime` persist family records per resident
+  - family records now carry spouse, mother, father, and child UUID links
+  - households now also carry a persisted head resident UUID
+  - family links are no longer rebuilt only for GUI display; they are now stored and preserved across later reconciles
 
 ### How It Was Implemented
 
 - The implementation deliberately reused live systems instead of introducing a parallel AI stack.
 - Home ownership stays grounded in the existing settlement home-assignment runtime, then flows into the society profile.
+- Household identity now stays grounded in home assignment, but is stored in a dedicated runtime instead of aliasing the home UUID directly.
 - Intent state stays grounded in the current resident-goal scheduler, then flows into the society profile as readable social state.
 - Need pressure is layered on top of the existing resident scheduler rather than replacing it wholesale in one pass.
+- Household pressure is deliberately still simple in the shipped slice:
+  - it currently derives from current member count versus resident capacity
+  - it does not yet model reserves, prestige, lineage pressure, or multi-home household structures
+- Family links are deliberately still conservative in the shipped slice:
+  - spouse/head/parent-child links are now persisted
+  - candidate pairings still come from simple household-local rules when no prior stable link exists
+  - this is a scaffolding pass, not a full genealogical simulator yet
 - Housing construction reuses:
   - `settlement/project/BannerModSettlementProjectRuntime.java`
   - `settlement/project/BannerModSettlementProjectWorldExecution.java`
@@ -66,14 +108,27 @@ The current runtime already contains a first working NPC-society backbone.
   - cheap visible talk scenes
 - Need pressure exists, but there is still no complete utility scorer over all candidate intents.
 - There is still no direct `eat` or `seek supplies` goal backed by society needs.
-- Household is still only a light identity layer. It is not yet a full runtime with members, reserves, lineage, and household pressure.
+- Household is now a real runtime with persistent members and a first housing-pressure state, but it is still not a complete social household simulation.
+- Family is now a real persisted identity layer, but it is still only a first structured slice.
+- The current family model is still incomplete:
+  - spouse pairing is still selected from simple in-household rules when no stable pair already exists
+  - parent-child links are still assigned from current household structure rather than a true birth-history pipeline
+  - there is still no pregnancy, infancy, or generational lifecycle simulation
+  - there is still no widowhood, remarriage, inheritance, or household fission logic
 - Lord permission for house building is only partially realized:
   - requests exist
   - notification exists
   - manual approve/deny UI does not exist yet
   - default policy currently auto-approves the request
+- Household housing requests are now household-driven, but they are still incomplete:
+  - there is still no fairness queue between competing households
+  - there is still no direct reservation of the newly built home back onto the requesting household by explicit request ownership rules
 - House self-build currently reuses the existing settlement builder pipeline; it is not yet a full citizen-driven gather-carry-place loop owned by the requesting household.
 - Adolescents are only safely shipped for the citizen path right now; worker/recruit-wide visual and gameplay handling still needs a broader pass.
+- The family GUI is useful and live, but still limited:
+  - it depends on nearby loaded entities for live model previews
+  - it does not yet expose head-of-household state directly in the screen
+  - it does not yet show extended kin, multiple generations, or a scrollable lineage tree
 
 ## Required Refactor Direction
 
@@ -82,7 +137,9 @@ The next pass should not just append features. It should cleanly separate what a
 ### 1. Separate Profile, Household, And Request Ownership
 
 - Keep `NpcSocietyProfile` as the per-actor identity and lightweight state record.
-- Move family, member lists, reserve state, and household pressure into a dedicated household runtime instead of encoding them indirectly through home UUIDs.
+- Household membership, housing state, and first family links are now separated into dedicated runtimes instead of being encoded indirectly through home UUIDs.
+- The next pass should extend those runtimes rather than collapsing data back into the profile.
+- Reserve state, lineage depth, and household continuity rules still need to move into or grow from this dedicated household layer.
 - Keep housing requests in their own queue/runtime and do not let them grow into a shadow household system.
 
 ### 2. Replace Priority Tweaks With A Real Utility Layer

@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public final class NpcHousingRequestRuntime {
-    private final Map<UUID, NpcHousingRequestRecord> requestsByResident = new LinkedHashMap<>();
+    private final Map<UUID, NpcHousingRequestRecord> requestsByHousehold = new LinkedHashMap<>();
     private Runnable dirtyListener = () -> {
     };
 
@@ -24,49 +24,50 @@ public final class NpcHousingRequestRuntime {
         } : dirtyListener;
     }
 
-    public Optional<NpcHousingRequestRecord> requestFor(UUID residentUuid) {
-        if (residentUuid == null) {
+    public Optional<NpcHousingRequestRecord> requestForHousehold(UUID householdId) {
+        if (householdId == null) {
             return Optional.empty();
         }
-        return Optional.ofNullable(this.requestsByResident.get(residentUuid));
+        return Optional.ofNullable(this.requestsByHousehold.get(householdId));
     }
 
-    public NpcHousingRequestRecord ensureRequest(UUID residentUuid,
+    public NpcHousingRequestRecord ensureRequest(UUID householdId,
+                                                 UUID residentUuid,
                                                  UUID claimUuid,
                                                  UUID projectId,
                                                  @Nullable UUID lordPlayerUuid,
                                                  long gameTime) {
-        NpcHousingRequestRecord existing = this.requestsByResident.get(residentUuid);
+        NpcHousingRequestRecord existing = this.requestsByHousehold.get(householdId);
         if (existing != null && existing.status() != NpcHousingRequestStatus.FULFILLED) {
             return existing;
         }
-        NpcHousingRequestRecord created = NpcHousingRequestRecord.create(residentUuid, claimUuid, projectId, lordPlayerUuid, gameTime);
-        this.requestsByResident.put(residentUuid, created);
+        NpcHousingRequestRecord created = NpcHousingRequestRecord.create(householdId, residentUuid, claimUuid, projectId, lordPlayerUuid, gameTime);
+        this.requestsByHousehold.put(householdId, created);
         markDirty();
         return created;
     }
 
-    public NpcHousingRequestRecord approve(UUID residentUuid, long gameTime) {
-        NpcHousingRequestRecord existing = this.requestsByResident.get(residentUuid);
+    public NpcHousingRequestRecord approve(UUID householdId, long gameTime) {
+        NpcHousingRequestRecord existing = this.requestsByHousehold.get(householdId);
         if (existing == null) {
-            throw new IllegalArgumentException("No housing request exists for resident " + residentUuid);
+            throw new IllegalArgumentException("No housing request exists for household " + householdId);
         }
         NpcHousingRequestRecord updated = existing.approve(gameTime);
         if (!updated.equals(existing)) {
-            this.requestsByResident.put(residentUuid, updated);
+            this.requestsByHousehold.put(householdId, updated);
             markDirty();
         }
         return updated;
     }
 
-    public void fulfill(UUID residentUuid, long gameTime) {
-        NpcHousingRequestRecord existing = this.requestsByResident.get(residentUuid);
+    public void fulfill(UUID householdId, long gameTime) {
+        NpcHousingRequestRecord existing = this.requestsByHousehold.get(householdId);
         if (existing == null) {
             return;
         }
         NpcHousingRequestRecord updated = existing.fulfill(gameTime);
         if (!updated.equals(existing)) {
-            this.requestsByResident.put(residentUuid, updated);
+            this.requestsByHousehold.put(householdId, updated);
             markDirty();
         }
     }
@@ -76,7 +77,7 @@ public final class NpcHousingRequestRuntime {
             return Collections.emptyList();
         }
         List<NpcHousingRequestRecord> matches = new ArrayList<>();
-        for (NpcHousingRequestRecord request : this.requestsByResident.values()) {
+        for (NpcHousingRequestRecord request : this.requestsByHousehold.values()) {
             if (request != null && claimUuid.equals(request.claimUuid())) {
                 matches.add(request);
             }
@@ -87,7 +88,7 @@ public final class NpcHousingRequestRuntime {
     public CompoundTag toTag() {
         CompoundTag tag = new CompoundTag();
         ListTag requests = new ListTag();
-        for (NpcHousingRequestRecord request : this.requestsByResident.values()) {
+        for (NpcHousingRequestRecord request : this.requestsByHousehold.values()) {
             requests.add(request.toTag());
         }
         tag.put("Requests", requests);
@@ -105,11 +106,11 @@ public final class NpcHousingRequestRuntime {
     }
 
     public void restoreSnapshot(@Nullable Collection<NpcHousingRequestRecord> requests) {
-        this.requestsByResident.clear();
+        this.requestsByHousehold.clear();
         if (requests != null) {
             for (NpcHousingRequestRecord request : requests) {
                 if (request != null) {
-                    this.requestsByResident.put(request.residentUuid(), request);
+                    this.requestsByHousehold.put(request.householdId(), request);
                 }
             }
         }

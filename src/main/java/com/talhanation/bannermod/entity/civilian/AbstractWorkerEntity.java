@@ -20,6 +20,7 @@ import com.talhanation.bannermod.network.compat.BannerModPacketDistributor;
 import com.talhanation.bannermod.network.messages.civilian.MessageToClientOpenWorkerScreen;
 import com.talhanation.bannermod.persistence.civilian.NeededItem;
 import com.talhanation.bannermod.util.BannerModNpcNamePool;
+import com.talhanation.bannermod.society.NpcFamilyTreeSnapshot;
 import com.talhanation.bannermod.war.WarRuntimeContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -172,6 +173,9 @@ public abstract class AbstractWorkerEntity extends AbstractChunkLoaderEntity imp
         NpcPhaseOneSnapshot phaseOneSnapshot = this.level() instanceof ServerLevel serverLevel
                 ? NpcSocietyAccess.phaseOneSnapshot(serverLevel, this.getUUID(), this.getBoundWorkAreaUUID())
                 : NpcPhaseOneSnapshot.empty();
+        NpcFamilyTreeSnapshot familyTreeSnapshot = this.level() instanceof ServerLevel serverLevel
+                ? NpcSocietyAccess.familyTreeSnapshot(serverLevel, this.getUUID())
+                : NpcFamilyTreeSnapshot.empty();
         return new WorkerInspectionSnapshot(
                 this.getId(),
                 this.getUUID(),
@@ -184,6 +188,7 @@ public abstract class AbstractWorkerEntity extends AbstractChunkLoaderEntity imp
                 workerProblemLabel(),
                 this.transportService.inspectionMessage().getString(),
                 phaseOneSnapshot,
+                familyTreeSnapshot,
                 convertBlockedReasonKey == null,
                 convertBlockedReasonKey,
                 WorkerCitizenConversionService.workerProfessionTag(this)

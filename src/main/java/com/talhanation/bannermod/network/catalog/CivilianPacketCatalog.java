@@ -36,6 +36,7 @@ public final class CivilianPacketCatalog {
         MessageValidateSurveyorSession.class,
         MessageToClientOpenWorkerScreen.class,
         MessageOpenWorkerScreen.class,
+        MessageOpenNpcProfile.class,
         MessageConvertWorkerToCitizen.class,
         MessageReassignWorkerProfession.class,
         MessageAssignCitizenVacancy.class,

@@ -38,23 +38,35 @@ public final class NpcHousingProjectPlanner {
         }
         UUID lordUuid = resolveLordUuid(level, snapshot.claimUuid());
         List<PendingProject> projects = new ArrayList<>();
+        Set<UUID> visitedHouseholds = new LinkedHashSet<>();
         for (BannerModSettlementResidentRecord resident : snapshot.residents()) {
             if (resident == null || resident.residentUuid() == null) {
                 continue;
             }
             UUID residentUuid = resident.residentUuid();
-            if (homeRuntime.homeFor(residentUuid).isPresent()) {
+            NpcHouseholdRecord household = NpcHouseholdAccess.householdForResident(level, residentUuid).orElse(null);
+            if (household == null || !visitedHouseholds.add(household.householdId())) {
+                continue;
+            }
+            if (household.housingState() == NpcHouseholdHousingState.NORMAL) {
                 NpcHousingRequestAccess.markFulfilled(level, residentUuid, gameTime);
                 continue;
             }
-            NpcSocietyProfile profile = NpcSocietyAccess.ensureResident(level, residentUuid, gameTime);
-            if (profile.lifeStage() != NpcLifeStage.ADULT && profile.lifeStage() != NpcLifeStage.ELDER) {
+            UUID requesterResidentUuid = pickRequesterResident(level, household, gameTime);
+            if (requesterResidentUuid == null) {
                 continue;
             }
-            NpcHousingRequestRecord request = NpcHousingRequestAccess.requestHouse(level, residentUuid, snapshot.claimUuid(), lordUuid, gameTime);
+            NpcHousingRequestRecord request = NpcHousingRequestAccess.requestHouse(
+                    level,
+                    household.householdId(),
+                    requesterResidentUuid,
+                    snapshot.claimUuid(),
+                    lordUuid,
+                    gameTime
+            );
             if (request.status() == NpcHousingRequestStatus.REQUESTED) {
-                notifyLord(level, lordUuid, residentUuid);
-                request = NpcHousingRequestAccess.approve(level, residentUuid, gameTime);
+                notifyLord(level, lordUuid, requesterResidentUuid);
+                request = NpcHousingRequestAccess.approve(level, requesterResidentUuid, gameTime);
             }
             if (request.status() == NpcHousingRequestStatus.APPROVED) {
                 projects.add(new PendingProject(
@@ -84,6 +96,26 @@ public final class NpcHousingProjectPlanner {
             }
         }
         return ordered;
+    }
+
+    @Nullable
+    private static UUID pickRequesterResident(ServerLevel level,
+                                              NpcHouseholdRecord household,
+                                              long gameTime) {
+        UUID fallback = null;
+        for (UUID memberResidentUuid : household.memberResidentUuids()) {
+            if (memberResidentUuid == null) {
+                continue;
+            }
+            if (fallback == null) {
+                fallback = memberResidentUuid;
+            }
+            NpcSocietyProfile profile = NpcSocietyAccess.ensureResident(level, memberResidentUuid, gameTime);
+            if (profile.lifeStage() == NpcLifeStage.ADULT || profile.lifeStage() == NpcLifeStage.ELDER) {
+                return memberResidentUuid;
+            }
+        }
+        return fallback;
     }
 
     @Nullable

@@ -17,6 +17,8 @@ public record NpcPhaseOneSnapshot(
         String dailyPhaseTag,
         String currentIntentTag,
         String currentAnchorTag,
+        int householdSize,
+        String householdHousingStateTag,
         int hungerNeed,
         int fatigueNeed,
         int socialNeed,
@@ -35,6 +37,8 @@ public record NpcPhaseOneSnapshot(
                 NpcIntent.UNSPECIFIED.name(),
                 NpcAnchorType.NONE.name(),
                 0,
+                NpcHouseholdHousingState.HOMELESS.name(),
+                0,
                 0,
                 0,
                 NpcHousingRequestStatus.NONE.name()
@@ -52,6 +56,8 @@ public record NpcPhaseOneSnapshot(
         buf.writeUtf(safeTag(this.dailyPhaseTag));
         buf.writeUtf(safeTag(this.currentIntentTag));
         buf.writeUtf(safeTag(this.currentAnchorTag));
+        buf.writeVarInt(Math.max(0, this.householdSize));
+        buf.writeUtf(safeTag(this.householdHousingStateTag));
         buf.writeVarInt(Math.max(0, this.hungerNeed));
         buf.writeVarInt(Math.max(0, this.fatigueNeed));
         buf.writeVarInt(Math.max(0, this.socialNeed));
@@ -69,6 +75,8 @@ public record NpcPhaseOneSnapshot(
                 readNullableString(buf),
                 buf.readUtf(),
                 buf.readUtf(),
+                buf.readUtf(),
+                buf.readVarInt(),
                 buf.readUtf(),
                 buf.readVarInt(),
                 buf.readVarInt(),
@@ -95,6 +103,10 @@ public record NpcPhaseOneSnapshot(
 
     public String currentAnchorTranslationKey() {
         return "gui.bannermod.society.anchor." + safeTag(this.currentAnchorTag).toLowerCase(Locale.ROOT);
+    }
+
+    public String householdHousingStateTranslationKey() {
+        return "gui.bannermod.society.household_housing." + safeTag(this.householdHousingStateTag).toLowerCase(Locale.ROOT);
     }
 
     public String housingRequestTranslationKey() {
