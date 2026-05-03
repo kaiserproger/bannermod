@@ -102,6 +102,9 @@ public final class SettlementOrderWorkGoal extends Goal {
         if (worker.getCommandSenderWorld().isClientSide()) {
             return false;
         }
+        if (!worker.shouldWork() || worker.needsToSleep()) {
+            return false;
+        }
         if (!(worker.getCommandSenderWorld() instanceof ServerLevel level)) {
             return false;
         }
@@ -116,6 +119,9 @@ public final class SettlementOrderWorkGoal extends Goal {
     @Override
     public boolean canContinueToUse() {
         if (activeOrder == null) {
+            return false;
+        }
+        if (!worker.shouldWork() || worker.needsToSleep()) {
             return false;
         }
         if (!(worker.getCommandSenderWorld() instanceof ServerLevel level)) {
@@ -164,6 +170,10 @@ public final class SettlementOrderWorkGoal extends Goal {
     public void tick() {
         super.tick();
         if (activeOrder == null) {
+            return;
+        }
+        if (!worker.shouldWork() || worker.needsToSleep()) {
+            worker.getNavigation().stop();
             return;
         }
         if (!(worker.getCommandSenderWorld() instanceof ServerLevel level)) {

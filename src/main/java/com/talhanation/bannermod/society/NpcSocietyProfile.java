@@ -20,6 +20,7 @@ public record NpcSocietyProfile(
         int hungerNeed,
         int fatigueNeed,
         int socialNeed,
+        int safetyNeed,
         long version,
         long lastUpdatedGameTime
 ) {
@@ -39,6 +40,7 @@ public record NpcSocietyProfile(
                 NpcDailyPhase.UNSPECIFIED,
                 NpcIntent.UNSPECIFIED,
                 NpcAnchorType.NONE,
+                10,
                 10,
                 10,
                 10,
@@ -67,6 +69,7 @@ public record NpcSocietyProfile(
                 profile.hungerNeed,
                 profile.fatigueNeed,
                 profile.socialNeed,
+                profile.safetyNeed,
                 profile.version,
                 gameTime
         );
@@ -102,6 +105,7 @@ public record NpcSocietyProfile(
                 this.hungerNeed,
                 this.fatigueNeed,
                 this.socialNeed,
+                this.safetyNeed,
                 this.version + 1L,
                 gameTime
         );
@@ -110,11 +114,16 @@ public record NpcSocietyProfile(
     public NpcSocietyProfile withNeedState(int hungerNeed,
                                            int fatigueNeed,
                                            int socialNeed,
+                                           int safetyNeed,
                                            long gameTime) {
         int clampedHunger = clampNeed(hungerNeed);
         int clampedFatigue = clampNeed(fatigueNeed);
         int clampedSocial = clampNeed(socialNeed);
-        if (this.hungerNeed == clampedHunger && this.fatigueNeed == clampedFatigue && this.socialNeed == clampedSocial) {
+        int clampedSafety = clampNeed(safetyNeed);
+        if (this.hungerNeed == clampedHunger
+                && this.fatigueNeed == clampedFatigue
+                && this.socialNeed == clampedSocial
+                && this.safetyNeed == clampedSafety) {
             return this;
         }
         return new NpcSocietyProfile(
@@ -132,6 +141,7 @@ public record NpcSocietyProfile(
                 clampedHunger,
                 clampedFatigue,
                 clampedSocial,
+                clampedSafety,
                 this.version + 1L,
                 gameTime
         );
@@ -159,6 +169,7 @@ public record NpcSocietyProfile(
                 this.hungerNeed,
                 this.fatigueNeed,
                 this.socialNeed,
+                this.safetyNeed,
                 this.version + 1L,
                 gameTime
         );
@@ -190,6 +201,7 @@ public record NpcSocietyProfile(
         tag.putInt("HungerNeed", this.hungerNeed);
         tag.putInt("FatigueNeed", this.fatigueNeed);
         tag.putInt("SocialNeed", this.socialNeed);
+        tag.putInt("SafetyNeed", this.safetyNeed);
         tag.putLong("Version", this.version);
         tag.putLong("LastUpdatedGameTime", this.lastUpdatedGameTime);
         return tag;
@@ -212,6 +224,7 @@ public record NpcSocietyProfile(
                 clampNeed(tag.getInt("HungerNeed")),
                 clampNeed(tag.getInt("FatigueNeed")),
                 clampNeed(tag.getInt("SocialNeed")),
+                clampNeed(tag.getInt("SafetyNeed")),
                 Math.max(1L, tag.getLong("Version")),
                 tag.getLong("LastUpdatedGameTime")
         );

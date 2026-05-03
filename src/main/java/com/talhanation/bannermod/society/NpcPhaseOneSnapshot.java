@@ -22,6 +22,7 @@ public record NpcPhaseOneSnapshot(
         int hungerNeed,
         int fatigueNeed,
         int socialNeed,
+        int safetyNeed,
         String housingRequestStatusTag
 ) {
     public static NpcPhaseOneSnapshot empty() {
@@ -38,6 +39,7 @@ public record NpcPhaseOneSnapshot(
                 NpcAnchorType.NONE.name(),
                 0,
                 NpcHouseholdHousingState.HOMELESS.name(),
+                0,
                 0,
                 0,
                 0,
@@ -61,6 +63,7 @@ public record NpcPhaseOneSnapshot(
         buf.writeVarInt(Math.max(0, this.hungerNeed));
         buf.writeVarInt(Math.max(0, this.fatigueNeed));
         buf.writeVarInt(Math.max(0, this.socialNeed));
+        buf.writeVarInt(Math.max(0, this.safetyNeed));
         buf.writeUtf(safeTag(this.housingRequestStatusTag));
     }
 
@@ -78,6 +81,7 @@ public record NpcPhaseOneSnapshot(
                 buf.readUtf(),
                 buf.readVarInt(),
                 buf.readUtf(),
+                buf.readVarInt(),
                 buf.readVarInt(),
                 buf.readVarInt(),
                 buf.readVarInt(),

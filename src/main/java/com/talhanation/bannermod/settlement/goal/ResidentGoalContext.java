@@ -68,6 +68,14 @@ public record ResidentGoalContext(
         return this.societyProfile == null ? 0 : this.societyProfile.socialNeed();
     }
 
+    public int safetyNeed() {
+        return this.societyProfile == null ? 0 : this.societyProfile.safetyNeed();
+    }
+
+    public boolean canDefend() {
+        return this.resident.role() == com.talhanation.bannermod.settlement.BannerModSettlementResidentRole.GOVERNOR_RECRUIT;
+    }
+
     public boolean isAdolescent() {
         return this.societyProfile != null && this.societyProfile.lifeStage() == NpcLifeStage.ADOLESCENT;
     }

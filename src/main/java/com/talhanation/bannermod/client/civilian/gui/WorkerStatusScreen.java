@@ -197,7 +197,8 @@ public class WorkerStatusScreen extends Screen {
                 "gui.bannermod.worker_screen.needs.summary",
                 phaseOne.hungerNeed(),
                 phaseOne.fatigueNeed(),
-                phaseOne.socialNeed()
+                phaseOne.socialNeed(),
+                phaseOne.safetyNeed()
         );
     }
 

@@ -1,6 +1,8 @@
 package com.talhanation.bannermod.settlement.goal.impl;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
+import com.talhanation.bannermod.society.NpcIntent;
+import com.talhanation.bannermod.society.NpcSocietyPhaseTwoIntentScorer;
 import com.talhanation.bannermod.settlement.BannerModSettlementResidentScheduleWindowSeed;
 import com.talhanation.bannermod.settlement.goal.ResidentGoal;
 import com.talhanation.bannermod.settlement.goal.ResidentGoalContext;
@@ -30,15 +32,7 @@ public final class SocialiseResidentGoal implements ResidentGoal {
                 && ctx.window() != BannerModSettlementResidentScheduleWindowSeed.DAYLIGHT_FLEX) {
             return 0;
         }
-        int priority = SOCIALISE_PRIORITY + ctx.socialNeed() / 3;
-        if (ctx.isAdolescent()) {
-            priority += 8;
-        }
-        if (ctx.dayTime() > 9000) {
-            priority += 6;
-        }
-        priority -= ctx.fatigueNeed() / 10;
-        return Math.max(0, priority);
+        return Math.max(SOCIALISE_PRIORITY - 5, NpcSocietyPhaseTwoIntentScorer.scoreIntent(ctx, NpcIntent.SOCIALISE));
     }
 
     @Override

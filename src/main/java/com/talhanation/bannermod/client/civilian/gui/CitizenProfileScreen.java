@@ -203,7 +203,8 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
                 "gui.bannermod.citizen_profile.needs.summary",
                 this.phaseOneSnapshot.hungerNeed(),
                 this.phaseOneSnapshot.fatigueNeed(),
-                this.phaseOneSnapshot.socialNeed()
+                this.phaseOneSnapshot.socialNeed(),
+                this.phaseOneSnapshot.safetyNeed()
         );
     }
 

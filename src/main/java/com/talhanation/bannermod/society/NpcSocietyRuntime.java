@@ -106,9 +106,10 @@ public final class NpcSocietyRuntime {
                                                 int hungerNeed,
                                                 int fatigueNeed,
                                                 int socialNeed,
+                                                int safetyNeed,
                                                 long gameTime) {
         NpcSocietyProfile profile = ensureResident(residentUuid, gameTime);
-        NpcSocietyProfile updated = profile.withNeedState(hungerNeed, fatigueNeed, socialNeed, gameTime);
+        NpcSocietyProfile updated = profile.withNeedState(hungerNeed, fatigueNeed, socialNeed, safetyNeed, gameTime);
         if (updated == profile) {
             return profile;
         }

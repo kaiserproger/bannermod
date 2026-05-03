@@ -56,12 +56,14 @@ public final class NpcSocietyAccess {
                                                        int hungerNeed,
                                                        int fatigueNeed,
                                                        int socialNeed,
+                                                       int safetyNeed,
                                                        long gameTime) {
         return NpcSocietySavedData.get(level).runtime().reconcileNeedState(
                 residentUuid,
                 hungerNeed,
                 fatigueNeed,
                 socialNeed,
+                safetyNeed,
                 gameTime
         );
     }
@@ -98,6 +100,7 @@ public final class NpcSocietyAccess {
                 profile.hungerNeed(),
                 profile.fatigueNeed(),
                 profile.socialNeed(),
+                profile.safetyNeed(),
                 NpcHousingRequestAccess.statusFor(level, residentUuid).name()
         );
     }

@@ -1,7 +1,9 @@
 package com.talhanation.bannermod.settlement.household;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
-import com.talhanation.bannermod.settlement.SettlementResidentScheduleWindowSeed;
+import com.talhanation.bannermod.society.NpcIntent;
+import com.talhanation.bannermod.society.NpcSocietyPhaseTwoIntentScorer;
+import com.talhanation.bannermod.settlement.BannerModSettlementResidentScheduleWindowSeed;
 import com.talhanation.bannermod.settlement.goal.ResidentGoal;
 import com.talhanation.bannermod.settlement.goal.ResidentGoalContext;
 import com.talhanation.bannermod.settlement.goal.ResidentTask;
@@ -48,7 +50,13 @@ public final class GoHomeResidentGoal implements ResidentGoal {
         if (this.runtime.homeFor(ctx.residentId()).isEmpty()) {
             return 0;
         }
-        return GO_HOME_PRIORITY;
+        int goHomeBias = GO_HOME_PRIORITY;
+        if (ctx.isRestPhase()) {
+            goHomeBias += 35;
+        } else if (ctx.fatigueNeed() >= 80) {
+            goHomeBias += 20;
+        }
+        return Math.max(goHomeBias, NpcSocietyPhaseTwoIntentScorer.scoreIntent(ctx, NpcIntent.GO_HOME));
     }
 
     @Override
@@ -56,7 +64,7 @@ public final class GoHomeResidentGoal implements ResidentGoal {
         if (this.runtime.homeFor(ctx.residentId()).isEmpty()) {
             return false;
         }
-        return isRestOrApproachingRest(ctx);
+        return this.computePriority(ctx) > 0;
     }
 
     @Override
@@ -76,7 +84,7 @@ public final class GoHomeResidentGoal implements ResidentGoal {
         if (ctx.isRestPhase()) {
             return true;
         }
-        SettlementResidentScheduleWindowSeed window = ctx.window();
+        BannerModSettlementResidentScheduleWindowSeed window = ctx.window();
         int now = ctx.dayTime();
         int restStart = window.restStartTick();
         int approachStart = restStart - APPROACH_WINDOW_TICKS;

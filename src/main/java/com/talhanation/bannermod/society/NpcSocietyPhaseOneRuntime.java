@@ -6,9 +6,13 @@ import com.talhanation.bannermod.settlement.dispatch.SellerResidentGoal;
 import com.talhanation.bannermod.settlement.goal.ResidentGoalContext;
 import com.talhanation.bannermod.settlement.goal.ResidentTask;
 import com.talhanation.bannermod.settlement.goal.impl.DeliverResidentGoal;
+import com.talhanation.bannermod.settlement.goal.impl.DefendResidentGoal;
+import com.talhanation.bannermod.settlement.goal.impl.EatResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.FetchResidentGoal;
+import com.talhanation.bannermod.settlement.goal.impl.HideResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.IdleResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.RestResidentGoal;
+import com.talhanation.bannermod.settlement.goal.impl.SeekSuppliesResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.SocialiseResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.WorkResidentGoal;
 import com.talhanation.bannermod.settlement.household.BannerModHomeAssignmentRuntime;
@@ -101,14 +105,26 @@ public final class NpcSocietyPhaseOneRuntime {
         if (RestResidentGoal.ID.equals(goalId)) {
             return NpcIntent.REST;
         }
+        if (EatResidentGoal.ID.equals(goalId)) {
+            return NpcIntent.EAT;
+        }
         if (WorkResidentGoal.ID.equals(goalId)) {
             return NpcIntent.WORK;
+        }
+        if (SeekSuppliesResidentGoal.ID.equals(goalId)) {
+            return NpcIntent.SEEK_SUPPLIES;
         }
         if (SellerResidentGoal.ID.equals(goalId)) {
             return NpcIntent.SELL;
         }
         if (SocialiseResidentGoal.ID.equals(goalId)) {
             return NpcIntent.SOCIALISE;
+        }
+        if (HideResidentGoal.ID.equals(goalId)) {
+            return NpcIntent.HIDE;
+        }
+        if (DefendResidentGoal.ID.equals(goalId)) {
+            return NpcIntent.DEFEND;
         }
         if (FetchResidentGoal.ID.equals(goalId)) {
             return NpcIntent.FETCH;
@@ -127,11 +143,22 @@ public final class NpcSocietyPhaseOneRuntime {
                                                @Nullable UUID workBuildingUuid,
                                                Map<UUID, BannerModSettlementBuildingRecord> buildingsByUuid) {
         NpcIntent intent = resolveIntent(ctx, activeTask);
-        if (intent == NpcIntent.GO_HOME || intent == NpcIntent.REST) {
+        if (intent == NpcIntent.GO_HOME) {
             return NpcAnchorType.HOME;
+        }
+        if (intent == NpcIntent.REST) {
+            return ctx.hasHome() ? NpcAnchorType.HOME : NpcAnchorType.STREET;
+        }
+        if (intent == NpcIntent.EAT) {
+            return ctx.hasHome() ? NpcAnchorType.HOME : NpcAnchorType.MARKET;
         }
         if (intent == NpcIntent.SELL) {
             return NpcAnchorType.MARKET;
+        }
+        if (intent == NpcIntent.SEEK_SUPPLIES) {
+            return ctx.settlement() != null && ctx.settlement().marketState().openMarketCount() > 0
+                    ? NpcAnchorType.MARKET
+                    : NpcAnchorType.WORKPLACE;
         }
         if (intent == NpcIntent.WORK || intent == NpcIntent.FETCH || intent == NpcIntent.DELIVER) {
             return anchorForWorkBuilding(workBuildingUuid, buildingsByUuid);
@@ -143,6 +170,12 @@ public final class NpcSocietyPhaseOneRuntime {
         }
         if (intent == NpcIntent.LEAVE_HOME || intent == NpcIntent.IDLE) {
             return NpcAnchorType.STREET;
+        }
+        if (intent == NpcIntent.HIDE) {
+            return ctx.hasHome() ? NpcAnchorType.HOME : NpcAnchorType.STREET;
+        }
+        if (intent == NpcIntent.DEFEND) {
+            return NpcAnchorType.BARRACKS;
         }
         return NpcAnchorType.NONE;
     }

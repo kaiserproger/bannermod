@@ -8,6 +8,7 @@ import com.talhanation.bannermod.entity.military.RecruitPoliticalContext;
 import com.talhanation.bannermod.shared.logistics.BannerModLogisticsRuntime;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementBinding;
 import com.talhanation.bannermod.society.NpcPhaseOneSnapshot;
+import com.talhanation.bannermod.society.NpcSocietyAnchorGoal;
 import com.talhanation.bannermod.society.NpcSocietyAccess;
 import com.talhanation.bannermod.config.RecruitsClientConfig;
 import com.talhanation.bannermod.events.ClaimEvents;
@@ -96,6 +97,7 @@ public abstract class AbstractWorkerEntity extends AbstractChunkLoaderEntity imp
         this.goalSelector.addGoal(0, new SettlementOrderWorkGoal(this));
         this.goalSelector.addGoal(0, new DepositItemsToStorage(this));
         this.goalSelector.addGoal(0, new GetNeededItemsFromStorage(this));
+        this.goalSelector.addGoal(1, new NpcSocietyAnchorGoal(this));
 
         this.goalSelector.removeGoal(new MoveTowardsTargetGoal(this, 0.9D, 32.0F));
     }

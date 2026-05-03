@@ -1,6 +1,8 @@
 package com.talhanation.bannermod.settlement.goal.impl;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
+import com.talhanation.bannermod.society.NpcIntent;
+import com.talhanation.bannermod.society.NpcSocietyPhaseTwoIntentScorer;
 import com.talhanation.bannermod.settlement.BannerModSettlementResidentAssignmentState;
 import com.talhanation.bannermod.settlement.BannerModSettlementResidentRole;
 import com.talhanation.bannermod.settlement.goal.ResidentGoal;
@@ -30,14 +32,7 @@ public final class WorkResidentGoal implements ResidentGoal {
         if (!ctx.isActivePhase()) {
             return 0;
         }
-        int priority = WORK_PRIORITY;
-        priority -= ctx.fatigueNeed() / 4;
-        priority -= ctx.hungerNeed() / 6;
-        priority -= ctx.socialNeed() / 10;
-        if (ctx.isAdolescent()) {
-            priority -= 10;
-        }
-        return Math.max(0, priority);
+        return Math.max(WORK_PRIORITY - 10, NpcSocietyPhaseTwoIntentScorer.scoreIntent(ctx, NpcIntent.WORK));
     }
 
     @Override

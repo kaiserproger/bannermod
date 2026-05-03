@@ -21,6 +21,7 @@ import com.talhanation.bannermod.settlement.prefab.staffing.PrefabAutoStaffingRu
 import com.talhanation.bannermod.society.NpcLifeStage;
 import com.talhanation.bannermod.society.NpcPhaseOneSnapshot;
 import com.talhanation.bannermod.society.NpcFamilyTreeSnapshot;
+import com.talhanation.bannermod.society.NpcSocietyAnchorGoal;
 import com.talhanation.bannermod.society.NpcSocietyAccess;
 import com.talhanation.bannermod.util.BannerModCurrencyHelper;
 import com.talhanation.bannermod.util.BannerModNpcNamePool;
@@ -175,6 +176,7 @@ public class CitizenEntity extends PathfinderMob implements CitizenCore {
         // goal is dormant.
         this.goalSelector.addGoal(3, new com.talhanation.bannermod.ai.home.PathfindHomeGoal(
                 this, this::getHomePos));
+        this.goalSelector.addGoal(7, new NpcSocietyAnchorGoal(this));
         this.goalSelector.addGoal(8, new WaterAvoidingRandomStrollGoal(this, 0.6D));
         this.goalSelector.addGoal(9, new LookAtPlayerGoal(this, Player.class, 8.0F));
         this.goalSelector.addGoal(10, new RandomLookAroundGoal(this));

@@ -1,5 +1,8 @@
 package com.talhanation.bannermod.entity.civilian;
 
+import com.talhanation.bannermod.society.NpcSocietyAccess;
+import com.talhanation.bannermod.society.NpcSocietyIntentRules;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
@@ -21,6 +24,12 @@ final class WorkerStateAccess {
     }
 
     boolean needsToSleep() {
+        if (this.worker.getCurrentWorkArea() == null) {
+            return !this.worker.getCommandSenderWorld().isDay();
+        }
+        if (currentIntentIsRestLike()) {
+            return true;
+        }
         return !this.worker.getCommandSenderWorld().isDay();
     }
 
@@ -57,6 +66,29 @@ final class WorkerStateAccess {
     }
 
     boolean shouldWork() {
-        return this.worker.isOwned() && (this.worker.getFollowState() == 0 || this.worker.getFollowState() == 6);
+        return this.worker.isOwned()
+                && (this.worker.getFollowState() == 0 || this.worker.getFollowState() == 6)
+                && currentIntentAllowsWork();
+    }
+
+    private boolean currentIntentAllowsWork() {
+        if (this.worker.getCurrentWorkArea() == null) {
+            return true;
+        }
+        if (!(this.worker.level() instanceof ServerLevel serverLevel)) {
+            return true;
+        }
+        return NpcSocietyAccess.profileFor(serverLevel, this.worker.getUUID())
+                .map(profile -> NpcSocietyIntentRules.isWorkerLaborIntent(profile.currentIntent()))
+                .orElse(true);
+    }
+
+    private boolean currentIntentIsRestLike() {
+        if (!(this.worker.level() instanceof ServerLevel serverLevel)) {
+            return false;
+        }
+        return NpcSocietyAccess.profileFor(serverLevel, this.worker.getUUID())
+                .map(profile -> NpcSocietyIntentRules.isRestLikeIntent(profile.currentIntent()))
+                .orElse(false);
     }
 }

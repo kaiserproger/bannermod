@@ -6,8 +6,12 @@ public enum NpcIntent {
     GO_HOME,
     LEAVE_HOME,
     REST,
+    EAT,
     WORK,
+    SEEK_SUPPLIES,
     SOCIALISE,
+    HIDE,
+    DEFEND,
     SELL,
     FETCH,
     DELIVER;

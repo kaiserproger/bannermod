@@ -4,9 +4,13 @@ import com.talhanation.bannermod.settlement.SettlementMarketState;
 import com.talhanation.bannermod.settlement.dispatch.BannerModSellerDispatchRuntime;
 import com.talhanation.bannermod.settlement.dispatch.SellerResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.DeliverResidentGoal;
+import com.talhanation.bannermod.settlement.goal.impl.DefendResidentGoal;
+import com.talhanation.bannermod.settlement.goal.impl.EatResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.FetchResidentGoal;
+import com.talhanation.bannermod.settlement.goal.impl.HideResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.IdleResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.RestResidentGoal;
+import com.talhanation.bannermod.settlement.goal.impl.SeekSuppliesResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.SocialiseResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.WorkResidentGoal;
 import com.talhanation.bannermod.settlement.household.BannerModHomeAssignmentRuntime;
@@ -51,9 +55,13 @@ public final class BannerModResidentGoalScheduler {
     /** Default scheduler wired with the six stock stub goals. */
     public static BannerModResidentGoalScheduler withDefaultGoals() {
         return new BannerModResidentGoalScheduler(List.of(
+                new DefendResidentGoal(),
+                new HideResidentGoal(),
                 new IdleResidentGoal(),
                 new RestResidentGoal(),
+                new EatResidentGoal(),
                 new WorkResidentGoal(),
+                new SeekSuppliesResidentGoal(),
                 new SocialiseResidentGoal(),
                 new DeliverResidentGoal(),
                 new FetchResidentGoal()
@@ -80,11 +88,15 @@ public final class BannerModResidentGoalScheduler {
             throw new IllegalArgumentException("sellerDispatchRuntime must not be null");
         }
         return new BannerModResidentGoalScheduler(List.of(
+                new DefendResidentGoal(),
+                new HideResidentGoal(),
                 new GoHomeResidentGoal(homeAssignmentRuntime),
                 new RestResidentGoal(),
+                new EatResidentGoal(),
                 new LeaveHomeResidentGoal(homeAssignmentRuntime),
                 new SellerResidentGoal(marketStateSupplier, sellerDispatchRuntime),
                 new WorkResidentGoal(),
+                new SeekSuppliesResidentGoal(),
                 new SocialiseResidentGoal(),
                 new DeliverResidentGoal(),
                 new FetchResidentGoal(),

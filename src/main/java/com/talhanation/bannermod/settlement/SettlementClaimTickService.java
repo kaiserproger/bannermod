@@ -21,6 +21,9 @@ import com.talhanation.bannermod.settlement.household.HomePreference;
 import com.talhanation.bannermod.settlement.job.JobExecutionContext;
 import com.talhanation.bannermod.settlement.project.BannerModSettlementProjectRuntime;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderPublishContext;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.server.level.ServerLevel;
 
 import javax.annotation.Nullable;
@@ -185,12 +188,15 @@ final class BannerModSettlementClaimTickService {
         NpcSocietyProfile profile = NpcSocietyAccess.ensureResident(level, residentUuid, gameTime);
         UUID homeBuildingUuid = homeRuntime.homeFor(residentUuid).map(home -> home.homeBuildingUuid()).orElse(null);
         ResidentGoalContext previewContext = new ResidentGoalContext(resident, null, gameTime, profile);
+        Entity residentEntity = level == null ? null : level.getEntity(residentUuid);
         NpcSocietyProfile updatedProfile = NpcSocietyNeedRuntime.tickNeeds(
                 profile,
                 homeBuildingUuid,
                 previewContext.isActivePhase(),
                 previewContext.isRestPhase(),
                 previousTask,
+                isThreatened(residentEntity),
+                resident.role() == BannerModSettlementResidentRole.GOVERNOR_RECRUIT,
                 gameTime
         );
         return NpcSocietyAccess.reconcileNeedState(
@@ -199,8 +205,16 @@ final class BannerModSettlementClaimTickService {
                 updatedProfile.hungerNeed(),
                 updatedProfile.fatigueNeed(),
                 updatedProfile.socialNeed(),
+                updatedProfile.safetyNeed(),
                 gameTime
         );
+    }
+
+    private static boolean isThreatened(@Nullable Entity entity) {
+        if (!(entity instanceof LivingEntity living)) {
+            return false;
+        }
+        return living.hurtTime > 0 || living instanceof Mob mob && mob.getTarget() != null;
     }
 
     private static Map<UUID, BannerModSettlementBuildingRecord> indexBuildings(BannerModSettlementSnapshot snapshot) {
