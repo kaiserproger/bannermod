@@ -62,6 +62,41 @@ public final class NpcHouseholdRuntime {
         }
     }
 
+    public void seedHousehold(UUID householdId,
+                              @Nullable UUID headResidentUuid,
+                              Collection<UUID> members,
+                              long gameTime) {
+        if (householdId == null) {
+            throw new IllegalArgumentException("householdId must not be null");
+        }
+        List<UUID> orderedMembers = new ArrayList<>();
+        if (members != null) {
+            for (UUID member : members) {
+                if (member == null) {
+                    continue;
+                }
+                clearResidentInternal(member, gameTime);
+                if (!orderedMembers.contains(member)) {
+                    orderedMembers.add(member);
+                }
+            }
+        }
+        NpcHouseholdRecord record = NpcHouseholdRecord.create(
+                householdId,
+                null,
+                headResidentUuid,
+                orderedMembers,
+                0,
+                orderedMembers.isEmpty() ? NpcHouseholdHousingState.HOMELESS : NpcHouseholdHousingState.HOMELESS,
+                gameTime
+        );
+        this.householdsById.put(householdId, record);
+        for (UUID member : orderedMembers) {
+            this.householdByResident.put(member, householdId);
+        }
+        markDirty();
+    }
+
     public @Nullable UUID reconcileResidentHome(UUID residentUuid,
                                                 @Nullable UUID homeBuildingUuid,
                                                 int residentCapacity,

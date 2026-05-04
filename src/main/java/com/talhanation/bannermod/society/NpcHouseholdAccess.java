@@ -3,6 +3,7 @@ package com.talhanation.bannermod.society;
 import net.minecraft.server.level.ServerLevel;
 
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,6 +35,14 @@ public final class NpcHouseholdAccess {
                                   @Nullable UUID headResidentUuid,
                                   long gameTime) {
         NpcHouseholdSavedData.get(level).runtime().updateHead(householdId, headResidentUuid, gameTime);
+    }
+
+    public static void seedHousehold(ServerLevel level,
+                                     UUID householdId,
+                                     @Nullable UUID headResidentUuid,
+                                     Collection<UUID> members,
+                                     long gameTime) {
+        NpcHouseholdSavedData.get(level).runtime().seedHousehold(householdId, headResidentUuid, members, gameTime);
     }
 
     public static Optional<NpcHouseholdRecord> householdForResident(ServerLevel level, UUID residentUuid) {

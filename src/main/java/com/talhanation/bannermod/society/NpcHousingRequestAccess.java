@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.society;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
 import javax.annotation.Nullable;
@@ -47,11 +48,38 @@ public final class NpcHousingRequestAccess {
         return NpcHousingRequestSavedData.get(level).runtime().deny(householdId, gameTime);
     }
 
+    public static NpcHousingRequestRecord reservePlot(ServerLevel level,
+                                                      UUID householdId,
+                                                      @Nullable BlockPos reservedPlotPos,
+                                                      long gameTime) {
+        if (householdId == null) {
+            throw new IllegalArgumentException("householdId must not be null");
+        }
+        return NpcHousingRequestSavedData.get(level).runtime().reservePlot(householdId, reservedPlotPos, gameTime);
+    }
+
+    public static NpcHousingRequestRecord bindBuildArea(ServerLevel level,
+                                                        UUID householdId,
+                                                        @Nullable UUID buildAreaUuid,
+                                                        long gameTime) {
+        if (householdId == null) {
+            throw new IllegalArgumentException("householdId must not be null");
+        }
+        return NpcHousingRequestSavedData.get(level).runtime().bindBuildArea(householdId, buildAreaUuid, gameTime);
+    }
+
     public static @Nullable NpcHousingRequestRecord requestForHousehold(ServerLevel level, UUID householdId) {
         if (householdId == null) {
             return null;
         }
         return NpcHousingRequestSavedData.get(level).runtime().requestForHousehold(householdId).orElse(null);
+    }
+
+    public static @Nullable NpcHousingRequestRecord requestForProject(ServerLevel level, UUID projectId) {
+        if (projectId == null) {
+            return null;
+        }
+        return NpcHousingRequestSavedData.get(level).runtime().requestForProject(projectId).orElse(null);
     }
 
     public static void markFulfilled(ServerLevel level, UUID residentUuid, long gameTime) {

@@ -6,6 +6,11 @@ import com.talhanation.bannermod.entity.citizen.CitizenEntity;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.persistence.military.RecruitsPlayerInfo;
 import com.talhanation.bannermod.registry.citizen.ModCitizenEntityTypes;
+import com.talhanation.bannermod.society.NpcFamilyAccess;
+import com.talhanation.bannermod.society.NpcHouseholdAccess;
+import com.talhanation.bannermod.society.NpcLifeStage;
+import com.talhanation.bannermod.society.NpcSex;
+import com.talhanation.bannermod.society.NpcSocietyAccess;
 import com.talhanation.bannermod.war.WarRuntimeContext;
 import com.talhanation.bannermod.war.registry.PoliticalEntityRecord;
 import com.talhanation.bannermod.war.registry.PoliticalMembership;
@@ -23,7 +28,9 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.scores.PlayerTeam;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 public final class SettlementBootstrapService {
@@ -81,8 +88,8 @@ public final class SettlementBootstrapService {
 
     static String starterWorkerReadinessMessage(int spawnedWorkers, int spawnedFreeCitizens) {
         return "Settlement bootstrapped. Starter workers spawned: " + spawnedWorkers
-                + ". Free citizens available for vacancies: " + Math.max(0, spawnedFreeCitizens)
-                + ". Ready: farmer has a starter crop area. Waiting: miner needs a mine, lumberjack needs a lumber camp, builder needs an architect workshop/build area. If vacancies remain empty, no free citizen is close enough or available yet.";
+                + ". Starter households seeded: " + Math.max(0, spawnedFreeCitizens)
+                + " residents. Adult free citizens can fill vacancies; adolescents and children stay in their families. Ready: farmer has a starter crop area. Waiting: miner needs a mine, lumberjack needs a lumber camp, builder needs an architect workshop/build area. If vacancies remain empty, no free adult citizen is close enough or available yet.";
     }
 
     public static BootstrapResult bootstrapSettlement(ServerLevel level,
@@ -162,7 +169,7 @@ public final class SettlementBootstrapService {
         );
         registry.put(settlement);
         int spawnedWorkers = spawnStarterCitizens(level, authorityPos, claim);
-        int spawnedFreeCitizens = spawnStarterFreeCitizens(level, authorityPos, claim);
+        int spawnedFreeCitizens = spawnStarterFamilies(level, authorityPos, claim);
         return BootstrapResult.success(starterWorkerReadinessMessage(spawnedWorkers, spawnedFreeCitizens), settlement);
     }
 
@@ -247,25 +254,58 @@ public final class SettlementBootstrapService {
         return spawned;
     }
 
-    private static int spawnStarterFreeCitizens(ServerLevel level, BlockPos authorityPos, RecruitsClaim claim) {
+    private static int spawnStarterFamilies(ServerLevel level, BlockPos authorityPos, RecruitsClaim claim) {
+        Random random = new Random(authorityPos.asLong() ^ claim.getUUID().getMostSignificantBits() ^ claim.getUUID().getLeastSignificantBits());
+        List<StarterHouseholdSeed> households = planStarterHouseholds(random);
         int spawned = 0;
-        for (int i = 0; i < STARTER_FREE_CITIZEN_COUNT; i++) {
-            BlockPos spawnPos = authorityPos.offset((i % 2) + 1, 0, (i / 2) + 1);
-            if (spawnFreeCitizen(level, spawnPos, claim)) {
+        long gameTime = level.getGameTime();
+        for (int householdIndex = 0; householdIndex < households.size(); householdIndex++) {
+            StarterHouseholdSeed household = households.get(householdIndex);
+            BlockPos householdOrigin = authorityPos.offset(2 + (householdIndex % 3) * 4, 0, 2 + (householdIndex / 3) * 4);
+            List<UUID> residentIds = new ArrayList<>();
+            UUID headResidentUuid = null;
+            for (int memberIndex = 0; memberIndex < household.members().size(); memberIndex++) {
+                StarterResidentSeed member = household.members().get(memberIndex);
+                BlockPos spawnPos = householdOrigin.offset(memberIndex % 2, 0, memberIndex / 2);
+                CitizenEntity citizen = spawnFreeCitizen(level, spawnPos, claim, member.lifeStage(), member.sex());
+                if (citizen == null) {
+                    continue;
+                }
                 spawned++;
+                residentIds.add(citizen.getUUID());
+                if (headResidentUuid == null && member.isHouseholdHeadCandidate()) {
+                    headResidentUuid = citizen.getUUID();
+                }
             }
+            if (residentIds.isEmpty()) {
+                continue;
+            }
+            UUID householdId = UUID.randomUUID();
+            NpcHouseholdAccess.seedHousehold(
+                    level,
+                    householdId,
+                    headResidentUuid == null ? residentIds.getFirst() : headResidentUuid,
+                    residentIds,
+                    gameTime
+            );
+            NpcFamilyAccess.reconcileHousehold(level, householdId, gameTime);
         }
         return spawned;
     }
 
-    private static boolean spawnFreeCitizen(ServerLevel level, BlockPos spawnPos, RecruitsClaim claim) {
+    private static @Nullable CitizenEntity spawnFreeCitizen(ServerLevel level,
+                                                            BlockPos spawnPos,
+                                                            RecruitsClaim claim,
+                                                            NpcLifeStage lifeStage,
+                                                            NpcSex sex) {
         CitizenEntity citizen = ModCitizenEntityTypes.CITIZEN.get().create(level);
         if (citizen == null) {
-            return false;
+            return null;
         }
         BlockPos safeSpawnPos = resolveSafeSpawnPos(level, spawnPos);
         citizen.moveTo(safeSpawnPos.getX() + 0.5D, safeSpawnPos.getY(), safeSpawnPos.getZ() + 0.5D, 0.0F, 0.0F);
         citizen.setOwned(true);
+        citizen.setFemale(sex == NpcSex.FEMALE);
         PoliticalEntityRecord owner = claim.getOwnerPoliticalEntityId() == null
                 ? null
                 : WarRuntimeContext.registry(level).byId(claim.getOwnerPoliticalEntityId()).orElse(null);
@@ -276,13 +316,64 @@ public final class SettlementBootstrapService {
         }
         BannerModNpcNamePool.ensureNamed(citizen);
         level.addFreshEntity(citizen);
+        NpcSocietyAccess.seedResident(level, citizen.getUUID(), lifeStage, sex, level.getGameTime());
         if (owner != null) {
             PlayerTeam team = level.getScoreboard().getPlayerTeam(owner.name());
             if (team != null) {
                 level.getScoreboard().addPlayerToTeam(citizen.getScoreboardName(), team);
             }
         }
-        return true;
+        return citizen;
+    }
+
+    private static List<StarterHouseholdSeed> planStarterHouseholds(Random random) {
+        int householdCount = 2 + random.nextInt(3);
+        List<StarterHouseholdSeed> households = new ArrayList<>();
+        households.add(rootHousehold(random));
+        while (households.size() < householdCount) {
+            int roll = random.nextInt(4);
+            if (roll == 0) {
+                households.add(newlyweds());
+            } else if (roll == 1) {
+                households.add(youngFamily(random, true));
+            } else {
+                households.add(youngFamily(random, false));
+            }
+        }
+        return households;
+    }
+
+    private static StarterHouseholdSeed rootHousehold(Random random) {
+        List<StarterResidentSeed> members = new ArrayList<>();
+        members.add(new StarterResidentSeed(NpcLifeStage.ADULT, NpcSex.MALE));
+        members.add(new StarterResidentSeed(NpcLifeStage.ADULT, NpcSex.FEMALE));
+        members.add(new StarterResidentSeed(randomMinorStage(random), random.nextBoolean() ? NpcSex.MALE : NpcSex.FEMALE));
+        if (random.nextBoolean()) {
+            members.add(new StarterResidentSeed(randomMinorStage(random), random.nextBoolean() ? NpcSex.MALE : NpcSex.FEMALE));
+        }
+        return new StarterHouseholdSeed(List.copyOf(members));
+    }
+
+    private static StarterHouseholdSeed youngFamily(Random random, boolean withTwoChildren) {
+        List<StarterResidentSeed> members = new ArrayList<>();
+        members.add(new StarterResidentSeed(NpcLifeStage.ADULT, NpcSex.MALE));
+        members.add(new StarterResidentSeed(NpcLifeStage.ADULT, NpcSex.FEMALE));
+        members.add(new StarterResidentSeed(randomMinorStage(random), random.nextBoolean() ? NpcSex.MALE : NpcSex.FEMALE));
+        if (withTwoChildren || random.nextBoolean()) {
+            members.add(new StarterResidentSeed(randomMinorStage(random), random.nextBoolean() ? NpcSex.MALE : NpcSex.FEMALE));
+        }
+        return new StarterHouseholdSeed(List.copyOf(members));
+    }
+
+    private static StarterHouseholdSeed newlyweds() {
+        return new StarterHouseholdSeed(List.of(
+                new StarterResidentSeed(NpcLifeStage.ADULT, NpcSex.MALE),
+                new StarterResidentSeed(NpcLifeStage.ADULT, NpcSex.FEMALE)
+        ));
+    }
+
+    private static NpcLifeStage randomMinorStage(Random random) {
+        return random.nextBoolean() ? NpcLifeStage.ADOLESCENT : NpcLifeStage.CHILD;
     }
 
     private static BlockPos resolveSafeSpawnPos(ServerLevel level, BlockPos preferredPos) {
@@ -304,5 +395,14 @@ public final class SettlementBootstrapService {
         return level.getBlockState(pos).isAir()
                 && level.getBlockState(pos.above()).isAir()
                 && !level.getBlockState(pos.below()).isAir();
+    }
+
+    private record StarterHouseholdSeed(List<StarterResidentSeed> members) {
+    }
+
+    private record StarterResidentSeed(NpcLifeStage lifeStage, NpcSex sex) {
+        private boolean isHouseholdHeadCandidate() {
+            return this.lifeStage == NpcLifeStage.ADULT && this.sex == NpcSex.MALE;
+        }
     }
 }

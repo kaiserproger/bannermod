@@ -13,6 +13,8 @@ import com.talhanation.bannermod.settlement.prefab.impl.HousePrefab;
 import com.talhanation.bannermod.settlement.prefab.impl.LumberCampPrefab;
 import com.talhanation.bannermod.settlement.prefab.impl.MarketStallPrefab;
 import com.talhanation.bannermod.settlement.prefab.impl.StoragePrefab;
+import com.talhanation.bannermod.society.NpcHousingRequestAccess;
+import com.talhanation.bannermod.society.NpcHousingRequestRecord;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -44,11 +46,14 @@ final class BannerModSettlementProjectWorldExecution {
         if (buildAreas.stream().anyMatch(buildArea -> buildArea != null && buildArea.isAlive() && !buildArea.isDone())) {
             return false;
         }
+        NpcHousingRequestRecord housingRequest = NpcHousingRequestAccess.requestForProject(level, project.projectId());
         BuildingPlacementService.Result result = BuildingPlacementService.placeForClaim(
                 level,
                 claim,
                 prefabIdFor(project),
-                choosePlacementPos(level, claim, buildAreas.size()),
+                housingRequest != null && housingRequest.reservedPlotPos() != null
+                        ? housingRequest.reservedPlotPos()
+                        : choosePlacementPos(level, claim, buildAreas.size()),
                 Direction.SOUTH
         );
         if (result != BuildingPlacementService.Result.PLACED) {
@@ -60,6 +65,9 @@ final class BannerModSettlementProjectWorldExecution {
                     .max(java.util.Comparator.comparingInt(net.minecraft.world.entity.Entity::getId))
                     .orElse(null);
             if (placedArea != null) {
+                if (housingRequest != null) {
+                    NpcHousingRequestAccess.bindBuildArea(level, housingRequest.householdId(), placedArea.getUUID(), level.getGameTime());
+                }
                 // First autonomous livelihood slice: once the ruler approves the request,
                 // material bootstrap is granted immediately so the new workplace can start
                 // supporting the settlement instead of deadlocking on missing resources.

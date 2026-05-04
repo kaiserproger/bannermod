@@ -68,6 +68,7 @@ public final class NpcHousingProjectPlanner {
                     lordUuid,
                     gameTime
             );
+            request = NpcHousingPlotPlanner.ensureReservedPlot(level, snapshot, request, gameTime);
             if (request.status() == NpcHousingRequestStatus.REQUESTED) {
                 if (request.requestedAtGameTime() == gameTime) {
                     notifyLord(level, request, household);
@@ -176,11 +177,17 @@ public final class NpcHousingProjectPlanner {
                 "gui.bannermod.society.household_housing."
                         + household.housingState().name().toLowerCase(java.util.Locale.ROOT)
         );
+        Component plotPos = request.reservedPlotPos() == null
+                ? Component.literal("-")
+                : Component.literal(request.reservedPlotPos().getX() + " "
+                + request.reservedPlotPos().getY() + " "
+                + request.reservedPlotPos().getZ());
         lord.sendSystemMessage(Component.translatable(
                 "gui.bannermod.society.housing_request.notice",
                 request.residentUuid().toString().substring(0, 8),
                 housingState,
-                household.memberResidentUuids().size()
+                household.memberResidentUuids().size(),
+                plotPos
         ).append(Component.literal(" "))
                 .append(approve)
                 .append(Component.literal(" "))

@@ -28,6 +28,17 @@ public final class NpcFamilyAccess {
         reconcileHousehold(level, household, gameTime);
     }
 
+    public static void reconcileHousehold(ServerLevel level, UUID householdId, long gameTime) {
+        if (level == null || householdId == null) {
+            return;
+        }
+        NpcHouseholdRecord household = NpcHouseholdAccess.householdFor(level, householdId).orElse(null);
+        if (household == null) {
+            return;
+        }
+        reconcileHousehold(level, household, gameTime);
+    }
+
     public static void moveResident(ServerLevel level, UUID fromResidentUuid, UUID toResidentUuid, long gameTime) {
         if (level == null) {
             return;

@@ -128,6 +128,9 @@ final class BannerModSettlementClaimTickService {
                                     BannerModSettlementSnapshot snapshot,
                                     @Nullable ServerLevel level,
                                     long gameTime) {
+        if (level != null) {
+            assignReservedHomes(homeRuntime, snapshot, level, gameTime);
+        }
         java.util.Set<UUID> prioritizedResidents = level == null
                 ? java.util.Set.of()
                 : NpcHousingProjectPlanner.approvedRequesterIdsForClaim(level, snapshot.claimUuid());
@@ -179,6 +182,45 @@ final class BannerModSettlementClaimTickService {
                         com.talhanation.bannermod.society.NpcAnchorType.NONE,
                         gameTime
                 );
+            }
+        }
+    }
+
+    private static void assignReservedHomes(BannerModHomeAssignmentRuntime homeRuntime,
+                                            BannerModSettlementSnapshot snapshot,
+                                            ServerLevel level,
+                                            long gameTime) {
+        for (com.talhanation.bannermod.society.NpcHousingRequestRecord request
+                : com.talhanation.bannermod.society.NpcHousingRequestSavedData.get(level).runtime().requestsForClaim(snapshot.claimUuid())) {
+            if (request == null || request.status() == com.talhanation.bannermod.society.NpcHousingRequestStatus.DENIED) {
+                continue;
+            }
+            com.talhanation.bannermod.society.NpcHouseholdRecord household = com.talhanation.bannermod.society.NpcHouseholdAccess.householdFor(level, request.householdId()).orElse(null);
+            if (household == null || household.homeBuildingUuid() != null || household.memberResidentUuids().isEmpty()) {
+                continue;
+            }
+            UUID reservedHome = com.talhanation.bannermod.society.NpcHousingPlotPlanner.findReservedHomeBuilding(snapshot, homeRuntime, request);
+            if (reservedHome == null) {
+                continue;
+            }
+            int capacity = snapshot.buildings().stream()
+                    .filter(building -> building != null && reservedHome.equals(building.buildingUuid()))
+                    .mapToInt(com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord::residentCapacity)
+                    .findFirst()
+                    .orElse(0);
+            if (capacity <= 0) {
+                continue;
+            }
+            int assigned = homeRuntime.assignmentsForBuilding(reservedHome).size();
+            for (UUID memberResidentUuid : household.memberResidentUuids()) {
+                if (memberResidentUuid == null || assigned >= capacity) {
+                    continue;
+                }
+                if (homeRuntime.homeFor(memberResidentUuid).isPresent()) {
+                    continue;
+                }
+                homeRuntime.assign(memberResidentUuid, reservedHome, HomePreference.SHARED, gameTime);
+                assigned++;
             }
         }
     }

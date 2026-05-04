@@ -224,6 +224,7 @@ public class CitizenEntity extends PathfinderMob implements CitizenCore {
 
     public float renderScaleFactor() {
         return switch (renderLifeStage()) {
+            case CHILD -> 0.72F;
             case ADOLESCENT -> 0.84F;
             case ELDER -> 0.92F;
             default -> 1.0F;
@@ -285,6 +286,9 @@ public class CitizenEntity extends PathfinderMob implements CitizenCore {
 
     private void tryConvertIntoPendingWorker() {
         if (this.activeProfession() != CitizenProfession.NONE) {
+            return;
+        }
+        if (renderLifeStage() != NpcLifeStage.ADULT && renderLifeStage() != NpcLifeStage.ELDER) {
             return;
         }
         if (!this.getPersistentData().contains(PrefabAutoStaffingRuntime.TAG_PENDING_WORKER_PROFESSION, Tag.TAG_STRING)) {

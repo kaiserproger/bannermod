@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.society;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -73,6 +74,32 @@ public final class NpcHousingRequestRuntime {
         return updated;
     }
 
+    public NpcHousingRequestRecord reservePlot(UUID householdId, @Nullable BlockPos reservedPlotPos, long gameTime) {
+        NpcHousingRequestRecord existing = this.requestsByHousehold.get(householdId);
+        if (existing == null) {
+            throw new IllegalArgumentException("No housing request exists for household " + householdId);
+        }
+        NpcHousingRequestRecord updated = existing.reservePlot(reservedPlotPos, gameTime);
+        if (!updated.equals(existing)) {
+            this.requestsByHousehold.put(householdId, updated);
+            markDirty();
+        }
+        return updated;
+    }
+
+    public NpcHousingRequestRecord bindBuildArea(UUID householdId, @Nullable UUID buildAreaUuid, long gameTime) {
+        NpcHousingRequestRecord existing = this.requestsByHousehold.get(householdId);
+        if (existing == null) {
+            throw new IllegalArgumentException("No housing request exists for household " + householdId);
+        }
+        NpcHousingRequestRecord updated = existing.bindBuildArea(buildAreaUuid, gameTime);
+        if (!updated.equals(existing)) {
+            this.requestsByHousehold.put(householdId, updated);
+            markDirty();
+        }
+        return updated;
+    }
+
     public void fulfill(UUID householdId, long gameTime) {
         NpcHousingRequestRecord existing = this.requestsByHousehold.get(householdId);
         if (existing == null) {
@@ -96,6 +123,18 @@ public final class NpcHousingRequestRuntime {
             }
         }
         return matches;
+    }
+
+    public Optional<NpcHousingRequestRecord> requestForProject(UUID projectId) {
+        if (projectId == null) {
+            return Optional.empty();
+        }
+        for (NpcHousingRequestRecord request : this.requestsByHousehold.values()) {
+            if (request != null && projectId.equals(request.projectId())) {
+                return Optional.of(request);
+            }
+        }
+        return Optional.empty();
     }
 
     public CompoundTag toTag() {

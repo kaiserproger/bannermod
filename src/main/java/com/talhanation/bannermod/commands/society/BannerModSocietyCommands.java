@@ -103,12 +103,18 @@ public final class BannerModSocietyCommands {
                     + household.housingState().name().toLowerCase(Locale.ROOT));
             Component status = Component.translatable("gui.bannermod.society.housing_request."
                     + request.status().name().toLowerCase(Locale.ROOT));
+            Component plot = request.reservedPlotPos() == null
+                    ? Component.literal("-")
+                    : Component.literal(request.reservedPlotPos().getX() + " "
+                    + request.reservedPlotPos().getY() + " "
+                    + request.reservedPlotPos().getZ());
             MutableComponent line = Component.translatable(
                     "gui.bannermod.society.housing_request.command.entry",
                     shortId(request.residentUuid()),
                     state,
                     members,
-                    status
+                    status,
+                    plot
             );
             if (request.status() == NpcHousingRequestStatus.REQUESTED || request.status() == NpcHousingRequestStatus.DENIED) {
                 line.append(Component.literal(" "))
@@ -167,9 +173,14 @@ public final class BannerModSocietyCommands {
         NpcHousingRequestRecord updated = approve
                 ? NpcHousingRequestAccess.approveHousehold(level, householdId, level.getGameTime())
                 : NpcHousingRequestAccess.denyHousehold(level, householdId, level.getGameTime());
+        Component plot = updated.reservedPlotPos() == null
+                ? Component.literal("-")
+                : Component.literal(updated.reservedPlotPos().getX() + " "
+                + updated.reservedPlotPos().getY() + " "
+                + updated.reservedPlotPos().getZ());
         Component result = approve
-                ? Component.translatable("gui.bannermod.society.housing_request.command.approved", shortId(updated.residentUuid()))
-                : Component.translatable("gui.bannermod.society.housing_request.command.denied", shortId(updated.residentUuid()));
+                ? Component.translatable("gui.bannermod.society.housing_request.command.approved", shortId(updated.residentUuid()), plot)
+                : Component.translatable("gui.bannermod.society.housing_request.command.denied", shortId(updated.residentUuid()), plot);
         ctx.getSource().sendSuccess(() -> result, false);
         return 1;
     }

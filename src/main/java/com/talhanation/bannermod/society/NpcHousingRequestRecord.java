@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.society;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 
 import javax.annotation.Nullable;
@@ -11,6 +12,8 @@ public record NpcHousingRequestRecord(
         UUID claimUuid,
         UUID projectId,
         @Nullable UUID lordPlayerUuid,
+        @Nullable BlockPos reservedPlotPos,
+        @Nullable UUID buildAreaUuid,
         NpcHousingRequestStatus status,
         long requestedAtGameTime,
         long updatedAtGameTime
@@ -45,6 +48,8 @@ public record NpcHousingRequestRecord(
                 claimUuid,
                 projectId,
                 lordPlayerUuid,
+                null,
+                null,
                 NpcHousingRequestStatus.REQUESTED,
                 gameTime,
                 gameTime
@@ -61,6 +66,8 @@ public record NpcHousingRequestRecord(
                 this.claimUuid,
                 this.projectId,
                 this.lordPlayerUuid,
+                this.reservedPlotPos,
+                this.buildAreaUuid,
                 NpcHousingRequestStatus.APPROVED,
                 this.requestedAtGameTime,
                 gameTime
@@ -77,6 +84,8 @@ public record NpcHousingRequestRecord(
                 this.claimUuid,
                 this.projectId,
                 this.lordPlayerUuid,
+                this.reservedPlotPos,
+                this.buildAreaUuid,
                 NpcHousingRequestStatus.DENIED,
                 this.requestedAtGameTime,
                 gameTime
@@ -93,7 +102,45 @@ public record NpcHousingRequestRecord(
                 this.claimUuid,
                 this.projectId,
                 this.lordPlayerUuid,
+                this.reservedPlotPos,
+                this.buildAreaUuid,
                 NpcHousingRequestStatus.FULFILLED,
+                this.requestedAtGameTime,
+                gameTime
+        );
+    }
+
+    public NpcHousingRequestRecord reservePlot(@Nullable BlockPos reservedPlotPos, long gameTime) {
+        if (sameBlockPos(this.reservedPlotPos, reservedPlotPos)) {
+            return this;
+        }
+        return new NpcHousingRequestRecord(
+                this.householdId,
+                this.residentUuid,
+                this.claimUuid,
+                this.projectId,
+                this.lordPlayerUuid,
+                reservedPlotPos,
+                this.buildAreaUuid,
+                this.status,
+                this.requestedAtGameTime,
+                gameTime
+        );
+    }
+
+    public NpcHousingRequestRecord bindBuildArea(@Nullable UUID buildAreaUuid, long gameTime) {
+        if (sameNullableUuid(this.buildAreaUuid, buildAreaUuid)) {
+            return this;
+        }
+        return new NpcHousingRequestRecord(
+                this.householdId,
+                this.residentUuid,
+                this.claimUuid,
+                this.projectId,
+                this.lordPlayerUuid,
+                this.reservedPlotPos,
+                buildAreaUuid,
+                this.status,
                 this.requestedAtGameTime,
                 gameTime
         );
@@ -107,6 +154,12 @@ public record NpcHousingRequestRecord(
         tag.putUUID("ProjectId", this.projectId);
         if (this.lordPlayerUuid != null) {
             tag.putUUID("LordPlayerUuid", this.lordPlayerUuid);
+        }
+        if (this.reservedPlotPos != null) {
+            tag.putLong("ReservedPlotPos", this.reservedPlotPos.asLong());
+        }
+        if (this.buildAreaUuid != null) {
+            tag.putUUID("BuildAreaUuid", this.buildAreaUuid);
         }
         tag.putString("Status", this.status.name());
         tag.putLong("RequestedAt", this.requestedAtGameTime);
@@ -123,9 +176,19 @@ public record NpcHousingRequestRecord(
                 tag.getUUID("ClaimUuid"),
                 tag.getUUID("ProjectId"),
                 tag.contains("LordPlayerUuid") ? tag.getUUID("LordPlayerUuid") : null,
+                tag.contains("ReservedPlotPos") ? BlockPos.of(tag.getLong("ReservedPlotPos")) : null,
+                tag.contains("BuildAreaUuid") ? tag.getUUID("BuildAreaUuid") : null,
                 NpcHousingRequestStatus.fromName(tag.getString("Status")),
                 tag.getLong("RequestedAt"),
                 tag.getLong("UpdatedAt")
         );
+    }
+
+    private static boolean sameNullableUuid(@Nullable UUID left, @Nullable UUID right) {
+        return left == null ? right == null : left.equals(right);
+    }
+
+    private static boolean sameBlockPos(@Nullable BlockPos left, @Nullable BlockPos right) {
+        return left == null ? right == null : left.equals(right);
     }
 }

@@ -23,6 +23,8 @@ import com.talhanation.bannermod.settlement.prefab.impl.LumberCampPrefab;
 import com.talhanation.bannermod.settlement.prefab.impl.MinePrefab;
 import com.talhanation.bannermod.settlement.building.BuildingType;
 import com.talhanation.bannermod.settlement.building.ValidatedBuildingRecord;
+import com.talhanation.bannermod.society.NpcLifeStage;
+import com.talhanation.bannermod.society.NpcSocietyAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -284,6 +286,10 @@ public final class PrefabAutoStaffingRuntime {
 
     public static void assignCitizenToNearestVacancy(ServerLevel level, CitizenEntity citizen) {
         if (level == null || citizen == null || !citizen.isAlive() || citizen.isRemoved()) {
+            return;
+        }
+        NpcLifeStage lifeStage = NpcSocietyAccess.ensureResident(level, citizen.getUUID(), level.getGameTime()).lifeStage();
+        if (lifeStage != NpcLifeStage.ADULT && lifeStage != NpcLifeStage.ELDER) {
             return;
         }
         long pausedUntil = citizen.getPersistentData().getLong(TAG_ASSIGNMENT_PAUSE_UNTIL);

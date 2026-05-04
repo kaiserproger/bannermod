@@ -5,6 +5,7 @@ import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.items.civilian.BannerModAlmanacItem;
 import com.talhanation.bannermod.items.civilian.BuildingPlacementWandItem;
+import com.talhanation.bannermod.items.civilian.KinlotStaffItem;
 import com.talhanation.bannermod.items.civilian.SettlementSurveyorToolItem;
 import com.talhanation.bannermod.items.civilian.WorkersSpawnEgg;
 import net.minecraft.core.registries.Registries;
@@ -35,6 +36,7 @@ public class ModItems {
     public static final DeferredHolder<Item, Item> BANNERMOD_ALMANAC = ITEMS.register("banner_almanac", () -> new BannerModAlmanacItem(new Item.Properties().stacksTo(1)));
     public static final DeferredHolder<Item, Item> BUILDING_PLACEMENT_WAND = ITEMS.register("building_placement_wand", () -> new BuildingPlacementWandItem(new Item.Properties().stacksTo(1)));
     public static final DeferredHolder<Item, Item> SETTLEMENT_SURVEYOR_TOOL = ITEMS.register("settlement_surveyor_tool", () -> new SettlementSurveyorToolItem(new Item.Properties().stacksTo(1)));
+    public static final DeferredHolder<Item, Item> KINLOT_STAFF = ITEMS.register("kinlot_staff", () -> new KinlotStaffItem(new Item.Properties().stacksTo(1)));
 
     public static DeferredHolder<Item, SpawnEggItem> createSpawnEggItem(String entityName, Supplier<? extends EntityType<? extends AbstractRecruitEntity>> supplier, int primaryColor, int secondaryColor) {
         DeferredHolder<Item, SpawnEggItem> spawnEgg = ModItems.ITEMS.register(entityName + "_spawn_egg", () -> {

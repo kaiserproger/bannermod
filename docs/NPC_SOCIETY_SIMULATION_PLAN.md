@@ -27,6 +27,10 @@
   - settlements can now also raise ruler-approved livelihood requests for `lumber camp`, `mine`, and `animal pen`
   - approved livelihood requests now flow into the prefab project path with exact prefab ids instead of only coarse growth categories
   - settlement-spawned workers now start with baseline profession tools, auto-bind to compatible existing claim work areas more aggressively, and can craft replacement stone tools for themselves at nearby crafting tables when materials are available
+- The first family-lot observability slice is now live:
+  - starter-fort bootstrap now seeds 2-4 family households instead of only flat identical free adults
+  - approved housing petitions now reserve an explicit family lot inside the claim and the finished house is handed back to that requesting household first
+  - the `Kinlot Staff` / `Родовая межа` now highlights the nearest reserved family lot while held and renders a floating household label over it
 - This document now serves two purposes:
   - record what was actually shipped
   - define how the next refactor pass should restructure and extend it
@@ -102,6 +106,7 @@ The current runtime already contains a first working NPC-society backbone.
   - requests now notify the lord and wait for explicit approve/deny instead of silently auto-approving
   - approved requests become `PendingProject` house builds
   - project execution reuses the existing `HousePrefab` and settlement build-area pipeline
+  - approved requests now also reserve a concrete family lot position in the claim, surface that lot in ruler-facing chat/command observability, and try to place/return the completed house back onto that lot for the same household
 - A first ruler-approved livelihood-infrastructure path now exists:
   - settlements can create dedicated saved-data requests for `lumber camp`, `mine`, and `animal pen`
   - requests are keyed by claim plus livelihood type rather than being folded into generic growth hints
@@ -117,6 +122,7 @@ The current runtime already contains a first working NPC-society backbone.
   - family records now carry spouse, mother, father, and child UUID links
   - households now also carry a persisted head resident UUID
   - family links are no longer rebuilt only for GUI display; they are now stored and preserved across later reconciles
+  - starter bootstrap now seeds first households directly into this family/household runtime instead of only relying on later passive reconcile to infer all early settlement families
 
 ### How It Was Implemented
 
@@ -163,8 +169,10 @@ The current runtime already contains a first working NPC-society backbone.
   - a richer dedicated GUI still does not exist yet
 - Household housing requests are now household-driven, but they are still incomplete:
   - there is still no fairness queue between competing households
-  - there is still no direct reservation of the newly built home back onto the requesting household by explicit request ownership rules
 - House self-build currently reuses the existing settlement builder pipeline; it is not yet a full citizen-driven gather-carry-place loop owned by the requesting household.
+ - Family-lot rendering is now visible through the `Kinlot Staff`, but it is still intentionally lightweight:
+  - the highlighted lot is a reserved plot marker, not a full parcel-survey polygon system
+  - the floating label currently shows the representative/household identity slice, not a deep surname/lineage naming system
 - Livelihood self-build is now live in a first practical slice, but it is still intentionally coarse:
   - requests currently cover only `lumber camp`, `mine`, and `animal pen`
   - the village currently asks the ruler first, then uses prefab-backed project placement instead of emergent freeform site planning

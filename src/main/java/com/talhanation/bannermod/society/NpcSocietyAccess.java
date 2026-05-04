@@ -18,6 +18,16 @@ public final class NpcSocietyAccess {
         return NpcSocietySavedData.get(level).runtime().ensureResident(residentUuid, gameTime);
     }
 
+    public static NpcSocietyProfile seedResident(ServerLevel level,
+                                                 UUID residentUuid,
+                                                 NpcLifeStage lifeStage,
+                                                 NpcSex sex,
+                                                 long gameTime) {
+        return NpcSocietySavedData.get(level).runtime().seedResident(
+                NpcSocietyProfile.createSeeded(residentUuid, lifeStage, sex, gameTime)
+        );
+    }
+
     public static NpcSocietyProfile ensureResidentForEntity(ServerLevel level, Entity entity) {
         if (level == null || entity == null) {
             throw new IllegalArgumentException("level and entity must not be null");
