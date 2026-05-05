@@ -78,26 +78,69 @@ public final class NpcSocietyAccess {
         );
     }
 
-    public static NpcSocietyProfile moveResidentProfile(ServerLevel level,
-                                                         UUID fromResidentUuid,
-                                                         UUID toResidentUuid,
+    public static NpcSocietyProfile reconcileSocialState(ServerLevel level,
+                                                         UUID residentUuid,
+                                                         int trustScore,
+                                                         int fearScore,
+                                                         int angerScore,
+                                                         int gratitudeScore,
+                                                         int loyaltyScore,
                                                          long gameTime) {
+        return NpcSocietySavedData.get(level).runtime().reconcileSocialState(
+                residentUuid,
+                trustScore,
+                fearScore,
+                angerScore,
+                gratitudeScore,
+                loyaltyScore,
+                gameTime
+        );
+    }
+
+    public static NpcSocietyProfile moveResidentProfile(ServerLevel level,
+                                                          UUID fromResidentUuid,
+                                                          UUID toResidentUuid,
+                                                          long gameTime) {
         NpcHouseholdAccess.moveResident(level, fromResidentUuid, toResidentUuid, gameTime);
         NpcFamilyAccess.moveResident(level, fromResidentUuid, toResidentUuid, gameTime);
+        NpcMemorySavedData.get(level).runtime().moveResident(fromResidentUuid, toResidentUuid, gameTime);
         return NpcSocietySavedData.get(level).runtime().moveResident(fromResidentUuid, toResidentUuid, gameTime);
     }
 
     public static NpcPhaseOneSnapshot phaseOneSnapshot(ServerLevel level,
                                                        UUID residentUuid,
                                                        @Nullable UUID fallbackWorkBuildingUuid) {
-        NpcSocietyProfile profile = ensureResident(level, residentUuid, level.getGameTime());
+        NpcSocietyProfile profile = NpcMemoryAccess.tickResidentState(
+                level,
+                ensureResident(level, residentUuid, level.getGameTime()),
+                level.getGameTime()
+        );
         UUID workBuildingUuid = profile.workBuildingUuid() != null ? profile.workBuildingUuid() : fallbackWorkBuildingUuid;
         NpcHouseholdRecord household = NpcHouseholdAccess.householdForResident(level, residentUuid).orElse(null);
         UUID householdId = household == null ? profile.householdId() : household.householdId();
+        NpcHousingRequestRecord housingRequest = householdId == null ? null : NpcHousingRequestAccess.requestForHousehold(level, householdId);
+        String housingUrgencyTag = "LOW";
+        String housingReasonTag = "STABLE";
+        int housingWaitingDays = 0;
+        if (housingRequest != null
+                && housingRequest.status() != NpcHousingRequestStatus.NONE
+                && housingRequest.status() != NpcHousingRequestStatus.FULFILLED) {
+            NpcHousingLedgerEntry housingEntry = NpcHousingPriorityService.describe(housingRequest, household, level.getGameTime());
+            housingUrgencyTag = housingEntry.urgencyTag();
+            housingReasonTag = housingEntry.reasonTag();
+            housingWaitingDays = housingEntry.waitingDays();
+        } else if (household == null || household.housingState() == NpcHouseholdHousingState.HOMELESS) {
+            housingUrgencyTag = "CRITICAL";
+            housingReasonTag = "HOMELESS";
+        } else if (household.housingState() == NpcHouseholdHousingState.OVERCROWDED) {
+            housingUrgencyTag = "HIGH";
+            housingReasonTag = "OVERCROWDED";
+        }
         return new NpcPhaseOneSnapshot(
                 profile.lifeStage().name(),
                 profile.sex().name(),
                 householdId,
+                household == null ? null : household.headResidentUuid(),
                 profile.homeBuildingUuid(),
                 workBuildingUuid,
                 profile.cultureId(),
@@ -111,7 +154,16 @@ public final class NpcSocietyAccess {
                 profile.fatigueNeed(),
                 profile.socialNeed(),
                 profile.safetyNeed(),
-                NpcHousingRequestAccess.statusFor(level, residentUuid).name()
+                profile.trustScore(),
+                profile.fearScore(),
+                profile.angerScore(),
+                profile.gratitudeScore(),
+                profile.loyaltyScore(),
+                NpcHousingRequestAccess.statusFor(level, residentUuid).name(),
+                housingUrgencyTag,
+                housingReasonTag,
+                housingWaitingDays,
+                NpcMemoryAccess.summarySnapshots(level, residentUuid, level.getGameTime())
         );
     }
 

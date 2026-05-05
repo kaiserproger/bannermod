@@ -14,6 +14,7 @@
   - household membership is stored separately from the home building id
   - household housing state now distinguishes settled, homeless, and overcrowded households
   - family GUI observability now exists for citizens and workers
+  - citizen and worker inspection now also expose the current household head plus a compact housing-pressure explanation directly in the base profile screens
 - Phase 3 is now live in a first full memory-and-relationships slice:
   - bounded resident memory records are persisted in a dedicated runtime
   - trust, fear, anger, gratitude, and loyalty now derive from remembered events and are stored on live society profiles
@@ -24,6 +25,8 @@
 - The first ruler-approved infrastructure autonomy slice is now live:
   - household housing petitions no longer auto-approve and now persist explicit `REQUESTED`, `DENIED`, `APPROVED`, and `FULFILLED` state
   - rulers can approve or deny housing petitions from clickable chat actions and `/bannermod society housing ...` commands
+  - housing petitions are now also ranked through one shared server-side fairness scorer that accounts for homelessness, overcrowding, household size, waiting age, and current request state
+  - the `U` War Room path now also exposes a dedicated housing ledger screen so rulers can review and resolve the same ranked petition queue without staying chat-command-only
   - settlements can now also raise ruler-approved livelihood requests for `lumber camp`, `mine`, and `animal pen`
   - approved livelihood requests now flow into the prefab project path with exact prefab ids instead of only coarse growth categories
   - settlement-spawned workers now start with baseline profession tools, auto-bind to compatible existing claim work areas more aggressively, and can craft replacement stone tools for themselves at nearby crafting tables when materials are available
@@ -75,6 +78,8 @@ The current runtime already contains a first working NPC-society backbone.
   - household size
   - household housing state
   - housing request state
+  - household head identity and the resident's current household role
+  - compact housing-pressure cause/urgency context instead of only raw request state
 - Family GUI observability is now live:
   - `client/civilian/gui/NpcFamilyTreeScreen.java`
   - citizen profile now exposes a family button
@@ -104,6 +109,7 @@ The current runtime already contains a first working NPC-society backbone.
   - requests are stored in dedicated saved data
   - requests are now keyed by household, with a representative resident retained for GUI/notifications
   - requests now notify the lord and wait for explicit approve/deny instead of silently auto-approving
+  - request ranking now runs through `NpcHousingPriorityService` so command/chat/GUI observability all share the same fairness order and urgency explanation
   - approved requests become `PendingProject` house builds
   - project execution reuses the existing `HousePrefab` and settlement build-area pipeline
   - approved requests now also reserve a concrete family lot position in the claim, surface that lot in ruler-facing chat/command observability, and try to place/return the completed house back onto that lot for the same household
@@ -165,10 +171,9 @@ The current runtime already contains a first working NPC-society backbone.
 - Lord permission for house building is only partially realized:
   - requests exist
   - notification exists
-  - manual approve/deny now exists in a first chat-command/chat-action slice
-  - a richer dedicated GUI still does not exist yet
+  - manual approve/deny now exists in chat-command, chat-action, and dedicated ledger-GUI slices
 - Household housing requests are now household-driven, but they are still incomplete:
-  - there is still no fairness queue between competing households
+  - a first shared fairness queue now exists for competing households, but it is still intentionally lightweight and does not yet model reserves, prestige, or dynasty policy
 - House self-build currently reuses the existing settlement builder pipeline; it is not yet a full citizen-driven gather-carry-place loop owned by the requesting household.
  - Family-lot rendering is now visible through the `Kinlot Staff`, but it is still intentionally lightweight:
   - the highlighted lot is a reserved plot marker, not a full parcel-survey polygon system
@@ -187,7 +192,7 @@ The current runtime already contains a first working NPC-society backbone.
 - Adolescents are only safely shipped for the citizen path right now; worker/recruit-wide visual and gameplay handling still needs a broader pass.
 - The family GUI is useful and live, but still limited:
   - it depends on nearby loaded entities for live model previews
-  - it does not yet expose head-of-household state directly in the screen
+  - head-of-household state is now visible in the base citizen/worker profile screens, but it is still not surfaced as a dedicated field inside the family tree screen itself
   - it does not yet show extended kin, multiple generations, or a scrollable lineage tree
 - Phase 2 is complete for the first shipped slice, but still intentionally limited:
   - the utility pass does not yet include belonging, morale, health stress, religion, or memory-driven emotion
@@ -225,9 +230,11 @@ The next pass should not just append features. It should cleanly separate what a
 ### 4. Rework House Construction Into A True Social Loop
 
 - The current implementation proves that residents can request and trigger house projects.
+- A first bounded observability/prioritization step of that direction is now live:
+  - rulers can open a dedicated housing ledger UI from the `U` War Room path
+  - `/bannermod society housing list` and the ledger now share one server-side fairness order instead of ad-hoc severity sorting
+  - petitions now surface an explicit urgency band and primary priority reason in addition to raw request status
 - The next version should add:
-  - explicit lord approval or denial UI
-  - request priority and fairness rules
   - reservation of newly built homes for the requesting resident or household
   - direct linkage between household shortage and project urgency
   - clearer use of resource gathering and hauling before or during build execution

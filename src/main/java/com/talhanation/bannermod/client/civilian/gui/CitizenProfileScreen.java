@@ -107,15 +107,19 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
         // Inset starts at x=92 with width=142, so we have 138px of usable text space.
         final int textBoxWidth = 134;
         drawClamped(graphics, Component.translatable("gui.bannermod.citizen_profile.owner",
-                ownerLabel().getString()), 92, 46, textBoxWidth, MilitaryGuiStyle.TEXT_DARK);
+                ownerLabel().getString()), 92, 44, textBoxWidth, MilitaryGuiStyle.TEXT_DARK);
         drawClamped(graphics, Component.translatable("gui.bannermod.citizen_profile.assignment",
-                assignmentLabel().getString()), 92, 58, textBoxWidth, 0xFF6E5535);
+                assignmentLabel().getString()), 92, 53, textBoxWidth, 0xFF6E5535);
         drawClamped(graphics, Component.translatable("gui.bannermod.citizen_profile.home",
-                homeSummary().getString()), 92, 70, textBoxWidth, 0xFF6E5535);
+                homeSummary().getString()), 92, 62, textBoxWidth, 0xFF6E5535);
+        drawClamped(graphics, Component.translatable("gui.bannermod.citizen_profile.family",
+                familySummary().getString()), 92, 71, textBoxWidth, 0xFF6E5535);
         drawClamped(graphics, Component.translatable("gui.bannermod.citizen_profile.routine",
-                routineSummary().getString()), 92, 82, textBoxWidth, 0xFF6E5535);
+                routineSummary().getString()), 92, 80, textBoxWidth, 0xFF6E5535);
+        drawClamped(graphics, Component.translatable("gui.bannermod.citizen_profile.housing",
+                housingSummary().getString()), 92, 89, textBoxWidth, 0xFF6E5535);
         drawClamped(graphics, Component.translatable("gui.bannermod.citizen_profile.needs",
-                needsSummary().getString()), 92, 94, textBoxWidth, MilitaryGuiStyle.TEXT_DARK);
+                needsSummary().getString()), 92, 98, textBoxWidth, MilitaryGuiStyle.TEXT_DARK);
         graphics.drawString(this.font, Component.translatable("gui.bannermod.citizen_profile.inventory"), 96, 108, MilitaryGuiStyle.TEXT_DARK, false);
         graphics.drawString(this.font, Component.translatable("gui.bannermod.citizen_profile.player_inventory"), 14, 166, MilitaryGuiStyle.TEXT_DARK, false);
     }
@@ -182,9 +186,17 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
                 "gui.bannermod.citizen_profile.home.summary",
                 NpcPhaseOneSnapshot.shortId(this.phaseOneSnapshot.homeBuildingUuid()),
                 NpcPhaseOneSnapshot.shortId(this.phaseOneSnapshot.householdId()),
-                this.phaseOneSnapshot.householdSize(),
                 Component.translatable(this.phaseOneSnapshot.lifeStageTranslationKey()).getString(),
                 Component.translatable(this.phaseOneSnapshot.sexTranslationKey()).getString()
+        );
+    }
+
+    private Component familySummary() {
+        return Component.translatable(
+                "gui.bannermod.citizen_profile.family.summary",
+                NpcPhaseOneSnapshot.shortId(this.phaseOneSnapshot.householdHeadResidentUuid()),
+                Component.translatable(this.phaseOneSnapshot.householdRoleTranslationKey(this.citizen.getUUID())).getString(),
+                this.phaseOneSnapshot.householdSize()
         );
     }
 
@@ -193,8 +205,17 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
                 "gui.bannermod.citizen_profile.routine.summary",
                 Component.translatable(this.phaseOneSnapshot.dailyPhaseTranslationKey()).getString(),
                 Component.translatable(this.phaseOneSnapshot.currentIntentTranslationKey()).getString(),
-                Component.translatable(this.phaseOneSnapshot.householdHousingStateTranslationKey()).getString(),
-                Component.translatable(this.phaseOneSnapshot.housingRequestTranslationKey()).getString()
+                Component.translatable(this.phaseOneSnapshot.householdHousingStateTranslationKey()).getString()
+        );
+    }
+
+    private Component housingSummary() {
+        return Component.translatable(
+                "gui.bannermod.citizen_profile.housing.summary",
+                Component.translatable(this.phaseOneSnapshot.housingRequestTranslationKey()).getString(),
+                Component.translatable(this.phaseOneSnapshot.housingUrgencyTranslationKey()).getString(),
+                Component.translatable(this.phaseOneSnapshot.housingReasonTranslationKey()).getString(),
+                this.phaseOneSnapshot.housingWaitingDays()
         );
     }
 

@@ -173,7 +173,8 @@ public class WorkerStatusScreen extends Screen {
                 "gui.bannermod.worker_screen.identity.summary",
                 Component.translatable(phaseOne.lifeStageTranslationKey()).getString(),
                 Component.translatable(phaseOne.sexTranslationKey()).getString(),
-                NpcPhaseOneSnapshot.shortId(phaseOne.householdId()),
+                NpcPhaseOneSnapshot.shortId(phaseOne.householdHeadResidentUuid()),
+                Component.translatable(phaseOne.householdRoleTranslationKey(this.snapshot.workerUuid())).getString(),
                 phaseOne.householdSize(),
                 NpcPhaseOneSnapshot.shortId(phaseOne.homeBuildingUuid())
         );
@@ -185,9 +186,10 @@ public class WorkerStatusScreen extends Screen {
                 "gui.bannermod.worker_screen.routine.summary",
                 Component.translatable(phaseOne.dailyPhaseTranslationKey()).getString(),
                 Component.translatable(phaseOne.currentIntentTranslationKey()).getString(),
-                Component.translatable(phaseOne.currentAnchorTranslationKey()).getString(),
                 Component.translatable(phaseOne.householdHousingStateTranslationKey()).getString(),
-                Component.translatable(phaseOne.housingRequestTranslationKey()).getString()
+                Component.translatable(phaseOne.housingRequestTranslationKey()).getString(),
+                Component.translatable(phaseOne.housingUrgencyTranslationKey()).getString(),
+                Component.translatable(phaseOne.housingReasonTranslationKey()).getString()
         );
     }
 

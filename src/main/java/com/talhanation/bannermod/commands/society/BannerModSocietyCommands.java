@@ -5,12 +5,13 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
-import com.talhanation.bannermod.society.NpcHouseholdAccess;
-import com.talhanation.bannermod.society.NpcHouseholdHousingState;
-import com.talhanation.bannermod.society.NpcHouseholdRecord;
+import com.talhanation.bannermod.society.NpcHamletAccess;
+import com.talhanation.bannermod.society.NpcHamletRecord;
+import com.talhanation.bannermod.society.NpcHamletStatus;
 import com.talhanation.bannermod.society.NpcHousingRequestAccess;
+import com.talhanation.bannermod.society.NpcHousingLedgerEntry;
+import com.talhanation.bannermod.society.NpcHousingPriorityService;
 import com.talhanation.bannermod.society.NpcHousingRequestRecord;
-import com.talhanation.bannermod.society.NpcHousingRequestSavedData;
 import com.talhanation.bannermod.society.NpcHousingRequestStatus;
 import com.talhanation.bannermod.society.NpcLivelihoodRequestAccess;
 import com.talhanation.bannermod.society.NpcLivelihoodRequestRecord;
@@ -63,7 +64,17 @@ public final class BannerModSocietyCommands {
                         .then(Commands.literal("deny")
                                 .then(Commands.argument("claimId", StringArgumentType.word())
                                         .then(Commands.argument("type", StringArgumentType.word())
-                                                .executes(ctx -> updateLivelihoodRequestStatus(ctx, false))))));
+                                                .executes(ctx -> updateLivelihoodRequestStatus(ctx, false))))))
+                .then(Commands.literal("hamlet")
+                        .then(Commands.literal("list")
+                                .executes(BannerModSocietyCommands::listCurrentClaimHamlets))
+                        .then(Commands.literal("register")
+                                .then(Commands.argument("hamletId", StringArgumentType.word())
+                                        .executes(BannerModSocietyCommands::registerHamlet)))
+                        .then(Commands.literal("rename")
+                                .then(Commands.argument("hamletId", StringArgumentType.word())
+                                        .then(Commands.argument("name", StringArgumentType.greedyString())
+                                                .executes(BannerModSocietyCommands::renameHamlet)))));
     }
 
     private static int listCurrentClaimRequests(CommandContext<CommandSourceStack> ctx) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
@@ -80,13 +91,7 @@ public final class BannerModSocietyCommands {
             return 0;
         }
 
-        List<NpcHousingRequestRecord> requests = new ArrayList<>(NpcHousingRequestSavedData.get(level).runtime().requestsForClaim(claim.getUUID()));
-        requests.removeIf(request -> request == null
-                || request.status() == NpcHousingRequestStatus.NONE
-                || request.status() == NpcHousingRequestStatus.FULFILLED);
-        requests.sort(Comparator
-                .comparingInt((NpcHousingRequestRecord request) -> severity(level, request.householdId()))
-                .thenComparingLong(NpcHousingRequestRecord::requestedAtGameTime));
+        List<NpcHousingLedgerEntry> requests = NpcHousingPriorityService.activeEntriesForClaim(level, claim.getUUID(), level.getGameTime());
 
         if (requests.isEmpty()) {
             ctx.getSource().sendSuccess(() -> Component.translatable("gui.bannermod.society.housing_request.command.empty"), false);
@@ -94,15 +99,11 @@ public final class BannerModSocietyCommands {
         }
 
         ctx.getSource().sendSuccess(() -> Component.translatable("gui.bannermod.society.housing_request.command.header", requests.size()), false);
-        for (NpcHousingRequestRecord request : requests) {
-            NpcHouseholdRecord household = NpcHouseholdAccess.householdFor(level, request.householdId()).orElse(null);
-            int members = household == null ? 0 : household.memberResidentUuids().size();
-            Component state = household == null
-                    ? Component.literal("unknown")
-                    : Component.translatable("gui.bannermod.society.household_housing."
-                    + household.housingState().name().toLowerCase(Locale.ROOT));
-            Component status = Component.translatable("gui.bannermod.society.housing_request."
-                    + request.status().name().toLowerCase(Locale.ROOT));
+        for (NpcHousingLedgerEntry request : requests) {
+            Component state = Component.translatable(request.housingStateTranslationKey());
+            Component status = Component.translatable(request.statusTranslationKey());
+            Component urgency = Component.translatable(request.urgencyTranslationKey());
+            Component reason = Component.translatable(request.reasonTranslationKey());
             Component plot = request.reservedPlotPos() == null
                     ? Component.literal("-")
                     : Component.literal(request.reservedPlotPos().getX() + " "
@@ -110,13 +111,16 @@ public final class BannerModSocietyCommands {
                     + request.reservedPlotPos().getZ());
             MutableComponent line = Component.translatable(
                     "gui.bannermod.society.housing_request.command.entry",
+                    request.queueRank(),
                     shortId(request.residentUuid()),
                     state,
-                    members,
+                    request.householdSize(),
                     status,
+                    urgency,
+                    reason,
                     plot
             );
-            if (request.status() == NpcHousingRequestStatus.REQUESTED || request.status() == NpcHousingRequestStatus.DENIED) {
+            if (NpcHousingPriorityService.canApprove(request)) {
                 line.append(Component.literal(" "))
                         .append(actionButton(
                                 "gui.bannermod.society.housing_request.action.approve",
@@ -125,7 +129,7 @@ public final class BannerModSocietyCommands {
                                 "gui.bannermod.society.housing_request.action.approve.tooltip"
                         ));
             }
-            if (request.status() == NpcHousingRequestStatus.REQUESTED) {
+            if (NpcHousingPriorityService.canDeny(request)) {
                 line.append(Component.literal(" "))
                         .append(actionButton(
                                 "gui.bannermod.society.housing_request.action.deny",
@@ -288,6 +292,117 @@ public final class BannerModSocietyCommands {
         return 1;
     }
 
+    private static int listCurrentClaimHamlets(CommandContext<CommandSourceStack> ctx) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        ServerPlayer player = ctx.getSource().getPlayerOrException();
+        ServerLevel level = player.serverLevel();
+        RecruitsClaim claim = currentClaim(player);
+        if (claim == null) {
+            ctx.getSource().sendFailure(Component.translatable("gui.bannermod.society.hamlet.command.no_claim"));
+            return 0;
+        }
+        PoliticalEntityRecord owner = ownerRecord(level, claim);
+        if (!PoliticalEntityAuthority.canAct(player, owner)) {
+            ctx.getSource().sendFailure(PoliticalEntityAuthority.denialReason(player.getUUID(), player.hasPermissions(2), owner));
+            return 0;
+        }
+        List<NpcHamletRecord> hamlets = new ArrayList<>(NpcHamletAccess.hamletsForClaim(level, claim.getUUID()));
+        hamlets.sort(Comparator
+                .comparingInt((NpcHamletRecord record) -> hamletSeverity(record.status()))
+                .thenComparing(record -> record.anchorPos().getX())
+                .thenComparing(record -> record.anchorPos().getZ()));
+        if (hamlets.isEmpty()) {
+            ctx.getSource().sendSuccess(() -> Component.translatable("gui.bannermod.society.hamlet.command.empty"), false);
+            return 1;
+        }
+        ctx.getSource().sendSuccess(() -> Component.translatable("gui.bannermod.society.hamlet.command.header", hamlets.size()), false);
+        for (NpcHamletRecord hamlet : hamlets) {
+            MutableComponent line = Component.translatable(
+                    "gui.bannermod.society.hamlet.command.entry",
+                    NpcHamletAccess.displayName(hamlet),
+                    Component.translatable("gui.bannermod.society.hamlet.status." + hamlet.status().name().toLowerCase(Locale.ROOT)),
+                    hamlet.householdCount(),
+                    hamlet.anchorPos().getX(),
+                    hamlet.anchorPos().getZ()
+            );
+            if (hamlet.status() == NpcHamletStatus.INFORMAL) {
+                line.append(Component.literal(" "))
+                        .append(actionButton(
+                                "gui.bannermod.society.hamlet.action.register",
+                                "/bannermod society hamlet register " + hamlet.hamletId(),
+                                ChatFormatting.GREEN,
+                                "gui.bannermod.society.hamlet.action.register.tooltip"
+                        ));
+            }
+            ctx.getSource().sendSuccess(() -> line, false);
+        }
+        return 1;
+    }
+
+    private static int registerHamlet(CommandContext<CommandSourceStack> ctx) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        ServerPlayer player = ctx.getSource().getPlayerOrException();
+        ServerLevel level = player.serverLevel();
+        UUID hamletId = parseUuid(ctx.getSource(), StringArgumentType.getString(ctx, "hamletId"), "gui.bannermod.society.hamlet.command.invalid_id");
+        if (hamletId == null) {
+            return 0;
+        }
+        NpcHamletRecord hamlet = NpcHamletAccess.hamletFor(level, hamletId).orElse(null);
+        if (hamlet == null) {
+            ctx.getSource().sendFailure(Component.translatable("gui.bannermod.society.hamlet.command.not_found"));
+            return 0;
+        }
+        RecruitsClaim claim = claimById(hamlet.claimUuid());
+        if (claim == null) {
+            ctx.getSource().sendFailure(Component.translatable("gui.bannermod.society.hamlet.command.no_claim"));
+            return 0;
+        }
+        PoliticalEntityRecord owner = ownerRecord(level, claim);
+        if (!PoliticalEntityAuthority.canAct(player, owner)) {
+            ctx.getSource().sendFailure(PoliticalEntityAuthority.denialReason(player.getUUID(), player.hasPermissions(2), owner));
+            return 0;
+        }
+        NpcHamletRecord updated = NpcHamletAccess.register(level, hamletId, level.getGameTime());
+        ctx.getSource().sendSuccess(() -> Component.translatable(
+                "gui.bannermod.society.hamlet.command.registered",
+                NpcHamletAccess.displayName(updated)
+        ), false);
+        return 1;
+    }
+
+    private static int renameHamlet(CommandContext<CommandSourceStack> ctx) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+        ServerPlayer player = ctx.getSource().getPlayerOrException();
+        ServerLevel level = player.serverLevel();
+        UUID hamletId = parseUuid(ctx.getSource(), StringArgumentType.getString(ctx, "hamletId"), "gui.bannermod.society.hamlet.command.invalid_id");
+        if (hamletId == null) {
+            return 0;
+        }
+        NpcHamletRecord hamlet = NpcHamletAccess.hamletFor(level, hamletId).orElse(null);
+        if (hamlet == null) {
+            ctx.getSource().sendFailure(Component.translatable("gui.bannermod.society.hamlet.command.not_found"));
+            return 0;
+        }
+        RecruitsClaim claim = claimById(hamlet.claimUuid());
+        if (claim == null) {
+            ctx.getSource().sendFailure(Component.translatable("gui.bannermod.society.hamlet.command.no_claim"));
+            return 0;
+        }
+        PoliticalEntityRecord owner = ownerRecord(level, claim);
+        if (!PoliticalEntityAuthority.canAct(player, owner)) {
+            ctx.getSource().sendFailure(PoliticalEntityAuthority.denialReason(player.getUUID(), player.hasPermissions(2), owner));
+            return 0;
+        }
+        try {
+            NpcHamletRecord updated = NpcHamletAccess.rename(level, hamletId, StringArgumentType.getString(ctx, "name"), level.getGameTime());
+            ctx.getSource().sendSuccess(() -> Component.translatable(
+                    "gui.bannermod.society.hamlet.command.renamed",
+                    NpcHamletAccess.displayName(updated)
+            ), false);
+            return 1;
+        } catch (IllegalArgumentException ex) {
+            ctx.getSource().sendFailure(Component.translatable("gui.bannermod.society.hamlet.command." + hamletRenameReason(ex)));
+            return 0;
+        }
+    }
+
     @Nullable
     private static UUID parseUuid(CommandSourceStack source, String raw) {
         return parseUuid(source, raw, "gui.bannermod.society.housing_request.command.invalid_id");
@@ -348,17 +463,6 @@ public final class BannerModSocietyCommands {
         return WarRuntimeContext.registry(level).byId(claim.getOwnerPoliticalEntityId()).orElse(null);
     }
 
-    private static int severity(ServerLevel level, UUID householdId) {
-        NpcHouseholdHousingState state = NpcHouseholdAccess.householdFor(level, householdId)
-                .map(NpcHouseholdRecord::housingState)
-                .orElse(NpcHouseholdHousingState.NORMAL);
-        return switch (state) {
-            case HOMELESS -> 0;
-            case OVERCROWDED -> 1;
-            case NORMAL -> 2;
-        };
-    }
-
     private static int livelihoodSeverity(NpcLivelihoodRequestType type) {
         if (type == null) {
             return 99;
@@ -367,6 +471,27 @@ public final class BannerModSocietyCommands {
             case LUMBER_CAMP -> 0;
             case MINE -> 1;
             case ANIMAL_PEN -> 2;
+        };
+    }
+
+    private static int hamletSeverity(NpcHamletStatus status) {
+        if (status == null) {
+            return 99;
+        }
+        return switch (status) {
+            case INFORMAL -> 0;
+            case REGISTERED -> 1;
+            case ABANDONED -> 2;
+        };
+    }
+
+    private static String hamletRenameReason(IllegalArgumentException ex) {
+        String reason = ex == null ? "invalid_name" : ex.getMessage();
+        return switch (reason == null ? "invalid_name" : reason) {
+            case "name_too_short" -> "name_too_short";
+            case "name_too_long" -> "name_too_long";
+            case "duplicate_name" -> "duplicate_name";
+            default -> "invalid_name";
         };
     }
 

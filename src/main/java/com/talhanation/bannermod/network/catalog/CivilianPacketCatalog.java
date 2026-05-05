@@ -41,7 +41,14 @@ public final class CivilianPacketCatalog {
         MessageReassignWorkerProfession.class,
         MessageAssignCitizenVacancy.class,
         MessageAssignHome.class,
-        MessageDismissWorker.class,
+        MessageToClientUpdateHousingState.class,
+        MessageRequestHousingSnapshot.class,
+        MessageApproveHousingRequest.class,
+        MessageDenyHousingRequest.class,
+        MessageToClientUpdateHamletState.class,
+        MessageRequestHamletSnapshot.class,
+        MessageRegisterHamlet.class,
+        MessageRenameHamlet.class,
     };
 
     public static final PacketCatalog CATALOG = new PacketCatalog(MESSAGES);
