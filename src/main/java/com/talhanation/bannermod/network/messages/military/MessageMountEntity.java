@@ -47,20 +47,34 @@ public class MessageMountEntity implements BannerModMessage<MessageMountEntity> 
                 return;
             }
 
+            UUID actorUuid = authorizedPlayerUuid(player.getUUID(), this.uuid);
             List<AbstractRecruitEntity> recruits = this.group == null
-                    ? RecruitIndex.instance().ownerInRange(player.getCommandSenderWorld(), this.uuid, player.position(), 100.0D)
+                    ? RecruitIndex.instance().ownerInRange(player.getCommandSenderWorld(), actorUuid, player.position(), 100.0D)
                     : RecruitIndex.instance().groupInRange(player.getCommandSenderWorld(), this.group, player.position(), 100.0D);
             if (recruits == null) {
                 RuntimeProfilingCounters.increment("recruit.index.fallback_scans");
                 recruits = player.getCommandSenderWorld().getEntitiesOfClass(
                         AbstractRecruitEntity.class,
                         player.getBoundingBox().inflate(100),
-                        (recruit) -> recruit.isEffectedByCommand(uuid, group)
+                        (recruit) -> recruit.isEffectedByCommand(actorUuid, group)
                 );
             }
+            recruits = recruits.stream()
+                    .filter(recruit -> recruit != null
+                            && isAuthorizedOwner(recruit.getOwnerUUID(), actorUuid)
+                            && recruit.isEffectedByCommand(actorUuid, group))
+                    .toList();
             CommandIntentDispatcher.dispatch(player, new CommandIntent.SiegeMachine(
                     player.level().getGameTime(), CommandIntentPriority.HIGH, false, target, group, false), recruits);
         });
+    }
+
+    static UUID authorizedPlayerUuid(UUID senderUuid, UUID ignoredWireUuid) {
+        return senderUuid;
+    }
+
+    static boolean isAuthorizedOwner(UUID recruitOwnerUuid, UUID actorUuid) {
+        return actorUuid != null && actorUuid.equals(recruitOwnerUuid);
     }
 
     public MessageMountEntity fromBytes(FriendlyByteBuf buf) {
