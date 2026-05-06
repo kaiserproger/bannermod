@@ -8571,8 +8571,8 @@
     {
       "id": "PACKETAUTH-004",
       "title": "Verify sender in MessageProtectEntity",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-07",
       "why": "MessageProtectEntity reads this.uuid as the recruit-owner UUID, passes it to RecruitIndex.ownerInRange(...), and forwards it to CommandEvents.onProtectButton(uuid, recruit, target, group). Sender authority is never checked; any client can issue protect orders to another player's recruits.",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessageProtectEntity.java executeServerSide; replace this.uuid with sender.getUUID() (or reject mismatch) in ownerInRange call and onProtectButton actor argument."
@@ -8582,14 +8582,20 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-07",
+          "result": "1) MessageProtectEntity now derives actorUuid from context sender UUID and uses it for ownerInRange plus CommandEvents.onProtectButton instead of the wire UUID. 2) Owner-scope fallback scans are filtered through isAuthorizedOwner so forged victim-owned recruits are excluded. 3) MilitaryPacketActorIdentityTest forged-UUID regression asserts sender authorization and forged victim rejection; ./gradlew compileJava and ./gradlew test passed on the task branch and integrated branch. 4) tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-07"
     },
     {
       "id": "PACKETAUTH-005",
       "title": "Reject foreign-owner edits in MessageUpdateGroup",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-07",
       "why": "MessageUpdateGroup deserializes a RecruitsGroup from client-supplied NBT (including embedded playerUUID/playerName) and calls RecruitsGroupsManager.addOrUpdateGroup with no sender-vs-existing-owner check. A malicious client can rewrite arbitrary groups (rename, reassign owner, change image, etc.).",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessageUpdateGroup.java executeServerSide and/or RecruitsGroupsManager.addOrUpdateGroup; require that an existing group's playerUUID matches the sender (or sender is op) before applying mutations, and clamp/strip the incoming playerUUID/playerName so they cannot be transferred via this packet (transfer should go through MessageAssignGroupToPlayer's audited path)."
@@ -8599,14 +8605,20 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-07",
+          "result": "1) RecruitsGroupsManager.addOrUpdateGroup now rejects existing-group mutations unless the sender owns the existing group or has op permission. 2) Incoming NBT owner fields are clamped: existing group owner/name are preserved on updates, and new groups are assigned to the sender. MessageAssignGroupToPlayer transfer path was left unchanged. 3) GroupAssignmentAuthorityGameTests adds groupUpdateRejectsNonOwnerAndKeepsExistingGroup; compileJava, test, and compileGametestJava passed on the task branch and integrated branch. Integrated runGameTestServer executed 162 tests; the new group update regression was not listed as failing, while unrelated fiverecruitformationholdsacrossdimensionteleport, starterbootstrapseedsrealworkerassignmentsandwaitingreasons, and friendlyclaimbindingallowsplacementandsettlementoperation failed. 4) tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-07"
     },
     {
       "id": "PACKETAUTH-006",
       "title": "Gate MessageDebugGui behind ownership / op",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-07",
       "why": "MessageDebugGui resolves any recruit within a 16-block AABB by UUID and forwards the action to DebugEvents.handleMessage, which allows kill, disband, heal, XP grants, color/variant edits and more. There is no ownership or permission gate; any client can mutate or destroy any nearby recruit.",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessageDebugGui.java executeServerSide and com/talhanation/bannermod/events/DebugEvents.java; require sender.hasPermissions(2) (debug tooling) and/or RecruitCommandAuthority.canDirectlyControl(sender, recruit) before invoking DebugEvents.handleMessage and recruit.setCustomName."
@@ -8616,8 +8628,14 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-07",
+          "result": "1) MessageDebugGui now returns before DebugEvents.handleMessage and recruit.setCustomName unless the sender is op or RecruitCommandAuthority.canDirectlyControl(sender, recruit). 2) MessageDebugGuiAuthorityTest covers heal, kill, and disband actions for non-owner non-op denial plus owner/op allow paths. 3) ./gradlew compileJava and ./gradlew test passed on the task branch and integrated branch. 4) tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-07"
     },
     {
       "id": "PACKETAUTH-007",
