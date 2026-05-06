@@ -2,6 +2,8 @@ package com.talhanation.bannermod.events;
 
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.entity.military.RecruitIndex;
+import com.talhanation.bannermod.settlement.runtime.ClaimRuntimeService;
+import com.talhanation.bannermod.settlement.runtime.SettlementHeartbeatService;
 import com.talhanation.bannermod.util.RuntimeProfilingCounters;
 import com.talhanation.bannermod.persistence.military.*;
 import net.minecraft.server.MinecraftServer;
@@ -33,7 +35,7 @@ public class ClaimEvents {
         return recruitsClaimManager;
     }
 
-    static void installRuntime(MinecraftServer currentServer, RecruitsClaimManager currentClaimManager) {
+    public static void installRuntime(MinecraftServer currentServer, RecruitsClaimManager currentClaimManager) {
         server = currentServer;
         recruitsClaimManager = currentClaimManager;
     }
