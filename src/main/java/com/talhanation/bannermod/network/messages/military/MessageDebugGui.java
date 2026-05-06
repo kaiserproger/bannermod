@@ -1,5 +1,8 @@
 package com.talhanation.bannermod.network.messages.military;
 
+import com.talhanation.bannermod.army.command.CommandHierarchy;
+import com.talhanation.bannermod.army.command.CommandRole;
+import com.talhanation.bannermod.army.command.RecruitCommandAuthority;
 import com.talhanation.bannermod.events.DebugEvents;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.network.payload.BannerModMessage;
@@ -36,10 +39,31 @@ public class MessageDebugGui implements BannerModMessage<MessageDebugGui> {
             ServerPlayer player = Objects.requireNonNull(context.getSender());
             AbstractRecruitEntity recruit = RecruitMessageEntityResolver.resolveRecruitInInflatedBox(player, this.uuid, 16.0D);
             if (recruit != null) {
+                if (!shouldHandleDebugMessage(id, player, recruit)) {
+                    return;
+                }
+
                 DebugEvents.handleMessage(id, recruit, context.getSender());
                 recruit.setCustomName(Component.literal(name));
             }
         });
+    }
+
+    static boolean shouldHandleDebugMessage(int id, ServerPlayer player, AbstractRecruitEntity recruit) {
+        return hasDebugAuthority(player, recruit);
+    }
+
+    static boolean shouldHandleDebugMessage(int id, UUID senderUuid, String senderTeamName, boolean senderOp, UUID recruitOwnerUuid, String recruitTeamName, boolean recruitOwned) {
+        return hasDebugAuthority(senderUuid, senderTeamName, senderOp, recruitOwnerUuid, recruitTeamName, recruitOwned);
+    }
+
+    static boolean hasDebugAuthority(ServerPlayer player, AbstractRecruitEntity recruit) {
+        return player.hasPermissions(2) || RecruitCommandAuthority.canDirectlyControl(player, recruit);
+    }
+
+    static boolean hasDebugAuthority(UUID senderUuid, String senderTeamName, boolean senderOp, UUID recruitOwnerUuid, String recruitTeamName, boolean recruitOwned) {
+        return senderOp
+                || CommandHierarchy.roleFor(senderUuid, senderTeamName, false, recruitOwnerUuid, recruitTeamName, recruitOwned) != CommandRole.NONE;
     }
 
     public MessageDebugGui fromBytes(FriendlyByteBuf buf) {
