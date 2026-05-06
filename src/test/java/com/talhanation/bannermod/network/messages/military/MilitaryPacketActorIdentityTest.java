@@ -69,4 +69,16 @@ class MilitaryPacketActorIdentityTest {
         assertTrue(MessageMountEntity.isAuthorizedOwner(sender, authorizedOwner));
         assertFalse(MessageMountEntity.isAuthorizedOwner(forgedVictim, authorizedOwner));
     }
+
+    @Test
+    void protectUsesSenderUuidSoForgedUuidCannotOrderVictimRecruits() {
+        UUID sender = UUID.randomUUID();
+        UUID forgedVictim = UUID.randomUUID();
+
+        UUID authorizedOwner = MessageProtectEntity.authorizedPlayerUuid(sender, forgedVictim);
+        assertEquals(sender, authorizedOwner);
+        assertNotEquals(forgedVictim, authorizedOwner);
+        assertTrue(MessageProtectEntity.isAuthorizedOwner(sender, authorizedOwner));
+        assertFalse(MessageProtectEntity.isAuthorizedOwner(forgedVictim, authorizedOwner));
+    }
 }
