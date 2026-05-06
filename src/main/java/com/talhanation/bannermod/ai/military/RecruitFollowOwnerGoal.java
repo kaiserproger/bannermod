@@ -58,6 +58,11 @@ public class RecruitFollowOwnerGoal extends Goal {
         if (this.recruit.getNavigation().isDone()) {
             return false;
         }
+        LivingEntity liveOwner = this.recruit.getOwner();
+        if (liveOwner == null || !liveOwner.isAlive() || liveOwner.isRemoved()) {
+            return false;
+        }
+        this.owner = liveOwner;
         // FORMATIONDIM-001: stop the follow as soon as the leader crosses dimensions.
         if (FormationDimensionGuard.shouldHoldDueToDimensionMismatch(this.recruit, this.owner)) {
             return false;
@@ -78,6 +83,12 @@ public class RecruitFollowOwnerGoal extends Goal {
     }
 
     public void tick() {
+        LivingEntity liveOwner = this.recruit.getOwner();
+        if (liveOwner == null || !liveOwner.isAlive() || liveOwner.isRemoved()) {
+            this.recruit.getNavigation().stop();
+            return;
+        }
+        this.owner = liveOwner;
         // FORMATIONDIM-001: belt-and-braces — bail out if leader crossed dimensions mid-tick.
         if (FormationDimensionGuard.shouldHoldDueToDimensionMismatch(this.recruit, this.owner)) {
             this.recruit.getNavigation().stop();

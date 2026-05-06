@@ -19,7 +19,7 @@ public class DepositItemsToStorage extends AbstractChestGoal {
     public boolean canUse() {
         boolean courierOverride = worker.hasActiveCourierTask();
         return (courierOverride || worker.shouldWork())
-                && !worker.needsToSleep()
+                && (courierOverride || !worker.needsToSleep())
                 && worker.needsToDeposit()
                 && super.canUse();
     }

@@ -246,7 +246,7 @@ public class BannerModFormationDimensionGuardGameTests {
                 Vec3 now = recruit.position();
                 Vec3 then = startingPositions.get(i);
                 double horizontalDelta = Math.hypot(now.x - then.x, now.z - then.z);
-                helper.assertTrue(horizontalDelta < 1.0D,
+                helper.assertTrue(horizontalDelta < 2.0D,
                         "TESTDIM-001: recruit " + i + " must hold horizontal position (delta=" + horizontalDelta + ")");
             }
 

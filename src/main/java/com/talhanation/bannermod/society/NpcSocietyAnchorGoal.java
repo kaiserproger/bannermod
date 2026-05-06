@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.society;
 
+import com.talhanation.bannermod.entity.civilian.AbstractWorkerEntity;
 import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
 import com.talhanation.bannermod.settlement.BannerModSettlementManager;
 import com.talhanation.bannermod.settlement.BannerModSettlementMarketRecord;
@@ -17,7 +18,17 @@ import java.util.UUID;
 
 public final class NpcSocietyAnchorGoal extends Goal {
     private static final double ARRIVAL_DISTANCE_SQR = 5.0D;
+    private static final double HOME_INTENT_ARRIVAL_DISTANCE_SQR = 8.0D;
+    private static final double HOME_SOCIAL_ARRIVAL_DISTANCE_SQR = 10.0D;
+    private static final double TARGET_SNAP_DISTANCE_SQR = 4.0D;
+    private static final double HOME_INTENT_TARGET_SNAP_DISTANCE_SQR = 20.25D;
+    private static final double HOME_SOCIAL_TARGET_SNAP_DISTANCE_SQR = 25.0D;
+    private static final double HOUSEHOLD_COMPANION_RANGE = 7.0D;
+    private static final double HOUSEHOLD_COMPANION_DEADBAND_SQR = 12.25D;
+    private static final double SOCIAL_PARTNER_DEADBAND_SQR = 6.25D;
     private static final int REPATH_INTERVAL_TICKS = 15;
+    private static final int HOME_INTENT_REPATH_INTERVAL_TICKS = 32;
+    private static final int HOME_SOCIAL_REPATH_INTERVAL_TICKS = 40;
 
     private final PathfinderMob mob;
     private Vec3 targetPos;
@@ -30,18 +41,39 @@ public final class NpcSocietyAnchorGoal extends Goal {
 
     @Override
     public boolean canUse() {
+        if (this.mob instanceof AbstractWorkerEntity worker && worker.hasActiveCourierTask()) {
+            return false;
+        }
         this.targetPos = resolveTarget();
         return this.targetPos != null;
     }
 
     @Override
     public boolean canContinueToUse() {
+        if (this.mob instanceof AbstractWorkerEntity worker && worker.hasActiveCourierTask()) {
+            return false;
+        }
         Vec3 nextTarget = resolveTarget();
         if (nextTarget == null) {
             return false;
         }
-        this.targetPos = nextTarget;
+        if (this.targetPos == null || this.targetPos.distanceToSqr(nextTarget) > targetSnapDistanceSqr()) {
+            this.targetPos = nextTarget;
+        }
         return true;
+    }
+
+    @Override
+    public void start() {
+        this.repathCooldown = 0;
+        if (this.targetPos == null) {
+            return;
+        }
+        NpcSocietyProfile profile = profile();
+        if (this.mob.position().distanceToSqr(this.targetPos) > arrivalDistanceSqr(profile)) {
+            this.mob.getNavigation().moveTo(this.targetPos.x, this.targetPos.y, this.targetPos.z, speed());
+            this.repathCooldown = repathIntervalTicks(profile);
+        }
     }
 
     @Override
@@ -58,10 +90,10 @@ public final class NpcSocietyAnchorGoal extends Goal {
         }
         NpcSocietyProfile profile = profile();
         this.mob.getLookControl().setLookAt(this.targetPos.x, this.targetPos.y, this.targetPos.z);
-        if (this.mob.position().distanceToSqr(this.targetPos) > ARRIVAL_DISTANCE_SQR) {
+        if (this.mob.position().distanceToSqr(this.targetPos) > arrivalDistanceSqr(profile)) {
             if (this.repathCooldown <= 0 || this.mob.getNavigation().isDone()) {
                 this.mob.getNavigation().moveTo(this.targetPos.x, this.targetPos.y, this.targetPos.z, speed());
-                this.repathCooldown = REPATH_INTERVAL_TICKS;
+                this.repathCooldown = repathIntervalTicks(profile);
             } else {
                 this.repathCooldown--;
             }
@@ -70,9 +102,21 @@ public final class NpcSocietyAnchorGoal extends Goal {
         this.mob.getNavigation().stop();
         this.repathCooldown = 0;
         if (profile != null && profile.currentIntent() == NpcIntent.SOCIALISE) {
-            LivingEntity partner = nearestSocialPartner();
+            LivingEntity partner = preferredSocialPartner(profile);
             if (partner != null) {
                 this.mob.getLookControl().setLookAt(partner, 30.0F, 30.0F);
+            }
+            return;
+        }
+        if (profile != null
+                && profile.currentAnchor() == NpcAnchorType.HOME
+                && (profile.currentIntent() == NpcIntent.GO_HOME
+                || profile.currentIntent() == NpcIntent.REST
+                || profile.currentIntent() == NpcIntent.EAT
+                || profile.currentIntent() == NpcIntent.HIDE)) {
+            LivingEntity companion = nearestHouseholdCompanion();
+            if (companion != null) {
+                this.mob.getLookControl().setLookAt(companion, 22.0F, 22.0F);
             }
         }
     }
@@ -103,13 +147,30 @@ public final class NpcSocietyAnchorGoal extends Goal {
         if (anchorBase == null) {
             anchorBase = resolveIntentBase(snapshot, profile);
         }
-        return approachTarget(anchorBase, profile.currentIntent(), profile.currentAnchor());
+        Vec3 target = approachTarget(anchorBase, profile.currentIntent(), profile.currentAnchor());
+        if (profile.currentAnchor() == NpcAnchorType.HOME && isHouseholdHomeIntent(profile.currentIntent())) {
+            target = householdGatherTarget(target, profile);
+        }
+        if (profile.currentIntent() == NpcIntent.SOCIALISE) {
+            return socialGatherTarget(target, profile);
+        }
+        return target;
+    }
+
+    private boolean isHouseholdHomeIntent(@Nullable NpcIntent intent) {
+        return intent == NpcIntent.GO_HOME
+                || intent == NpcIntent.REST
+                || intent == NpcIntent.EAT
+                || intent == NpcIntent.HIDE;
     }
 
     private @Nullable Vec3 resolveAnchorBase(@Nullable BannerModSettlementSnapshot snapshot, NpcSocietyProfile profile) {
         return switch (profile.currentAnchor()) {
             case HOME -> buildingCenter(snapshot, profile.homeBuildingUuid());
             case WORKPLACE -> {
+                if (profile.currentIntent() == NpcIntent.SEEK_SUPPLIES) {
+                    yield marketStockpileOrStreet(snapshot);
+                }
                 Vec3 workPos = buildingCenter(snapshot, profile.workBuildingUuid());
                 yield workPos != null ? workPos : streetNear(settlementCenter(snapshot));
             }
@@ -118,6 +179,46 @@ public final class NpcSocietyAnchorGoal extends Goal {
             case STREET -> streetBase(snapshot, profile);
             default -> null;
         };
+    }
+
+    private double targetSnapDistanceSqr() {
+        NpcSocietyProfile profile = profile();
+        if (profile == null) {
+            return TARGET_SNAP_DISTANCE_SQR;
+        }
+        if (profile.currentIntent() == NpcIntent.SOCIALISE && profile.currentAnchor() == NpcAnchorType.HOME) {
+            return HOME_SOCIAL_TARGET_SNAP_DISTANCE_SQR;
+        }
+        if (profile.currentAnchor() == NpcAnchorType.HOME && isHouseholdHomeIntent(profile.currentIntent())) {
+            return HOME_INTENT_TARGET_SNAP_DISTANCE_SQR;
+        }
+        return TARGET_SNAP_DISTANCE_SQR;
+    }
+
+    private double arrivalDistanceSqr(@Nullable NpcSocietyProfile profile) {
+        if (profile == null) {
+            return ARRIVAL_DISTANCE_SQR;
+        }
+        if (profile.currentIntent() == NpcIntent.SOCIALISE && profile.currentAnchor() == NpcAnchorType.HOME) {
+            return HOME_SOCIAL_ARRIVAL_DISTANCE_SQR;
+        }
+        if (profile.currentAnchor() == NpcAnchorType.HOME && isHouseholdHomeIntent(profile.currentIntent())) {
+            return HOME_INTENT_ARRIVAL_DISTANCE_SQR;
+        }
+        return ARRIVAL_DISTANCE_SQR;
+    }
+
+    private int repathIntervalTicks(@Nullable NpcSocietyProfile profile) {
+        if (profile == null) {
+            return REPATH_INTERVAL_TICKS;
+        }
+        if (profile.currentIntent() == NpcIntent.SOCIALISE && profile.currentAnchor() == NpcAnchorType.HOME) {
+            return HOME_SOCIAL_REPATH_INTERVAL_TICKS;
+        }
+        if (profile.currentAnchor() == NpcAnchorType.HOME && isHouseholdHomeIntent(profile.currentIntent())) {
+            return HOME_INTENT_REPATH_INTERVAL_TICKS;
+        }
+        return REPATH_INTERVAL_TICKS;
     }
 
     private @Nullable Vec3 resolveIntentBase(@Nullable BannerModSettlementSnapshot snapshot, NpcSocietyProfile profile) {
@@ -283,7 +384,7 @@ public final class NpcSocietyAnchorGoal extends Goal {
             return streetNear(buildingCenter(snapshot, profile.homeBuildingUuid()));
         }
         if (profile.currentIntent() == NpcIntent.SOCIALISE) {
-            return streetNear(socialSpot(snapshot, profile.homeBuildingUuid(), false));
+            return socialSpot(snapshot, profile.homeBuildingUuid(), false);
         }
         if (profile.currentIntent() == NpcIntent.HIDE && profile.homeBuildingUuid() != null) {
             return streetNear(buildingCenter(snapshot, profile.homeBuildingUuid()));
@@ -309,7 +410,7 @@ public final class NpcSocietyAnchorGoal extends Goal {
         double radius = switch (intent == null ? NpcIntent.UNSPECIFIED : intent) {
             case GO_HOME -> 0.9D;
             case REST, HIDE, EAT -> 1.4D;
-            case SOCIALISE -> anchor == NpcAnchorType.HOME ? 1.4D : 2.4D;
+            case SOCIALISE -> anchor == NpcAnchorType.HOME ? 1.0D : anchor == NpcAnchorType.MARKET ? 0.8D : 2.4D;
             case SEEK_SUPPLIES, LEAVE_HOME, DEFEND -> 1.8D;
             default -> 0.0D;
         };
@@ -342,6 +443,75 @@ public final class NpcSocietyAnchorGoal extends Goal {
                 .orElse(null);
     }
 
+    private @Nullable LivingEntity preferredSocialPartner(NpcSocietyProfile profile) {
+        LivingEntity householdCompanion = profile.currentAnchor() == NpcAnchorType.HOME ? nearestHouseholdCompanion() : null;
+        return householdCompanion != null ? householdCompanion : nearestSocialPartner();
+    }
+
+    private Vec3 socialGatherTarget(@Nullable Vec3 base, NpcSocietyProfile profile) {
+        if (base == null) {
+            return this.mob.position();
+        }
+        LivingEntity partner = preferredSocialPartner(profile);
+        if (partner == null || partner.position().distanceToSqr(base) > 144.0D) {
+            return base;
+        }
+        if (partner.position().distanceToSqr(base) <= SOCIAL_PARTNER_DEADBAND_SQR) {
+            return base;
+        }
+        double blend = profile.currentAnchor() == NpcAnchorType.HOME ? 0.66D : 0.45D;
+        return new Vec3(
+                base.x + (partner.getX() - base.x) * blend,
+                base.y,
+                base.z + (partner.getZ() - base.z) * blend
+        );
+    }
+
+    private Vec3 householdGatherTarget(@Nullable Vec3 base, NpcSocietyProfile profile) {
+        if (base == null) {
+            return this.mob.position();
+        }
+        LivingEntity companion = nearestHouseholdCompanion();
+        if (companion == null || companion.position().distanceToSqr(base) > 100.0D) {
+            return base;
+        }
+        if (companion.position().distanceToSqr(base) <= HOUSEHOLD_COMPANION_DEADBAND_SQR) {
+            return base;
+        }
+        double blend = switch (profile.currentIntent()) {
+            case HIDE -> 0.62D;
+            case REST, EAT -> 0.55D;
+            case GO_HOME -> 0.35D;
+            default -> 0.0D;
+        };
+        if (blend <= 0.0D) {
+            return base;
+        }
+        return new Vec3(
+                base.x + (companion.getX() - base.x) * blend,
+                base.y,
+                base.z + (companion.getZ() - base.z) * blend
+        );
+    }
+
+    private @Nullable LivingEntity nearestHouseholdCompanion() {
+        if (!(this.mob.level() instanceof ServerLevel serverLevel)) {
+            return null;
+        }
+        return this.mob.level().getEntitiesOfClass(LivingEntity.class, this.mob.getBoundingBox().inflate(HOUSEHOLD_COMPANION_RANGE), entity -> {
+                    if (entity == null || entity == this.mob || !entity.isAlive()) {
+                        return false;
+                    }
+                    return NpcSocietyAccess.profileFor(serverLevel, entity.getUUID()).isPresent();
+                }).stream()
+                .sorted(Comparator
+                        .comparingInt((LivingEntity entity) -> householdCompanionWeight(serverLevel, entity)).reversed()
+                        .thenComparingDouble(entity -> entity.distanceToSqr(this.mob)))
+                .filter(entity -> householdCompanionWeight(serverLevel, entity) > 0)
+                .findFirst()
+                .orElse(null);
+    }
+
     private int socialPartnerWeight(ServerLevel level, LivingEntity candidate) {
         NpcSocietyProfile self = NpcSocietyAccess.profileFor(level, this.mob.getUUID()).orElse(null);
         NpcSocietyProfile other = NpcSocietyAccess.profileFor(level, candidate.getUUID()).orElse(null);
@@ -360,6 +530,35 @@ public final class NpcSocietyAnchorGoal extends Goal {
                 || candidate.getUUID().equals(family.motherUuid())
                 || candidate.getUUID().equals(family.fatherUuid())
                 || family.childUuids().contains(candidate.getUUID())) {
+            weight += 2;
+        }
+        return weight;
+    }
+
+    private int householdCompanionWeight(ServerLevel level, LivingEntity candidate) {
+        NpcSocietyProfile self = NpcSocietyAccess.profileFor(level, this.mob.getUUID()).orElse(null);
+        NpcSocietyProfile other = NpcSocietyAccess.profileFor(level, candidate.getUUID()).orElse(null);
+        if (self == null || other == null) {
+            return 0;
+        }
+        int weight = 0;
+        if (self.householdId() != null && self.householdId().equals(other.householdId())) {
+            weight += 5;
+        }
+        com.talhanation.bannermod.society.NpcFamilyRecord family = NpcFamilySavedData.get(level).runtime().familyFor(this.mob.getUUID()).orElse(null);
+        if (family == null) {
+            return weight;
+        }
+        if (candidate.getUUID().equals(family.spouseUuid())
+                || candidate.getUUID().equals(family.motherUuid())
+                || candidate.getUUID().equals(family.fatherUuid())
+                || family.childUuids().contains(candidate.getUUID())) {
+            weight += 5;
+        }
+        if (other.currentAnchor() == NpcAnchorType.HOME
+                || other.currentIntent() == NpcIntent.REST
+                || other.currentIntent() == NpcIntent.EAT
+                || other.currentIntent() == NpcIntent.SOCIALISE) {
             weight += 2;
         }
         return weight;

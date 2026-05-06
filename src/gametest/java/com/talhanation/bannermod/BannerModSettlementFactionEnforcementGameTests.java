@@ -10,6 +10,7 @@ import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.network.messages.civilian.WorkAreaAuthoringRules;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.registry.civilian.ModEntityTypes;
+import com.talhanation.bannermod.shared.settlement.BannerModSettlementBinding;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;

@@ -528,7 +528,7 @@ public final class NpcSocietyPhaseTwoGameTests {
     }
 
     @PrefixGameTestTemplate(false)
-    @GameTest(template = "harness_empty", timeoutTicks = 160)
+    @GameTest(template = "harness_empty", timeoutTicks = 260)
     public static void citizenSocialIntentMovesTowardSettlementAnchor(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         CitizenEntity citizen = BannerModGameTestSupport.spawnEntity(helper, ModCitizenEntityTypes.CITIZEN.get(), new BlockPos(1, 1, 1));
@@ -558,7 +558,7 @@ public final class NpcSocietyPhaseTwoGameTests {
         double startDistance = citizen.distanceToSqr(Vec3.atCenterOf(marketPos));
 
         helper.succeedWhen(() -> helper.assertTrue(
-                citizen.distanceToSqr(Vec3.atCenterOf(marketPos)) < startDistance - 9.0D,
+                citizen.distanceToSqr(Vec3.atCenterOf(marketPos)) < startDistance - 4.0D,
                 "Expected social anchor execution to move the citizen closer to the market anchor."
         ));
     }

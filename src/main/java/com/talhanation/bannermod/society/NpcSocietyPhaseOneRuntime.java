@@ -5,6 +5,7 @@ import com.talhanation.bannermod.settlement.BannerModSettlementResidentRecord;
 import com.talhanation.bannermod.settlement.dispatch.SellerResidentGoal;
 import com.talhanation.bannermod.settlement.goal.ResidentGoalContext;
 import com.talhanation.bannermod.settlement.goal.ResidentTask;
+import com.talhanation.bannermod.settlement.goal.ResidentTaskOutcome;
 import com.talhanation.bannermod.settlement.goal.impl.DeliverResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.DefendResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.EatResidentGoal;
@@ -34,6 +35,15 @@ public final class NpcSocietyPhaseOneRuntime {
                                              ResidentGoalContext ctx,
                                              @Nullable ResidentTask activeTask,
                                              Map<UUID, BannerModSettlementBuildingRecord> buildingsByUuid) {
+        updateResidentProfile(level, homeRuntime, ctx, activeTask, null, buildingsByUuid);
+    }
+
+    public static void updateResidentProfile(ServerLevel level,
+                                             BannerModHomeAssignmentRuntime homeRuntime,
+                                             ResidentGoalContext ctx,
+                                             @Nullable ResidentTask activeTask,
+                                             @Nullable ResidentTaskOutcome lastOutcome,
+                                             Map<UUID, BannerModSettlementBuildingRecord> buildingsByUuid) {
         if (level == null || homeRuntime == null || ctx == null) {
             return;
         }
@@ -53,7 +63,7 @@ public final class NpcSocietyPhaseOneRuntime {
         NpcIntent currentIntent = resolveIntent(ctx, activeTask);
         NpcAnchorType currentAnchor = resolveAnchor(ctx, activeTask, homeBuildingUuid, workBuildingUuid, buildingsByUuid);
         String routeReasonTag = resolveRouteReason(ctx, homeBuildingUuid, workBuildingUuid, currentIntent, currentAnchor, buildingsByUuid);
-        NpcSocietyDecisionSnapshot decisionSnapshot = NpcSocietyDecisionSnapshot.capture(ctx, activeTask, routeReasonTag);
+        NpcSocietyDecisionSnapshot decisionSnapshot = NpcSocietyDecisionSnapshot.capture(ctx, activeTask, routeReasonTag, lastOutcome);
         NpcSocietyAccess.reconcilePhaseOneState(
                 level,
                 residentUuid,
@@ -167,7 +177,7 @@ public final class NpcSocietyPhaseOneRuntime {
             return NpcAnchorType.MARKET;
         }
         if (intent == NpcIntent.SEEK_SUPPLIES) {
-            return ctx.settlement() != null && ctx.settlement().marketState().openMarketCount() > 0
+            return ctx.hasMarketFoodAccess()
                     ? NpcAnchorType.MARKET
                     : NpcAnchorType.WORKPLACE;
         }
@@ -175,7 +185,10 @@ public final class NpcSocietyPhaseOneRuntime {
             return anchorForWorkBuilding(workBuildingUuid, buildingsByUuid);
         }
         if (intent == NpcIntent.SOCIALISE) {
-            if (hasHome && ctx.hasFamilyTies() && ctx.isLeisurePhase()) {
+            if (hasHome && ctx.shouldPreferHouseholdSocial()) {
+                return NpcAnchorType.HOME;
+            }
+            if (hasHome && ctx.hasDependents() && ctx.socialNeed() >= 55) {
                 return NpcAnchorType.HOME;
             }
             return ctx.settlement() != null && ctx.settlement().marketState().openMarketCount() > 0
@@ -201,6 +214,18 @@ public final class NpcSocietyPhaseOneRuntime {
                                             NpcAnchorType anchor,
                                             Map<UUID, BannerModSettlementBuildingRecord> buildingsByUuid) {
         if (intent == NpcIntent.GO_HOME) {
+            if (ctx.hasRecentGoalFailure() && ctx.hasHome()) {
+                return ctx.hasFamilyTies() ? "REGROUPING_AT_HOME" : "RETURNING_HOME_ROUTE";
+            }
+            if (ctx.shouldPreferHomeFallback() && ctx.hasHome()) {
+                return ctx.hasFamilyTies() ? "REGROUPING_AT_HOME" : "RETURNING_HOME_ROUTE";
+            }
+            if (ctx.fatigueNeed() >= 75 && homeBuildingUuid != null && !ctx.isRestPhase()) {
+                return "TIRED_HOMEBOUND";
+            }
+            if (ctx.hasFamilyTies() && ctx.isLeisurePhase()) {
+                return "EVENING_HOME_CIRCLE";
+            }
             if (ctx.isRestPhase() || ctx.isLateDayWindow(1000)) {
                 return "SOON_NIGHT_HOMEBOUND";
             }
@@ -210,6 +235,9 @@ public final class NpcSocietyPhaseOneRuntime {
             return "RETURNING_HOME_ROUTE";
         }
         if (intent == NpcIntent.REST) {
+            if (ctx.hasRecentGoalFailure() && homeBuildingUuid != null) {
+                return "RESTING_AFTER_REGROUP";
+            }
             if (ctx.lastPublishedIntent() == NpcIntent.GO_HOME || ctx.currentPublishedIntent() == NpcIntent.GO_HOME) {
                 return "SETTLING_AT_HOME_FOR_REST";
             }
@@ -219,21 +247,42 @@ public final class NpcSocietyPhaseOneRuntime {
             return hasWorkAssignment(ctx.resident()) ? "LEAVING_HOME_FOR_WORK" : "LEAVING_HOME_FOR_DAY";
         }
         if (intent == NpcIntent.WORK) {
+            if (ctx.isHouseholdPressured() || ctx.hasDependents()) {
+                return "WORKING_FOR_HOUSEHOLD";
+            }
             return ctx.recentlyCameFromHome() ? "STARTING_WORKDAY_AFTER_HOME" : "HEADING_TO_WORKPLACE";
         }
         if (intent == NpcIntent.EAT) {
             return homeBuildingUuid != null ? "MEAL_AT_HOME" : "MEAL_AT_MARKET";
         }
         if (intent == NpcIntent.SEEK_SUPPLIES) {
+            if (ctx.hasRecentGoalFailure() && ctx.previousBlockedIntent() == NpcIntent.EAT) {
+                return "FOOD_RECOVERY_RUN";
+            }
             return ctx.settlement() != null && ctx.settlement().marketState().openMarketCount() > 0
                     ? "MARKET_SUPPLY_RUN"
                     : "STOCKPILE_SUPPLY_RUN";
         }
         if (intent == NpcIntent.SOCIALISE) {
+            if (anchor == NpcAnchorType.HOME && ctx.hasRecentGoalFailure()) {
+                return "HOUSEHOLD_RECOVERY_CIRCLE";
+            }
+            if (anchor == NpcAnchorType.HOME && ctx.hasFamilyTies() && (ctx.isLeisurePhase() || ctx.isLateDayWindow(1400))) {
+                return "EVENING_HOME_CIRCLE";
+            }
+            if (anchor == NpcAnchorType.HOME && ctx.shouldPreferHouseholdSocial() && ctx.hasFamilyTies()) {
+                return ctx.hasDependents() ? "HOUSEHOLD_RECOVERY_CIRCLE" : "HOUSEHOLD_YARD_GATHERING";
+            }
+            if (anchor == NpcAnchorType.HOME && ctx.hasFamilyTies()) {
+                return "HOUSEHOLD_YARD_GATHERING";
+            }
             boolean preferHome = anchor == NpcAnchorType.HOME || homeBuildingUuid != null && ctx.hasFamilyTies() && ctx.isLeisurePhase();
             return NpcSocietySocialSpotSelector.select(ctx.settlement(), homeBuildingUuid, preferHome).routeReasonTag();
         }
         if (intent == NpcIntent.HIDE) {
+            if (ctx.hasFamilyTies() || ctx.hasRecentGoalFailure() && homeBuildingUuid != null) {
+                return "HIDING_CLOSE_TO_HOUSEHOLD";
+            }
             return "HIDING_FROM_FEAR";
         }
         if (intent == NpcIntent.DEFEND) {

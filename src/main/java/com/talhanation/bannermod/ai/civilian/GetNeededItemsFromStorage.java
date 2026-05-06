@@ -27,7 +27,7 @@ public class GetNeededItemsFromStorage extends AbstractChestGoal {
     public boolean canUse() {
         boolean courierOverride = worker.hasActiveCourierTask();
         return (courierOverride || worker.shouldWork())
-                && !worker.needsToSleep()
+                && (courierOverride || !worker.needsToSleep())
                 && !worker.needsToDeposit()
                 && worker.needsToGetItems()
                 && super.canUse();
