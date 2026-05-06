@@ -35,6 +35,18 @@ class MilitaryPacketActorIdentityTest {
     }
 
     @Test
+    void clearUpkeepUsesSenderUuidSoForgedUuidCannotClearVictimRecruits() {
+        UUID sender = UUID.randomUUID();
+        UUID forgedVictim = UUID.randomUUID();
+
+        UUID authorizedOwner = MessageClearUpkeep.authorizedPlayerUuid(sender, forgedVictim);
+        assertEquals(sender, authorizedOwner);
+        assertNotEquals(forgedVictim, authorizedOwner);
+        assertTrue(MessageClearUpkeep.isAuthorizedOwner(sender, authorizedOwner));
+        assertFalse(MessageClearUpkeep.isAuthorizedOwner(forgedVictim, authorizedOwner));
+    }
+
+    @Test
     void backToMountUsesSenderUuidSoForgedUuidCannotDispatchSiegeIntentToVictimRecruits() {
         UUID sender = UUID.randomUUID();
         UUID forgedVictim = UUID.randomUUID();
