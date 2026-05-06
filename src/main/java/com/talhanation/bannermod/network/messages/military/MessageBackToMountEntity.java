@@ -37,8 +37,9 @@ public class MessageBackToMountEntity implements BannerModMessage<MessageBackToM
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
             ServerPlayer player = Objects.requireNonNull(context.getSender());
+            UUID actorUuid = authorizedPlayerUuid(player.getUUID(), this.uuid);
             List<AbstractRecruitEntity> recruits = this.group == null
-                    ? RecruitIndex.instance().ownerInRange(player.getCommandSenderWorld(), this.uuid, player.position(), 100.0D)
+                    ? RecruitIndex.instance().ownerInRange(player.getCommandSenderWorld(), actorUuid, player.position(), 100.0D)
                     : RecruitIndex.instance().groupInRange(player.getCommandSenderWorld(), this.group, player.position(), 100.0D);
             if (recruits == null) {
                 RuntimeProfilingCounters.increment("recruit.index.fallback_scans");
@@ -47,9 +48,22 @@ public class MessageBackToMountEntity implements BannerModMessage<MessageBackToM
                         player.getBoundingBox().inflate(100)
                 );
             }
+            if (this.group == null) {
+                recruits = recruits.stream()
+                        .filter(recruit -> recruit != null && isAuthorizedOwner(recruit.getOwnerUUID(), actorUuid))
+                        .toList();
+            }
             CommandIntentDispatcher.dispatch(player, new CommandIntent.SiegeMachine(
                     player.level().getGameTime(), CommandIntentPriority.HIGH, false, null, group, true), recruits);
         });
+    }
+
+    static UUID authorizedPlayerUuid(UUID senderUuid, UUID ignoredWireUuid) {
+        return senderUuid;
+    }
+
+    static boolean isAuthorizedOwner(UUID recruitOwnerUuid, UUID actorUuid) {
+        return actorUuid != null && actorUuid.equals(recruitOwnerUuid);
     }
 
     public MessageBackToMountEntity fromBytes(FriendlyByteBuf buf) {

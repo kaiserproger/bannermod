@@ -5,6 +5,9 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MilitaryPacketActorIdentityTest {
     @Test
@@ -29,5 +32,17 @@ class MilitaryPacketActorIdentityTest {
         UUID spoofed = UUID.randomUUID();
 
         assertEquals(sender, MessageUpkeepEntity.authorizedPlayerUuid(sender, spoofed));
+    }
+
+    @Test
+    void backToMountUsesSenderUuidSoForgedUuidCannotDispatchSiegeIntentToVictimRecruits() {
+        UUID sender = UUID.randomUUID();
+        UUID forgedVictim = UUID.randomUUID();
+
+        UUID authorizedOwner = MessageBackToMountEntity.authorizedPlayerUuid(sender, forgedVictim);
+        assertEquals(sender, authorizedOwner);
+        assertNotEquals(forgedVictim, authorizedOwner);
+        assertTrue(MessageBackToMountEntity.isAuthorizedOwner(sender, authorizedOwner));
+        assertFalse(MessageBackToMountEntity.isAuthorizedOwner(forgedVictim, authorizedOwner));
     }
 }
