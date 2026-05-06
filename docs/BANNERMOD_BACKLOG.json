@@ -8525,8 +8525,8 @@
     {
       "id": "PACKETAUTH-002",
       "title": "Verify sender in MessageClearUpkeep",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-07",
       "why": "MessageClearUpkeep reads this.uuid as the recruit-owner UUID, passes it both to RecruitIndex.ownerInRange(...) and to CommandEvents.onClearUpkeepButton(uuid, recruit, group). No equality check vs sender.getUUID(); any client can clear upkeep on another player's recruits in range.",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessageClearUpkeep.java executeServerSide; substitute sender.getUUID() (mirror MessageUpkeepEntity.authorizedPlayerUuid) or reject when this.uuid != sender.getUUID()."
@@ -8536,14 +8536,20 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-07",
+          "result": "1) MessageClearUpkeep now derives actorUuid from context sender UUID and uses it for ownerInRange and CommandEvents.onClearUpkeepButton instead of the wire UUID. 2) Owner-scope fallback scans are filtered through isAuthorizedOwner so forged victim-owned recruits are excluded. 3) MilitaryPacketActorIdentityTest forged-UUID regression asserts sender authorization and forged victim rejection; ./gradlew compileJava and ./gradlew test passed on the task branch and integrated branch. 4) tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-07"
     },
     {
       "id": "PACKETAUTH-003",
       "title": "Verify sender in MessageMountEntity",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-07",
       "why": "MessageMountEntity reads this.uuid as the recruit-owner UUID and passes it to RecruitIndex.ownerInRange(...) and to recruit.isEffectedByCommand in the fallback predicate. Sender authority is never validated; a client can mount-command another player's recruits onto a target entity in range.",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessageMountEntity.java executeServerSide; replace this.uuid with sender.getUUID() in both lookup branches and predicate, or short-circuit on mismatch."
@@ -8553,8 +8559,14 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-07",
+          "result": "1) MessageMountEntity now derives actorUuid from context sender UUID and uses it for ownerInRange plus fallback isEffectedByCommand checks instead of the wire UUID. 2) Candidate recruits are filtered by sender-owned isAuthorizedOwner and isEffectedByCommand before SiegeMachine dispatch, excluding forged victim-owned recruits. 3) MilitaryPacketActorIdentityTest forged-UUID regression asserts sender authorization and forged victim rejection; ./gradlew compileJava and ./gradlew test passed on the task branch and integrated branch. 4) tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-07"
     },
     {
       "id": "PACKETAUTH-004",
