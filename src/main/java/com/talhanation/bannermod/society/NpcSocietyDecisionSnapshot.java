@@ -28,15 +28,19 @@ public record NpcSocietyDecisionSnapshot(
         String stateTag,
         @Nullable String currentGoalId,
         String choiceReasonTag,
+        String routeReasonTag,
         @Nullable String blockedGoalId,
-        String blockedReasonTag
+        String blockedReasonTag,
+        String lastIntentTag,
+        long currentIntentStartedGameTime
 ) {
     public static NpcSocietyDecisionSnapshot empty() {
-        return new NpcSocietyDecisionSnapshot("IDLE", null, "NO_STARTABLE_GOAL", null, "NONE");
+        return new NpcSocietyDecisionSnapshot("IDLE", null, "NO_STARTABLE_GOAL", "NO_CLEAR_ROUTE", null, "NONE", NpcIntent.UNSPECIFIED.name(), 0L);
     }
 
     public static NpcSocietyDecisionSnapshot capture(@Nullable ResidentGoalContext ctx,
-                                                     @Nullable ResidentTask activeTask) {
+                                                     @Nullable ResidentTask activeTask,
+                                                     @Nullable String routeReasonTag) {
         if (ctx == null) {
             return empty();
         }
@@ -44,12 +48,31 @@ public record NpcSocietyDecisionSnapshot(
         String stateTag = describeState(activeTask, blocked);
         String currentGoalId = activeTask == null || activeTask.goalId() == null ? null : activeTask.goalId().toString();
         String choiceReasonTag = activeTask == null ? "NO_STARTABLE_GOAL" : describeChoiceReason(ctx, activeTask.goalId());
+        NpcIntent currentIntent = activeTask == null || activeTask.goalId() == null
+                ? (ctx.isRestPhase() ? NpcIntent.REST : NpcIntent.IDLE)
+                : NpcSocietyPhaseOneRuntime.intentForGoal(activeTask.goalId());
+        NpcIntent previousIntent = ctx.societyProfile() == null || ctx.societyProfile().currentIntent() == null
+                ? NpcIntent.UNSPECIFIED
+                : ctx.societyProfile().currentIntent();
+        long currentIntentStartedGameTime = ctx.gameTime();
+        if (ctx.societyProfile() != null
+                && ctx.societyProfile().decisionSnapshot() != null
+                && currentIntent == previousIntent
+                && currentIntent != NpcIntent.UNSPECIFIED) {
+            currentIntentStartedGameTime = Math.max(0L, ctx.societyProfile().decisionSnapshot().currentIntentStartedGameTime());
+            if (currentIntentStartedGameTime <= 0L) {
+                currentIntentStartedGameTime = ctx.gameTime();
+            }
+        }
         return new NpcSocietyDecisionSnapshot(
                 stateTag,
                 currentGoalId,
                 choiceReasonTag,
+                safeTag(routeReasonTag),
                 blocked.goalId,
-                blocked.reasonTag
+                blocked.reasonTag,
+                previousIntent.name(),
+                currentIntentStartedGameTime
         );
     }
 
@@ -60,10 +83,13 @@ public record NpcSocietyDecisionSnapshot(
             tag.putString("CurrentGoalId", this.currentGoalId);
         }
         tag.putString("ChoiceReasonTag", safeTag(this.choiceReasonTag));
+        tag.putString("RouteReasonTag", safeTag(this.routeReasonTag));
         if (this.blockedGoalId != null && !this.blockedGoalId.isBlank()) {
             tag.putString("BlockedGoalId", this.blockedGoalId);
         }
         tag.putString("BlockedReasonTag", safeTag(this.blockedReasonTag));
+        tag.putString("LastIntentTag", safeTag(this.lastIntentTag));
+        tag.putLong("CurrentIntentStartedGameTime", Math.max(0L, this.currentIntentStartedGameTime));
         return tag;
     }
 
@@ -75,8 +101,11 @@ public record NpcSocietyDecisionSnapshot(
                 safeTag(tag.getString("StateTag")),
                 tag.contains("CurrentGoalId") ? tag.getString("CurrentGoalId") : null,
                 safeTag(tag.getString("ChoiceReasonTag")),
+                safeTag(tag.contains("RouteReasonTag") ? tag.getString("RouteReasonTag") : "NO_CLEAR_ROUTE"),
                 tag.contains("BlockedGoalId") ? tag.getString("BlockedGoalId") : null,
-                safeTag(tag.getString("BlockedReasonTag"))
+                safeTag(tag.getString("BlockedReasonTag")),
+                safeTag(tag.contains("LastIntentTag") ? tag.getString("LastIntentTag") : NpcIntent.UNSPECIFIED.name()),
+                Math.max(0L, tag.getLong("CurrentIntentStartedGameTime"))
         );
     }
 

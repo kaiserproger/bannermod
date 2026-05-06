@@ -28,6 +28,7 @@ class NpcPhaseOneSnapshotRoundTripTest {
                 "EXECUTING",
                 "bannermod:resident/goal/go_home",
                 "REST_WINDOW",
+                "SOON_NIGHT_HOMEBOUND",
                 "bannermod:resident/goal/eat",
                 "NO_FOOD_ACCESS",
                 5,
@@ -59,6 +60,7 @@ class NpcPhaseOneSnapshotRoundTripTest {
         assertEquals(snapshot.aiStateTag(), decoded.aiStateTag());
         assertEquals(snapshot.aiCurrentGoalId(), decoded.aiCurrentGoalId());
         assertEquals(snapshot.aiChoiceReasonTag(), decoded.aiChoiceReasonTag());
+        assertEquals(snapshot.aiRouteReasonTag(), decoded.aiRouteReasonTag());
         assertEquals(snapshot.aiBlockedGoalId(), decoded.aiBlockedGoalId());
         assertEquals(snapshot.aiBlockedReasonTag(), decoded.aiBlockedReasonTag());
         assertEquals(snapshot.safeRecentMemories(), decoded.safeRecentMemories());

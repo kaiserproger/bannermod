@@ -56,6 +56,9 @@ public final class GoHomeResidentGoal implements ResidentGoal {
         } else if (ctx.fatigueNeed() >= 80) {
             goHomeBias += 20;
         }
+        if (ctx.isReadyToSettleAtHome()) {
+            goHomeBias -= 42;
+        }
         return Math.max(goHomeBias, NpcSocietyPhaseTwoIntentScorer.scoreIntent(ctx, NpcIntent.GO_HOME));
     }
 

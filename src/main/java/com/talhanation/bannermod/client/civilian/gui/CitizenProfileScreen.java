@@ -229,7 +229,8 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
                 "gui.bannermod.citizen_profile.routine.summary",
                 Component.translatable(this.phaseOneSnapshot.dailyPhaseTranslationKey()).getString(),
                 Component.translatable(this.phaseOneSnapshot.currentIntentTranslationKey()).getString(),
-                Component.translatable(this.phaseOneSnapshot.householdHousingStateTranslationKey()).getString()
+                Component.translatable(this.phaseOneSnapshot.currentAnchorTranslationKey()).getString(),
+                Component.translatable(this.phaseOneSnapshot.aiRouteReasonTranslationKey()).getString()
         );
     }
 

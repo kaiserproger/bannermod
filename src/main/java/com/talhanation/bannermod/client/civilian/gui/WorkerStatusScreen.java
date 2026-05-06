@@ -214,10 +214,8 @@ public class WorkerStatusScreen extends Screen {
                 "gui.bannermod.worker_screen.routine.summary",
                 Component.translatable(phaseOne.dailyPhaseTranslationKey()).getString(),
                 Component.translatable(phaseOne.currentIntentTranslationKey()).getString(),
-                Component.translatable(phaseOne.householdHousingStateTranslationKey()).getString(),
-                Component.translatable(phaseOne.housingRequestTranslationKey()).getString(),
-                Component.translatable(phaseOne.housingUrgencyTranslationKey()).getString(),
-                Component.translatable(phaseOne.housingReasonTranslationKey()).getString()
+                Component.translatable(phaseOne.currentAnchorTranslationKey()).getString(),
+                Component.translatable(phaseOne.aiRouteReasonTranslationKey()).getString()
         );
     }
 

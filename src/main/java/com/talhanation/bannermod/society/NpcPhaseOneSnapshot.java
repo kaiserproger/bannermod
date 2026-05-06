@@ -23,6 +23,7 @@ public record NpcPhaseOneSnapshot(
         String aiStateTag,
         @Nullable String aiCurrentGoalId,
         String aiChoiceReasonTag,
+        String aiRouteReasonTag,
         @Nullable String aiBlockedGoalId,
         String aiBlockedReasonTag,
         int householdSize,
@@ -58,6 +59,7 @@ public record NpcPhaseOneSnapshot(
                 "IDLE",
                 null,
                 "NO_STARTABLE_GOAL",
+                "NO_CLEAR_ROUTE",
                 null,
                 "NONE",
                 0,
@@ -94,6 +96,7 @@ public record NpcPhaseOneSnapshot(
         buf.writeUtf(safeTag(this.aiStateTag));
         writeNullableString(buf, this.aiCurrentGoalId);
         buf.writeUtf(safeTag(this.aiChoiceReasonTag));
+        buf.writeUtf(safeTag(this.aiRouteReasonTag));
         writeNullableString(buf, this.aiBlockedGoalId);
         buf.writeUtf(safeTag(this.aiBlockedReasonTag));
         buf.writeVarInt(Math.max(0, this.householdSize));
@@ -135,6 +138,7 @@ public record NpcPhaseOneSnapshot(
         String aiStateTag = buf.readUtf();
         String aiCurrentGoalId = readNullableString(buf);
         String aiChoiceReasonTag = buf.readUtf();
+        String aiRouteReasonTag = buf.readUtf();
         String aiBlockedGoalId = readNullableString(buf);
         String aiBlockedReasonTag = buf.readUtf();
         int householdSize = buf.readVarInt();
@@ -171,6 +175,7 @@ public record NpcPhaseOneSnapshot(
                 aiStateTag,
                 aiCurrentGoalId,
                 aiChoiceReasonTag,
+                aiRouteReasonTag,
                 aiBlockedGoalId,
                 aiBlockedReasonTag,
                 householdSize,
@@ -222,6 +227,10 @@ public record NpcPhaseOneSnapshot(
 
     public String aiBlockedReasonTranslationKey() {
         return "gui.bannermod.society.ai.reason." + safeTag(this.aiBlockedReasonTag).toLowerCase(Locale.ROOT);
+    }
+
+    public String aiRouteReasonTranslationKey() {
+        return "gui.bannermod.society.ai.route." + safeTag(this.aiRouteReasonTag).toLowerCase(Locale.ROOT);
     }
 
     public String householdHousingStateTranslationKey() {

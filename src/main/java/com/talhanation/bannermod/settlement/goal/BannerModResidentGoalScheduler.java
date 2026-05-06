@@ -1,6 +1,9 @@
 package com.talhanation.bannermod.settlement.goal;
 
-import com.talhanation.bannermod.settlement.SettlementMarketState;
+import com.talhanation.bannermod.society.NpcIntent;
+import com.talhanation.bannermod.society.NpcSocietyPhaseOneRuntime;
+import com.talhanation.bannermod.society.NpcSocietyIntentRules;
+import com.talhanation.bannermod.settlement.BannerModSettlementMarketState;
 import com.talhanation.bannermod.settlement.dispatch.BannerModSellerDispatchRuntime;
 import com.talhanation.bannermod.settlement.dispatch.SellerResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.DeliverResidentGoal;
@@ -40,6 +43,11 @@ import java.util.function.Supplier;
  * own {@code List<ResidentGoal>} for determinism.
  */
 public final class BannerModResidentGoalScheduler {
+    private static final int SAME_GOAL_STICKINESS_BONUS = 9;
+    private static final int SAME_INTENT_STICKINESS_BONUS = 4;
+    private static final int SWITCH_MARGIN = 12;
+    private static final int ROUTINE_SWITCH_MARGIN = 18;
+    private static final int HOME_LOOP_SWITCH_MARGIN = 24;
 
     private final List<ResidentGoal> goals;
     private final Map<UUID, ResidentTask> activeTasks = new HashMap<>();
@@ -75,7 +83,7 @@ public final class BannerModResidentGoalScheduler {
      */
     public static BannerModResidentGoalScheduler withDefaultGoals(
             BannerModHomeAssignmentRuntime homeAssignmentRuntime,
-            Supplier<SettlementMarketState> marketStateSupplier,
+            Supplier<BannerModSettlementMarketState> marketStateSupplier,
             BannerModSellerDispatchRuntime sellerDispatchRuntime
     ) {
         if (homeAssignmentRuntime == null) {
@@ -165,8 +173,11 @@ public final class BannerModResidentGoalScheduler {
     // ------------------------------------------------------------------
 
     private void startNextGoal(ResidentGoalContext ctx) {
+        ResidentGoal previousGoal = findPreviousGoal(ctx);
+        int previousRawPriority = 0;
         ResidentGoal best = null;
-        int bestPriority = 0;
+        int bestAdjustedPriority = 0;
+        int bestRawPriority = 0;
         for (ResidentGoal goal : this.goals) {
             if (this.isOnCooldown(ctx.residentId(), goal.id(), ctx.gameTime())) {
                 continue;
@@ -178,11 +189,23 @@ public final class BannerModResidentGoalScheduler {
             if (priority <= 0) {
                 continue;
             }
-            if (priority > bestPriority
-                    || (priority == bestPriority && best != null && idOrderBefore(goal.id(), best.id()))) {
-                best = goal;
-                bestPriority = priority;
+            if (previousGoal != null && previousGoal.id().equals(goal.id())) {
+                previousRawPriority = priority;
             }
+            int adjustedPriority = adjustedPriority(ctx, goal.id(), priority);
+            if (adjustedPriority > bestAdjustedPriority
+                    || (adjustedPriority == bestAdjustedPriority && best != null && idOrderBefore(goal.id(), best.id()))) {
+                best = goal;
+                bestAdjustedPriority = adjustedPriority;
+                bestRawPriority = priority;
+            }
+        }
+        if (best != null
+                && previousGoal != null
+                && !best.id().equals(previousGoal.id())
+                && previousRawPriority > 0
+                && bestRawPriority < previousRawPriority + switchMargin(ctx, previousGoal, best)) {
+            best = previousGoal;
         }
         if (best == null) {
             this.activeTasks.remove(ctx.residentId());
@@ -194,6 +217,65 @@ public final class BannerModResidentGoalScheduler {
             return;
         }
         this.activeTasks.put(ctx.residentId(), task);
+    }
+
+    @Nullable
+    private ResidentGoal findPreviousGoal(ResidentGoalContext ctx) {
+        if (ctx == null || ctx.societyProfile() == null || ctx.societyProfile().decisionSnapshot() == null) {
+            return null;
+        }
+        String goalId = ctx.societyProfile().decisionSnapshot().currentGoalId();
+        if (goalId == null || goalId.isBlank()) {
+            return null;
+        }
+        return this.findGoal(ResourceLocation.tryParse(goalId));
+    }
+
+    private int adjustedPriority(ResidentGoalContext ctx, ResourceLocation goalId, int rawPriority) {
+        if (ctx == null || goalId == null || rawPriority <= 0 || ctx.societyProfile() == null) {
+            return rawPriority;
+        }
+        int adjusted = rawPriority;
+        String previousGoalId = ctx.societyProfile().decisionSnapshot() == null
+                ? null
+                : ctx.societyProfile().decisionSnapshot().currentGoalId();
+        if (goalId.toString().equals(previousGoalId)) {
+            adjusted += SAME_GOAL_STICKINESS_BONUS;
+        }
+        NpcIntent previousIntent = ctx.societyProfile().currentIntent();
+        NpcIntent nextIntent = NpcSocietyPhaseOneRuntime.intentForGoal(goalId);
+        if (previousIntent != null && previousIntent == nextIntent && nextIntent != NpcIntent.UNSPECIFIED) {
+            adjusted += SAME_INTENT_STICKINESS_BONUS;
+        }
+        return adjusted;
+    }
+
+    private static int switchMargin(ResidentGoalContext ctx, @Nullable ResidentGoal previousGoal, @Nullable ResidentGoal nextGoal) {
+        NpcIntent previousIntent = previousGoal == null ? NpcIntent.UNSPECIFIED : NpcSocietyPhaseOneRuntime.intentForGoal(previousGoal.id());
+        NpcIntent nextIntent = nextGoal == null ? NpcIntent.UNSPECIFIED : NpcSocietyPhaseOneRuntime.intentForGoal(nextGoal.id());
+        if (ctx != null && previousIntent == NpcIntent.GO_HOME && nextIntent == NpcIntent.REST && ctx.isReadyToSettleAtHome()) {
+            return 0;
+        }
+        if (ctx != null
+                && previousIntent == NpcIntent.LEAVE_HOME
+                && ctx.isReadyToFanOutFromLeaveHome()
+                && (nextIntent == NpcIntent.WORK
+                || nextIntent == NpcIntent.SOCIALISE
+                || nextIntent == NpcIntent.SELL
+                || nextIntent == NpcIntent.FETCH
+                || nextIntent == NpcIntent.DELIVER)) {
+            return 2;
+        }
+        int margin = SWITCH_MARGIN;
+        if (NpcSocietyIntentRules.isRestLikeIntent(previousIntent) || previousIntent == NpcIntent.LEAVE_HOME) {
+            margin = HOME_LOOP_SWITCH_MARGIN;
+        } else if (NpcSocietyIntentRules.isAnchoredRoutineIntent(previousIntent)) {
+            margin = ROUTINE_SWITCH_MARGIN;
+        }
+        if (previousIntent != NpcIntent.UNSPECIFIED && previousIntent == nextIntent) {
+            margin += 4;
+        }
+        return margin;
     }
 
     private void onTaskFinished(UUID residentId, ResidentTask task) {

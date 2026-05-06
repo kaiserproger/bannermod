@@ -156,6 +156,7 @@ public final class NpcSocietyAccess {
                 decisionSnapshot.stateTag(),
                 decisionSnapshot.currentGoalId(),
                 decisionSnapshot.choiceReasonTag(),
+                decisionSnapshot.routeReasonTag(),
                 decisionSnapshot.blockedGoalId(),
                 decisionSnapshot.blockedReasonTag(),
                 household == null ? 0 : household.memberResidentUuids().size(),

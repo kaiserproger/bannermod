@@ -49,7 +49,13 @@ public final class LeaveHomeResidentGoal implements ResidentGoal {
         if (this.runtime.homeFor(ctx.residentId()).isEmpty()) {
             return 0;
         }
-        return LEAVE_HOME_PRIORITY;
+        int priority = LEAVE_HOME_PRIORITY;
+        if (ctx.isReadyToFanOutFromLeaveHome()) {
+            priority -= 52;
+        } else if (ctx.currentPublishedIntent() == com.talhanation.bannermod.society.NpcIntent.LEAVE_HOME) {
+            priority += 8;
+        }
+        return priority;
     }
 
     @Override

@@ -10,6 +10,13 @@
   - `eat`, `seek supplies`, `socialise`, `hide`, and `defend` are now first-class society intents in the scheduler/runtime layer
   - citizens and workers now have a first real physical daily-life execution pass for anchored intent behavior
   - Phase 2 behavior is now covered by dedicated GameTests and the full GameTest suite was restored to green after the courier-route regression fix
+- A second daily-routine readability/stability refinement slice is now live:
+  - the `GO_HOME -> REST` night loop now settles more cleanly instead of re-picking homeward movement for too long
+  - the `LEAVE_HOME` morning bridge now yields into real work/social fan-out more clearly once the resident has stepped out of the house
+  - routine intent selection now carries a lightweight intent-history / hysteresis layer so near-tied daily-life choices thrash less
+  - social routing now prefers more readable gathering spots such as market / square / hall / hearth / tavern / well style anchors before falling back to a generic street cluster
+  - citizen, worker, and dedicated AI screens now also expose a short route explanation in addition to the already existing chosen-goal reason
+  - the refinement slice is covered by new unit tests plus focused GameTests for evening home social scenes, night settling, morning fan-out, and non-market square gathering
 - The first dedicated household and family slice is now live:
   - household membership is stored separately from the home building id
   - household housing state now distinguishes settled, homeless, and overcrowded households
@@ -104,6 +111,14 @@ The current runtime already contains a first working NPC-society backbone.
 - Phase 2 observability and verification are now live:
   - citizen and worker screens now surface safety pressure in addition to hunger/fatigue/social
   - dedicated GameTests now cover hunger -> `EAT`, fatigue/home -> `GO_HOME`, social -> `SOCIALISE`, threat -> `HIDE`/`DEFEND`, worker labor gating, and citizen social-anchor movement
+- The next readability/stability refinement is now also live in code:
+  - `ResidentGoalContext` now distinguishes active, leisure, departing-home, returning-home, and rest transitions more explicitly
+  - `NpcSocietyDecisionSnapshot` now also persists the last intent, the start time of the current intent, and a compact route-reason tag for GUI observability
+  - `NpcSocietyPhaseTwoIntentScorer` now adds small history-aware stability pressure plus stronger late-evening / early-morning routine shaping
+  - `BannerModResidentGoalScheduler` now allows the home-return loop to settle into `REST` and the leave-home bridge to fan out into real daytime intents sooner
+  - `NpcSocietyAnchorGoal` now routes `SOCIALISE` through a dedicated spot selector instead of only generic market-or-street fallback
+  - `NpcSocietySocialSpotSelector` now resolves compact named gathering anchors from existing settlement building records without introducing a second world-POI subsystem
+  - `CitizenProfileScreen`, `WorkerStatusScreen`, and `NpcAiDecisionScreen` now surface a short player-readable “why this NPC is going there” route line instead of showing only the abstract chosen-goal reason
 - House self-build has a first backend path:
   - households in housing pressure can create housing requests
   - requests are stored in dedicated saved data

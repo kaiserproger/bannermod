@@ -10,7 +10,7 @@ import net.neoforged.neoforge.client.gui.widget.ExtendedButton;
 
 public class NpcAiDecisionScreen extends Screen {
     private static final int WIDTH = 278;
-    private static final int HEIGHT = 214;
+    private static final int HEIGHT = 246;
 
     private final Screen parent;
     private final NpcPhaseOneSnapshot snapshot;
@@ -62,12 +62,18 @@ public class NpcAiDecisionScreen extends Screen {
                 Component.translatable(this.snapshot.currentAnchorTranslationKey()).getString(),
                 MilitaryGuiStyle.TEXT_DARK);
 
-        renderLargeField(graphics, this.left + 14, this.top + 102, WIDTH - 28,
+        renderLargeField(graphics, this.left + 14, this.top + 96, WIDTH - 28,
+                Component.translatable("gui.bannermod.society.ai.route"),
+                Component.translatable(this.snapshot.currentAnchorTranslationKey()),
+                Component.translatable(this.snapshot.aiRouteReasonTranslationKey()),
+                MilitaryGuiStyle.TEXT_DARK);
+
+        renderLargeField(graphics, this.left + 14, this.top + 136, WIDTH - 28,
                 Component.translatable("gui.bannermod.society.ai.goal"),
                 Component.literal(this.snapshot.aiCurrentGoalLabel()),
                 Component.translatable(this.snapshot.aiChoiceReasonTranslationKey()),
                 MilitaryGuiStyle.TEXT_WARN);
-        renderLargeField(graphics, this.left + 14, this.top + 142, WIDTH - 28,
+        renderLargeField(graphics, this.left + 14, this.top + 176, WIDTH - 28,
                 Component.translatable("gui.bannermod.society.ai.blocked_goal"),
                 Component.literal(this.snapshot.aiBlockedGoalLabel()),
                 Component.translatable(this.snapshot.aiBlockedReasonTranslationKey()),

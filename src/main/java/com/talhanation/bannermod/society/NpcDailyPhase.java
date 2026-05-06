@@ -3,6 +3,7 @@ package com.talhanation.bannermod.society;
 public enum NpcDailyPhase {
     UNSPECIFIED,
     ACTIVE,
+    DEPARTING_HOME,
     RETURNING_HOME,
     REST;
 

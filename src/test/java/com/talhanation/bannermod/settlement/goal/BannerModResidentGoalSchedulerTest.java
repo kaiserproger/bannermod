@@ -1,17 +1,22 @@
 package com.talhanation.bannermod.settlement.goal;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
-import com.talhanation.bannermod.settlement.SettlementMarketState;
-import com.talhanation.bannermod.settlement.SettlementResidentAssignmentState;
-import com.talhanation.bannermod.settlement.SettlementResidentMode;
-import com.talhanation.bannermod.settlement.SettlementResidentRecord;
-import com.talhanation.bannermod.settlement.SettlementResidentRole;
-import com.talhanation.bannermod.settlement.SettlementResidentRuntimeRoleState;
-import com.talhanation.bannermod.settlement.SettlementResidentScheduleSeed;
-import com.talhanation.bannermod.settlement.SettlementResidentServiceContract;
-import com.talhanation.bannermod.settlement.SettlementSellerDispatchRecord;
-import com.talhanation.bannermod.settlement.SettlementSellerDispatchState;
-import com.talhanation.bannermod.settlement.SettlementServiceActorState;
+import com.talhanation.bannermod.society.NpcAnchorType;
+import com.talhanation.bannermod.society.NpcDailyPhase;
+import com.talhanation.bannermod.society.NpcIntent;
+import com.talhanation.bannermod.society.NpcSocietyDecisionSnapshot;
+import com.talhanation.bannermod.society.NpcSocietyProfile;
+import com.talhanation.bannermod.settlement.BannerModSettlementMarketState;
+import com.talhanation.bannermod.settlement.BannerModSettlementResidentAssignmentState;
+import com.talhanation.bannermod.settlement.BannerModSettlementResidentMode;
+import com.talhanation.bannermod.settlement.BannerModSettlementResidentRecord;
+import com.talhanation.bannermod.settlement.BannerModSettlementResidentRole;
+import com.talhanation.bannermod.settlement.BannerModSettlementResidentRuntimeRoleSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementResidentScheduleSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementResidentServiceContract;
+import com.talhanation.bannermod.settlement.BannerModSettlementSellerDispatchRecord;
+import com.talhanation.bannermod.settlement.BannerModSettlementSellerDispatchState;
+import com.talhanation.bannermod.settlement.BannerModSettlementServiceActorState;
 import com.talhanation.bannermod.settlement.dispatch.BannerModSellerDispatchRuntime;
 import com.talhanation.bannermod.settlement.dispatch.SellerResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.IdleResidentGoal;
@@ -40,7 +45,7 @@ class BannerModResidentGoalSchedulerTest {
     @Test
     void activePhaseLocalWorkerSelectsWorkGoalOverIdleFallback() {
         BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals();
-        SettlementResidentRecord worker = buildLocalWorker();
+        BannerModSettlementResidentRecord worker = buildLocalWorker();
         ResidentGoalContext ctx = new ResidentGoalContext(worker, null, DAY_TICK_ACTIVE);
 
         scheduler.tick(ctx);
@@ -53,7 +58,7 @@ class BannerModResidentGoalSchedulerTest {
     @Test
     void nightTickSelectsRestOverIdle() {
         BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals();
-        SettlementResidentRecord resident = buildLocalWorker();
+        BannerModSettlementResidentRecord resident = buildLocalWorker();
         ResidentGoalContext ctx = new ResidentGoalContext(resident, null, DAY_TICK_NIGHT);
 
         scheduler.tick(ctx);
@@ -66,7 +71,7 @@ class BannerModResidentGoalSchedulerTest {
     @Test
     void unassignedVillagerInDaylightFlexSocialisesRatherThanWorks() {
         BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals();
-        SettlementResidentRecord resident = buildUnassignedVillager();
+        BannerModSettlementResidentRecord resident = buildUnassignedVillager();
         ResidentGoalContext ctx = new ResidentGoalContext(resident, null, DAY_TICK_ACTIVE);
 
         scheduler.tick(ctx);
@@ -80,7 +85,7 @@ class BannerModResidentGoalSchedulerTest {
     @Test
     void schedulerWithOnlyIdleGoalReturnsIdleTask() {
         BannerModResidentGoalScheduler scheduler = new BannerModResidentGoalScheduler(List.of(new IdleResidentGoal()));
-        SettlementResidentRecord resident = buildUnassignedVillager();
+        BannerModSettlementResidentRecord resident = buildUnassignedVillager();
 
         scheduler.tick(new ResidentGoalContext(resident, null, DAY_TICK_ACTIVE));
 
@@ -93,7 +98,7 @@ class BannerModResidentGoalSchedulerTest {
     void activeTaskAdvancesUntilMaxTicksThenTimesOut() {
         ResidentGoal fastGoal = new FixedDurationTestGoal("test/goal/fast", 50, 3, false);
         BannerModResidentGoalScheduler scheduler = new BannerModResidentGoalScheduler(List.of(fastGoal));
-        SettlementResidentRecord resident = buildLocalWorker();
+        BannerModSettlementResidentRecord resident = buildLocalWorker();
         UUID id = resident.residentUuid();
 
         scheduler.tick(new ResidentGoalContext(resident, null, 100L));
@@ -114,7 +119,7 @@ class BannerModResidentGoalSchedulerTest {
         ResidentGoal coolingGoal = new FixedDurationTestGoal("test/goal/cooling", 99, 2, true);
         ResidentGoal fallback = new FixedDurationTestGoal("test/goal/fallback", 1, 1, false);
         BannerModResidentGoalScheduler scheduler = new BannerModResidentGoalScheduler(List.of(coolingGoal, fallback));
-        SettlementResidentRecord resident = buildLocalWorker();
+        BannerModSettlementResidentRecord resident = buildLocalWorker();
         UUID id = resident.residentUuid();
 
         scheduler.tick(new ResidentGoalContext(resident, null, 200L));
@@ -133,7 +138,7 @@ class BannerModResidentGoalSchedulerTest {
         ResidentGoal goalZ = new FixedDurationTestGoal("test/goal/z", 40, 5, false);
         ResidentGoal goalA = new FixedDurationTestGoal("test/goal/a", 40, 5, false);
         BannerModResidentGoalScheduler scheduler = new BannerModResidentGoalScheduler(List.of(goalZ, goalA));
-        SettlementResidentRecord resident = buildLocalWorker();
+        BannerModSettlementResidentRecord resident = buildLocalWorker();
 
         scheduler.tick(new ResidentGoalContext(resident, null, 300L));
 
@@ -144,9 +149,60 @@ class BannerModResidentGoalSchedulerTest {
     }
 
     @Test
+    void schedulerPrefersContinuingPreviousGoalWhenAlternativeIsOnlySlightlyBetter() {
+        ResidentGoal steady = new FixedDurationTestGoal("test/goal/steady", 50, 5, false);
+        ResidentGoal rival = new FixedDurationTestGoal("test/goal/rival", 57, 5, false);
+        BannerModResidentGoalScheduler scheduler = new BannerModResidentGoalScheduler(List.of(steady, rival));
+        BannerModSettlementResidentRecord resident = buildLocalWorker();
+        NpcSocietyProfile profile = NpcSocietyProfile.createDefault(resident.residentUuid(), DAY_TICK_ACTIVE)
+                .withPhaseOneState(
+                        null,
+                        null,
+                        null,
+                        NpcDailyPhase.ACTIVE,
+                        NpcIntent.WORK,
+                        NpcAnchorType.WORKPLACE,
+                        new NpcSocietyDecisionSnapshot("EXECUTING", steady.id().toString(), "ASSIGNED_SHIFT", "HEADING_TO_WORKPLACE", null, "NONE", NpcIntent.WORK.name(), DAY_TICK_ACTIVE - 80L),
+                        DAY_TICK_ACTIVE
+                );
+
+        scheduler.tick(new ResidentGoalContext(resident, null, DAY_TICK_ACTIVE, profile));
+
+        Optional<ResidentTask> picked = scheduler.currentTask(resident.residentUuid());
+        assertTrue(picked.isPresent());
+        assertEquals(steady.id(), picked.get().goalId(),
+                "scheduler should keep the previous goal when the competing goal is only marginally better");
+    }
+
+    @Test
+    void schedulerKeepsRestLoopGoalAgainstModeratelyBetterAlternative() {
+        ResidentGoal rival = new FixedDurationTestGoal("test/goal/rival", 110, 5, false);
+        BannerModResidentGoalScheduler scheduler = new BannerModResidentGoalScheduler(List.of(new RestResidentGoal(), rival));
+        BannerModSettlementResidentRecord resident = buildLocalWorker();
+        NpcSocietyProfile profile = NpcSocietyProfile.createDefault(resident.residentUuid(), DAY_TICK_NIGHT)
+                .withPhaseOneState(
+                        null,
+                        null,
+                        null,
+                        NpcDailyPhase.REST,
+                        NpcIntent.REST,
+                        NpcAnchorType.HOME,
+                        new NpcSocietyDecisionSnapshot("EXECUTING", RestResidentGoal.ID.toString(), "REST_WINDOW", "RESTING_AT_HOME", null, "NONE", NpcIntent.GO_HOME.name(), DAY_TICK_NIGHT - 100L),
+                        DAY_TICK_NIGHT
+                );
+
+        scheduler.tick(new ResidentGoalContext(resident, null, DAY_TICK_NIGHT, profile));
+
+        Optional<ResidentTask> picked = scheduler.currentTask(resident.residentUuid());
+        assertTrue(picked.isPresent());
+        assertEquals(RestResidentGoal.ID, picked.get().goalId(),
+                "rest-like routine goals should require a much larger advantage before switching away");
+    }
+
+    @Test
     void forceStopMarksTaskDoneWithProvidedReason() {
         BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals();
-        SettlementResidentRecord resident = buildLocalWorker();
+        BannerModSettlementResidentRecord resident = buildLocalWorker();
         UUID id = resident.residentUuid();
         scheduler.tick(new ResidentGoalContext(resident, null, DAY_TICK_ACTIVE));
 
@@ -161,7 +217,7 @@ class BannerModResidentGoalSchedulerTest {
     @Test
     void resetClearsActiveTasksAndCooldowns() {
         BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals();
-        SettlementResidentRecord resident = buildLocalWorker();
+        BannerModSettlementResidentRecord resident = buildLocalWorker();
         UUID id = resident.residentUuid();
         scheduler.tick(new ResidentGoalContext(resident, null, DAY_TICK_ACTIVE));
         assertNotNull(scheduler.currentTask(id).orElse(null));
@@ -177,10 +233,10 @@ class BannerModResidentGoalSchedulerTest {
         BannerModSellerDispatchRuntime sellerRuntime = new BannerModSellerDispatchRuntime();
         BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals(
                 homeRuntime,
-                SettlementMarketState::empty,
+                BannerModSettlementMarketState::empty,
                 sellerRuntime
         );
-        SettlementResidentRecord resident = buildLocalWorker();
+        BannerModSettlementResidentRecord resident = buildLocalWorker();
         homeRuntime.assign(
                 resident.residentUuid(),
                 UUID.fromString("00000000-0000-0000-0000-0000000000b1"),
@@ -199,9 +255,9 @@ class BannerModResidentGoalSchedulerTest {
     void extendedDefaultGoalsPickSellerOverWorkWhenReadyDispatchExists() {
         BannerModHomeAssignmentRuntime homeRuntime = new BannerModHomeAssignmentRuntime();
         BannerModSellerDispatchRuntime sellerRuntime = new BannerModSellerDispatchRuntime();
-        SettlementResidentRecord seller = buildMarketSeller();
+        BannerModSettlementResidentRecord seller = buildMarketSeller();
         UUID marketUuid = UUID.fromString("00000000-0000-0000-0000-0000000000c1");
-        SettlementMarketState marketState = new SettlementMarketState(
+        BannerModSettlementMarketState marketState = new BannerModSettlementMarketState(
                 1,
                 1,
                 16,
@@ -209,11 +265,11 @@ class BannerModResidentGoalSchedulerTest {
                 1,
                 1,
                 List.of(),
-                List.of(new SettlementSellerDispatchRecord(
+                List.of(new BannerModSettlementSellerDispatchRecord(
                         seller.residentUuid(),
                         marketUuid,
                         "market",
-                        SettlementSellerDispatchState.READY
+                        BannerModSettlementSellerDispatchState.READY
                 ))
         );
         BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals(
@@ -231,10 +287,96 @@ class BannerModResidentGoalSchedulerTest {
     }
 
     @Test
+    void laborWorkerSocialisesDuringLeisureGapAfterWorkHours() {
+        BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals();
+        BannerModSettlementResidentRecord resident = buildLocalWorker();
+        long leisureTick = 10000L;
+        NpcSocietyProfile profile = NpcSocietyProfile.createDefault(resident.residentUuid(), leisureTick)
+                .withNeedState(10, 12, 92, 8, leisureTick)
+                .withSocialState(50, 0, 0, 0, 55, leisureTick);
+
+        scheduler.tick(new ResidentGoalContext(resident, null, leisureTick, profile));
+
+        Optional<ResidentTask> task = scheduler.currentTask(resident.residentUuid());
+        assertTrue(task.isPresent());
+        assertEquals(SocialiseResidentGoal.ID, task.get().goalId(),
+                "workers should use the post-shift leisure gap for readable social behavior instead of dropping straight to idle");
+    }
+
+    @Test
+    void goHomeChainCanSettleIntoRestAfterExtendedReturnWindow() {
+        BannerModHomeAssignmentRuntime homeRuntime = new BannerModHomeAssignmentRuntime();
+        BannerModSellerDispatchRuntime sellerRuntime = new BannerModSellerDispatchRuntime();
+        BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals(
+                homeRuntime,
+                BannerModSettlementMarketState::empty,
+                sellerRuntime
+        );
+        BannerModSettlementResidentRecord resident = buildLocalWorker();
+        UUID homeId = UUID.fromString("00000000-0000-0000-0000-0000000000b3");
+        homeRuntime.assign(resident.residentUuid(), homeId,
+                com.talhanation.bannermod.settlement.household.HomePreference.ASSIGNED,
+                DAY_TICK_NIGHT - 200L);
+        NpcSocietyProfile profile = NpcSocietyProfile.createDefault(resident.residentUuid(), DAY_TICK_NIGHT)
+                .withPhaseOneState(
+                        null,
+                        homeId,
+                        null,
+                        NpcDailyPhase.RETURNING_HOME,
+                        NpcIntent.GO_HOME,
+                        NpcAnchorType.HOME,
+                        new NpcSocietyDecisionSnapshot("EXECUTING", GoHomeResidentGoal.ID.toString(), "REST_WINDOW", "SOON_NIGHT_HOMEBOUND", null, "NONE", NpcIntent.WORK.name(), DAY_TICK_NIGHT - 120L),
+                        DAY_TICK_NIGHT
+                );
+
+        scheduler.tick(new ResidentGoalContext(resident, null, DAY_TICK_NIGHT, profile));
+
+        Optional<ResidentTask> picked = scheduler.currentTask(resident.residentUuid());
+        assertTrue(picked.isPresent());
+        assertEquals(RestResidentGoal.ID, picked.get().goalId(),
+                "residents should stop endlessly re-picking go-home and settle into rest once the return-home window has run long enough");
+    }
+
+    @Test
+    void leaveHomeChainCanFanOutIntoWorkAfterBriefDeparture() {
+        BannerModHomeAssignmentRuntime homeRuntime = new BannerModHomeAssignmentRuntime();
+        BannerModSellerDispatchRuntime sellerRuntime = new BannerModSellerDispatchRuntime();
+        BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals(
+                homeRuntime,
+                BannerModSettlementMarketState::empty,
+                sellerRuntime
+        );
+        BannerModSettlementResidentRecord resident = buildLocalWorker();
+        long morningTick = 1080L;
+        UUID homeId = UUID.fromString("00000000-0000-0000-0000-0000000000b4");
+        homeRuntime.assign(resident.residentUuid(), homeId,
+                com.talhanation.bannermod.settlement.household.HomePreference.ASSIGNED,
+                morningTick - 100L);
+        NpcSocietyProfile profile = NpcSocietyProfile.createDefault(resident.residentUuid(), morningTick)
+                .withPhaseOneState(
+                        null,
+                        homeId,
+                        resident.boundWorkAreaUuid(),
+                        NpcDailyPhase.DEPARTING_HOME,
+                        NpcIntent.LEAVE_HOME,
+                        NpcAnchorType.STREET,
+                        new NpcSocietyDecisionSnapshot("EXECUTING", com.talhanation.bannermod.settlement.household.LeaveHomeResidentGoal.ID.toString(), "EARLY_ACTIVE_WINDOW", "LEAVING_HOME_FOR_WORK", null, "NONE", NpcIntent.REST.name(), morningTick - 70L),
+                        morningTick
+                );
+
+        scheduler.tick(new ResidentGoalContext(resident, null, morningTick, profile));
+
+        Optional<ResidentTask> picked = scheduler.currentTask(resident.residentUuid());
+        assertTrue(picked.isPresent());
+        assertEquals(WorkResidentGoal.ID, picked.get().goalId(),
+                "residents should leave home first, then fan out into real work instead of lingering on the leave-home bridge goal too long");
+    }
+
+    @Test
     void zeroPriorityGoalIsNotSelectedEvenIfCanStartReturnsTrue() {
         ResidentGoal zeroPriority = new FixedDurationTestGoal("test/goal/zero", 0, 5, false);
         BannerModResidentGoalScheduler scheduler = new BannerModResidentGoalScheduler(List.of(zeroPriority));
-        SettlementResidentRecord resident = buildLocalWorker();
+        BannerModSettlementResidentRecord resident = buildLocalWorker();
 
         scheduler.tick(new ResidentGoalContext(resident, null, 10L));
 
@@ -245,57 +387,57 @@ class BannerModResidentGoalSchedulerTest {
     // Helpers
     // ------------------------------------------------------------------
 
-    private static SettlementResidentRecord buildLocalWorker() {
+    private static BannerModSettlementResidentRecord buildLocalWorker() {
         UUID id = UUID.fromString("00000000-0000-0000-0000-000000000001");
         UUID workArea = UUID.fromString("00000000-0000-0000-0000-000000000099");
-        return new SettlementResidentRecord(
+        return new BannerModSettlementResidentRecord(
                 id,
-                SettlementResidentRole.CONTROLLED_WORKER,
-                SettlementResidentScheduleSeed.ASSIGNED_WORK,
-                SettlementResidentRuntimeRoleState.LOCAL_LABOR,
-                SettlementResidentServiceContract.notServiceActor(),
-                SettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
+                BannerModSettlementResidentRole.CONTROLLED_WORKER,
+                BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK,
+                BannerModSettlementResidentRuntimeRoleSeed.LOCAL_LABOR,
+                BannerModSettlementResidentServiceContract.notServiceActor(),
+                BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
                 UUID.fromString("00000000-0000-0000-0000-0000000000aa"),
                 "teamA",
                 workArea,
-                SettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
+                BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
         );
     }
 
-    private static SettlementResidentRecord buildUnassignedVillager() {
+    private static BannerModSettlementResidentRecord buildUnassignedVillager() {
         UUID id = UUID.fromString("00000000-0000-0000-0000-000000000002");
-        return new SettlementResidentRecord(
+        return new BannerModSettlementResidentRecord(
                 id,
-                SettlementResidentRole.VILLAGER,
-                SettlementResidentScheduleSeed.SETTLEMENT_IDLE,
-                SettlementResidentRuntimeRoleState.VILLAGE_LIFE,
-                SettlementResidentServiceContract.notServiceActor(),
-                SettlementResidentMode.SETTLEMENT_RESIDENT,
+                BannerModSettlementResidentRole.VILLAGER,
+                BannerModSettlementResidentScheduleSeed.SETTLEMENT_IDLE,
+                BannerModSettlementResidentRuntimeRoleSeed.VILLAGE_LIFE,
+                BannerModSettlementResidentServiceContract.notServiceActor(),
+                BannerModSettlementResidentMode.SETTLEMENT_RESIDENT,
                 null,
                 null,
                 null,
-                SettlementResidentAssignmentState.NOT_APPLICABLE
+                BannerModSettlementResidentAssignmentState.NOT_APPLICABLE
         );
     }
 
-    private static SettlementResidentRecord buildMarketSeller() {
+    private static BannerModSettlementResidentRecord buildMarketSeller() {
         UUID id = UUID.fromString("00000000-0000-0000-0000-000000000003");
         UUID marketBuilding = UUID.fromString("00000000-0000-0000-0000-0000000000d1");
-        return new SettlementResidentRecord(
+        return new BannerModSettlementResidentRecord(
                 id,
-                SettlementResidentRole.CONTROLLED_WORKER,
-                SettlementResidentScheduleSeed.ASSIGNED_WORK,
-                SettlementResidentRuntimeRoleState.LOCAL_LABOR,
-                new SettlementResidentServiceContract(
-                        SettlementServiceActorState.LOCAL_BUILDING_SERVICE,
+                BannerModSettlementResidentRole.CONTROLLED_WORKER,
+                BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK,
+                BannerModSettlementResidentRuntimeRoleSeed.LOCAL_LABOR,
+                new BannerModSettlementResidentServiceContract(
+                        BannerModSettlementServiceActorState.LOCAL_BUILDING_SERVICE,
                         marketBuilding,
                         "market"
                 ),
-                SettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
+                BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
                 UUID.fromString("00000000-0000-0000-0000-0000000000ab"),
                 "teamA",
                 marketBuilding,
-                SettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
+                BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
         );
     }
 

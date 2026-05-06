@@ -31,6 +31,7 @@ import com.talhanation.bannermod.settlement.goal.impl.DefendResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.EatResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.HideResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.SocialiseResidentGoal;
+import com.talhanation.bannermod.settlement.goal.impl.WorkResidentGoal;
 import com.talhanation.bannermod.settlement.household.BannerModHomeAssignmentRuntime;
 import com.talhanation.bannermod.settlement.household.GoHomeResidentGoal;
 import com.talhanation.bannermod.settlement.household.HomePreference;
@@ -318,6 +319,215 @@ public final class NpcSocietyPhaseTwoGameTests {
     }
 
     @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void assignedMissingBuildingWorkerStillChoosesWorkDuringActivePhase(GameTestHelper helper) {
+        UUID residentId = UUID.fromString("00000000-0000-0000-0000-000000042006");
+        BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals();
+        NpcSocietyProfile profile = NpcSocietyProfile.createDefault(residentId, ACTIVE_TIME)
+                .withNeedState(10, 18, 72, 5, ACTIVE_TIME)
+                .withSocialState(50, 0, 0, 0, 62, ACTIVE_TIME);
+        ResidentGoalContext ctx = new ResidentGoalContext(
+                workerResident(residentId, null, null, BannerModSettlementResidentAssignmentState.ASSIGNED_MISSING_BUILDING),
+                null,
+                ACTIVE_TIME,
+                profile
+        );
+
+        scheduler.tick(ctx);
+
+        requireTask(helper, scheduler, residentId, WorkResidentGoal.ID.toString());
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void workerSocialisesDuringLeisureGapAfterShift(GameTestHelper helper) {
+        long leisureTime = 10000L;
+        UUID residentId = UUID.fromString("00000000-0000-0000-0000-000000042007");
+        BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals();
+        NpcSocietyProfile profile = NpcSocietyProfile.createDefault(residentId, leisureTime)
+                .withNeedState(10, 10, 95, 5, leisureTime)
+                .withSocialState(50, 0, 0, 0, 55, leisureTime);
+        ResidentGoalContext ctx = new ResidentGoalContext(workerResident(residentId, null, null), null, leisureTime, profile);
+
+        scheduler.tick(ctx);
+
+        requireTask(helper, scheduler, residentId, SocialiseResidentGoal.ID.toString());
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void familyLeisureSocialisePublishesHomeAnchor(GameTestHelper helper) {
+        long leisureTime = 11550L;
+        ServerLevel level = helper.getLevel();
+        UUID residentId = UUID.fromString("00000000-0000-0000-0000-000000042008");
+        UUID homeUuid = UUID.fromString("00000000-0000-0000-0000-000000042018");
+        BannerModSettlementBuildingRecord home = building(homeUuid, "bannermod:house", helper.absolutePos(new BlockPos(12, 2, 12)), 4);
+        BannerModSettlementSnapshot snapshot = snapshot(
+                leisureTime,
+                List.of(villagerResident(residentId)),
+                List.of(home),
+                BannerModSettlementMarketState.empty()
+        );
+        BannerModHomeAssignmentRuntime homeRuntime = new BannerModHomeAssignmentRuntime();
+        homeRuntime.assign(residentId, homeUuid, HomePreference.ASSIGNED, leisureTime);
+        BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals(
+                homeRuntime,
+                BannerModSettlementMarketState::empty,
+                new com.talhanation.bannermod.settlement.dispatch.BannerModSellerDispatchRuntime()
+        );
+        NpcSocietyProfile profile = NpcSocietyProfile.createDefault(residentId, leisureTime)
+                .withPhaseOneState(null, homeUuid, null, NpcDailyPhase.ACTIVE, NpcIntent.UNSPECIFIED, NpcAnchorType.NONE,
+                        NpcSocietyDecisionSnapshot.empty(), leisureTime)
+                .withNeedState(10, 10, 95, 5, leisureTime)
+                .withSocialState(50, 0, 0, 0, 55, leisureTime);
+        ResidentGoalContext ctx = new ResidentGoalContext(
+                villagerResident(residentId),
+                snapshot,
+                leisureTime,
+                leisureTime,
+                profile,
+                4,
+                NpcHouseholdHousingState.NORMAL,
+                true,
+                2
+        );
+
+        seedProfile(level, profile);
+        BannerModSettlementManager.get(level).putSnapshot(snapshot);
+        scheduler.tick(ctx);
+
+        ResidentTask task = requireTask(helper, scheduler, residentId, SocialiseResidentGoal.ID.toString());
+        NpcSocietyPhaseOneRuntime.updateResidentProfile(level, homeRuntime, ctx, task, byBuilding(snapshot));
+
+        NpcSocietyProfile stored = NpcSocietyAccess.profileFor(level, residentId).orElseThrow();
+        helper.assertTrue(stored.currentAnchor() == NpcAnchorType.HOME,
+                "Expected family evening social intent to stay anchored at home for readable household scenes.");
+        NpcPhaseOneSnapshot aiSnapshot = NpcSocietyAccess.phaseOneSnapshot(level, residentId, null);
+        helper.assertTrue("evening_home_circle".equals(aiSnapshot.aiRouteReasonTag().toLowerCase()),
+                "Expected observability to explain that evening family socialising is staying at home.");
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void nightGoHomeChainSettlesIntoRestAfterReturnWindow(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        UUID residentId = UUID.fromString("00000000-0000-0000-0000-000000042009");
+        UUID homeUuid = UUID.fromString("00000000-0000-0000-0000-000000042019");
+        BannerModSettlementBuildingRecord home = building(homeUuid, "bannermod:house", helper.absolutePos(new BlockPos(12, 2, 12)), 4);
+        BannerModSettlementSnapshot snapshot = snapshot(
+                NIGHT_TIME,
+                List.of(workerResident(residentId, null, null)),
+                List.of(home),
+                BannerModSettlementMarketState.empty()
+        );
+        BannerModHomeAssignmentRuntime homeRuntime = new BannerModHomeAssignmentRuntime();
+        homeRuntime.assign(residentId, homeUuid, HomePreference.ASSIGNED, NIGHT_TIME - 200L);
+        BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals(
+                homeRuntime,
+                BannerModSettlementMarketState::empty,
+                new com.talhanation.bannermod.settlement.dispatch.BannerModSellerDispatchRuntime()
+        );
+        NpcSocietyProfile profile = NpcSocietyProfile.createDefault(residentId, NIGHT_TIME)
+                .withPhaseOneState(null, homeUuid, null, NpcDailyPhase.RETURNING_HOME, NpcIntent.GO_HOME, NpcAnchorType.HOME,
+                        new NpcSocietyDecisionSnapshot("EXECUTING", GoHomeResidentGoal.ID.toString(), "REST_WINDOW", "SOON_NIGHT_HOMEBOUND", null, "NONE", NpcIntent.WORK.name(), NIGHT_TIME - 120L), NIGHT_TIME)
+                .withNeedState(10, 92, 10, 10, NIGHT_TIME);
+
+        seedProfile(level, profile);
+        BannerModSettlementManager.get(level).putSnapshot(snapshot);
+
+        ResidentGoalContext ctx = new ResidentGoalContext(workerResident(residentId, null, null), snapshot, NIGHT_TIME, profile);
+        scheduler.tick(ctx);
+
+        ResidentTask task = requireTask(helper, scheduler, residentId, com.talhanation.bannermod.settlement.goal.impl.RestResidentGoal.ID.toString());
+        NpcSocietyPhaseOneRuntime.updateResidentProfile(level, homeRuntime, ctx, task, byBuilding(snapshot));
+
+        NpcPhaseOneSnapshot aiSnapshot = NpcSocietyAccess.phaseOneSnapshot(level, residentId, null);
+        helper.assertTrue("settling_at_home_for_rest".equals(aiSnapshot.aiRouteReasonTag().toLowerCase()),
+                "Expected the return-home chain to publish a clear settle-into-rest route reason once night rest takes over.");
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void morningLeaveHomeChainFansOutIntoWork(GameTestHelper helper) {
+        long morningTick = 1080L;
+        ServerLevel level = helper.getLevel();
+        UUID residentId = UUID.fromString("00000000-0000-0000-0000-000000042010");
+        UUID homeUuid = UUID.fromString("00000000-0000-0000-0000-000000042020");
+        BannerModSettlementBuildingRecord home = building(homeUuid, "bannermod:house", helper.absolutePos(new BlockPos(6, 2, 6)), 4);
+        BannerModSettlementSnapshot snapshot = snapshot(
+                morningTick,
+                List.of(workerResident(residentId, null, null)),
+                List.of(home),
+                BannerModSettlementMarketState.empty()
+        );
+        BannerModHomeAssignmentRuntime homeRuntime = new BannerModHomeAssignmentRuntime();
+        homeRuntime.assign(residentId, homeUuid, HomePreference.ASSIGNED, morningTick - 200L);
+        BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals(
+                homeRuntime,
+                BannerModSettlementMarketState::empty,
+                new com.talhanation.bannermod.settlement.dispatch.BannerModSellerDispatchRuntime()
+        );
+        NpcSocietyProfile profile = NpcSocietyProfile.createDefault(residentId, morningTick)
+                .withPhaseOneState(null, homeUuid, UUID.fromString("00000000-0000-0000-0000-000000042099"), NpcDailyPhase.DEPARTING_HOME, NpcIntent.LEAVE_HOME, NpcAnchorType.STREET,
+                        new NpcSocietyDecisionSnapshot("EXECUTING", com.talhanation.bannermod.settlement.household.LeaveHomeResidentGoal.ID.toString(), "EARLY_ACTIVE_WINDOW", "LEAVING_HOME_FOR_WORK", null, "NONE", NpcIntent.REST.name(), morningTick - 70L), morningTick)
+                .withNeedState(10, 18, 18, 5, morningTick);
+
+        seedProfile(level, profile);
+        BannerModSettlementManager.get(level).putSnapshot(snapshot);
+
+        ResidentGoalContext ctx = new ResidentGoalContext(workerResident(residentId, null, null), snapshot, morningTick, profile);
+        scheduler.tick(ctx);
+
+        ResidentTask task = requireTask(helper, scheduler, residentId, WorkResidentGoal.ID.toString());
+        NpcSocietyPhaseOneRuntime.updateResidentProfile(level, homeRuntime, ctx, task, byBuilding(snapshot));
+
+        NpcPhaseOneSnapshot aiSnapshot = NpcSocietyAccess.phaseOneSnapshot(level, residentId, null);
+        helper.assertTrue("starting_workday_after_home".equals(aiSnapshot.aiRouteReasonTag().toLowerCase()),
+                "Expected the morning bridge goal to resolve into a readable heading-to-work route once the worker has stepped out of the house.");
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty", timeoutTicks = 160)
+    public static void citizenSocialIntentPrefersSquareSpotWithoutMarket(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        CitizenEntity citizen = BannerModGameTestSupport.spawnEntity(helper, ModCitizenEntityTypes.CITIZEN.get(), new BlockPos(1, 1, 1));
+        UUID squareUuid = UUID.fromString("00000000-0000-0000-0000-000000042021");
+        BlockPos squarePos = helper.absolutePos(new BlockPos(12, 1, 1));
+        BannerModSettlementBuildingRecord square = building(squareUuid, "bannermod:village_square", squarePos, 0);
+        BannerModSettlementSnapshot snapshot = snapshot(
+                ACTIVE_TIME,
+                List.of(villagerResident(citizen.getUUID())),
+                List.of(square),
+                BannerModSettlementMarketState.empty()
+        );
+
+        BannerModSettlementManager.get(level).putSnapshot(snapshot);
+        NpcSocietyAccess.reconcilePhaseOneState(
+                level,
+                citizen.getUUID(),
+                null,
+                null,
+                null,
+                NpcDailyPhase.ACTIVE,
+                NpcIntent.SOCIALISE,
+                NpcAnchorType.STREET,
+                new NpcSocietyDecisionSnapshot("EXECUTING", SocialiseResidentGoal.ID.toString(), "SOCIAL_PRESSURE", "SQUARE_GATHERING", null, "NONE", NpcIntent.IDLE.name(), ACTIVE_TIME - 20L),
+                ACTIVE_TIME
+        );
+        double startDistance = citizen.distanceToSqr(Vec3.atCenterOf(squarePos));
+
+        helper.succeedWhen(() -> helper.assertTrue(
+                citizen.distanceToSqr(Vec3.atCenterOf(squarePos)) < startDistance - 9.0D,
+                "Expected social anchor execution to prefer a named square-style gathering spot when no market is available."
+        ));
+    }
+
+    @PrefixGameTestTemplate(false)
     @GameTest(template = "harness_empty", timeoutTicks = 160)
     public static void citizenSocialIntentMovesTowardSettlementAnchor(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
@@ -385,6 +595,13 @@ public final class NpcSocietyPhaseTwoGameTests {
     }
 
     private static BannerModSettlementResidentRecord workerResident(UUID residentId, UUID ownerUuid, String teamId) {
+        return workerResident(residentId, ownerUuid, teamId, BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING);
+    }
+
+    private static BannerModSettlementResidentRecord workerResident(UUID residentId,
+                                                                    UUID ownerUuid,
+                                                                    String teamId,
+                                                                    BannerModSettlementResidentAssignmentState assignmentState) {
         UUID workAreaUuid = UUID.fromString("00000000-0000-0000-0000-000000042099");
         return new BannerModSettlementResidentRecord(
                 residentId,
@@ -400,7 +617,7 @@ public final class NpcSocietyPhaseTwoGameTests {
                 ownerUuid,
                 teamId,
                 workAreaUuid,
-                BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
+                assignmentState
         );
     }
 

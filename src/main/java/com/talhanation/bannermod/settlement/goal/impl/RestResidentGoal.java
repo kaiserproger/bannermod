@@ -24,7 +24,11 @@ public final class RestResidentGoal implements ResidentGoal {
 
     @Override
     public int computePriority(ResidentGoalContext ctx) {
-        return Math.max(REST_PRIORITY - 4, NpcSocietyPhaseTwoIntentScorer.scoreIntent(ctx, NpcIntent.REST));
+        int score = NpcSocietyPhaseTwoIntentScorer.scoreIntent(ctx, NpcIntent.REST);
+        if (ctx.isReadyToSettleAtHome()) {
+            score = Math.max(score, REST_PRIORITY + 18);
+        }
+        return ctx.isRestPhase() ? Math.max(REST_PRIORITY - 4, score) : score;
     }
 
     @Override
