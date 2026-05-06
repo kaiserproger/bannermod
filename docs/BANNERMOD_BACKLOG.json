@@ -8143,8 +8143,8 @@
     {
       "id": "BLDGVALIDATOR-002",
       "title": "Extract BuildingTypeValidator strategy interface + dispatcher",
-      "status": "open",
-      "updated": "2026-05-05",
+      "status": "done",
+      "updated": "2026-05-06",
       "why": "Phase 1 of the BLDGVALIDATOR-001 split: introduce the strategy seam before per-type validators land. Without the dispatcher, per-type validators have no entry point.",
       "scope": [
         "Define interface BuildingTypeValidator under settlement/validation/types/ with a single validate(BuildingValidationContext) method.",
@@ -8160,8 +8160,14 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-06",
+          "result": "1) BuildingTypeValidator and BuildingTypeValidatorDispatcher exist under settlement/validation/types; dispatcher is 38 LOC. 2) DefaultBuildingValidator now constructs a BuildingValidationContext and dispatches through BuildingTypeValidatorDispatcher before the fallback switch, preserving behavior with zero registered validators. 3) BuildingTypeValidatorDispatcherTest covers every BuildingType registration plus unregistered fallback; ./gradlew compileJava, ./gradlew test, and ./gradlew compileGametestJava passed on the task branch and the integrated branch. Full runGameTestServer was retried and failed only unrelated required tests fiverecruitformationholdsacrossdimensionteleport, authoredroutecouriermovesitemsbetweenstorageendpoints, and starterbootstrapseedsrealworkerassignmentsandwaitingreasons, with no validation gametest failures reported. 4) tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-06"
     },
     {
       "id": "BLDGVALIDATOR-003",
@@ -8376,8 +8382,8 @@
     {
       "id": "EVENTSPKG-002",
       "title": "Move SettlementHeartbeatService + ClaimRuntimeService out of events/ into settlement/runtime/",
-      "status": "open",
-      "updated": "2026-05-05",
+      "status": "done",
+      "updated": "2026-05-06",
       "why": "EVENTSPKG-001 phase: these are services, not @SubscribeEvent classes — they belong in their subsystem runtime/ folder. Migrating per-service keeps each PR small and reviewable.",
       "scope": [
         "Move events/SettlementHeartbeatService.java to settlement/runtime/SettlementHeartbeatService.java.",
@@ -8392,14 +8398,20 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-06",
+          "result": "1) events/ no longer contains ClaimRuntimeService or SettlementHeartbeatService; both are under settlement/runtime and ClaimEvents imports the new package. 2) Reference check found only new runtime packages; ./gradlew compileJava and ./gradlew test passed on the task branch and the integrated branch. 3) tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-06"
     },
     {
       "id": "EVENTSPKG-003",
       "title": "Move CitizenBirthService out of events/ into citizen/runtime/",
-      "status": "open",
-      "updated": "2026-05-05",
+      "status": "done",
+      "updated": "2026-05-06",
       "why": "EVENTSPKG-001 phase: per-service migration for the citizen subsystem.",
       "scope": [
         "Move events/CitizenBirthService.java to citizen/runtime/CitizenBirthService.java.",
@@ -8413,8 +8425,14 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-06",
+          "result": "1) events/ no longer contains CitizenBirthService; it is under citizen/runtime. 2) Reference check found imports updated to com.talhanation.bannermod.citizen.runtime; ./gradlew compileJava and ./gradlew test passed on the task branch and the integrated branch. 3) tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-06"
     },
     {
       "id": "EVENTSPKG-004",
