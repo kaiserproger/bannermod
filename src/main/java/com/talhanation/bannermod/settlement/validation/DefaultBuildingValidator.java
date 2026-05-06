@@ -8,6 +8,8 @@ import com.talhanation.bannermod.settlement.building.ValidatedBuildingRecord;
 import com.talhanation.bannermod.settlement.building.ValidatedBuildingRegistryData;
 import com.talhanation.bannermod.settlement.building.ZoneRole;
 import com.talhanation.bannermod.settlement.building.ZoneSelection;
+import com.talhanation.bannermod.settlement.validation.types.BuildingTypeValidatorDispatcher;
+import com.talhanation.bannermod.settlement.validation.types.BuildingValidationContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
@@ -40,9 +42,16 @@ public class DefaultBuildingValidator implements BuildingValidator {
     private static final Set<RolePair> PROHIBITED_OVERLAP_ROLE_PAIRS = prohibitedRolePairs();
 
     private final BuildingDefinitionRegistry definitionRegistry;
+    private final BuildingTypeValidatorDispatcher typeValidatorDispatcher;
 
     public DefaultBuildingValidator(BuildingDefinitionRegistry definitionRegistry) {
+        this(definitionRegistry, new BuildingTypeValidatorDispatcher());
+    }
+
+    public DefaultBuildingValidator(BuildingDefinitionRegistry definitionRegistry,
+                                    BuildingTypeValidatorDispatcher typeValidatorDispatcher) {
         this.definitionRegistry = definitionRegistry;
+        this.typeValidatorDispatcher = typeValidatorDispatcher;
     }
 
     @Override
@@ -68,16 +77,26 @@ public class DefaultBuildingValidator implements BuildingValidator {
         }
 
         EnumMap<ZoneRole, ZoneSelection> zonesByRole = toRoleMap(request.zones());
+        BuildingValidationContext context = new BuildingValidationContext(level, player, request, zonesByRole, warnings, blocking);
+        return this.typeValidatorDispatcher.validate(context, this::validateByTypeFallback);
+    }
+
+    private BuildingValidationResult validateByTypeFallback(BuildingValidationContext context) {
+        BuildingValidationRequest request = context.request();
+        Map<ZoneRole, ZoneSelection> zonesByRole = context.zonesByRole();
+        List<ValidationIssue> warnings = context.warnings();
+        List<ValidationIssue> blocking = context.blocking();
+
         return switch (request.type()) {
-            case STARTER_FORT -> validateStarterFort(level, request, zonesByRole, warnings, blocking);
-            case HOUSE -> validateHouse(level, request, zonesByRole, warnings, blocking);
-            case FARM -> validateFarm(level, request, zonesByRole, warnings, blocking);
-            case MINE -> validateMine(level, request, zonesByRole, warnings, blocking);
-            case LUMBER_CAMP -> validateLumberCamp(level, request, zonesByRole, warnings, blocking);
-            case SMITHY -> validateSmithy(level, request, zonesByRole, warnings, blocking);
-            case STORAGE -> validateStorage(level, request, zonesByRole, warnings, blocking);
-            case ARCHITECT_WORKSHOP -> validateArchitectWorkshop(level, request, zonesByRole, warnings, blocking);
-            case BARRACKS -> validateBarracks(level, request, zonesByRole, warnings, blocking);
+            case STARTER_FORT -> validateStarterFort(context.level(), request, zonesByRole, warnings, blocking);
+            case HOUSE -> validateHouse(context.level(), request, zonesByRole, warnings, blocking);
+            case FARM -> validateFarm(context.level(), request, zonesByRole, warnings, blocking);
+            case MINE -> validateMine(context.level(), request, zonesByRole, warnings, blocking);
+            case LUMBER_CAMP -> validateLumberCamp(context.level(), request, zonesByRole, warnings, blocking);
+            case SMITHY -> validateSmithy(context.level(), request, zonesByRole, warnings, blocking);
+            case STORAGE -> validateStorage(context.level(), request, zonesByRole, warnings, blocking);
+            case ARCHITECT_WORKSHOP -> validateArchitectWorkshop(context.level(), request, zonesByRole, warnings, blocking);
+            case BARRACKS -> validateBarracks(context.level(), request, zonesByRole, warnings, blocking);
             default -> BuildingValidationResult.blockingFailure(request.type(), "validator_not_implemented", "Validator pipeline for this building type is not implemented yet.");
         };
     }
