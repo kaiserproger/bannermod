@@ -8076,8 +8076,8 @@
     {
       "id": "SETTREFACTOR-003",
       "title": "Extract SettlementTreasuryDerivationService from BannerModSettlementService",
-      "status": "open",
-      "updated": "2026-05-05",
+      "status": "in_progress",
+      "updated": "2026-05-07",
       "why": "Phase 2 of the SETTREFACTOR-001 split: isolate the treasury-derivation hook integration so it can be reasoned about without the rest of the god class.",
       "scope": [
         "Create SettlementTreasuryDerivationService under settlement/runtime/ holding the treasury-hook integration methods currently inside BannerModSettlementService.",
@@ -8091,9 +8091,14 @@
         "./gradlew compileJava + ./gradlew test green; tools/backlog validate passes."
       ],
       "dependencies": [
-        "SETTREFACTOR-002"
+        "SETTREFACTOR-003A"
       ],
-      "progress": [],
+      "progress": [
+        {
+          "date": "2026-05-07",
+          "text": "Attempted SETTREFACTOR-003 on feature/settrefactor-003; live code inspection found no treasury/fiscal/ledger/tax-hook methods in BannerModSettlementService or BannerModSettlementServiceTest, so the original extraction target is stale. Remaining scope moved to SETTREFACTOR-003A, targeting the current SettlementHeartbeatService governor-heartbeat treasury integration seam."
+        }
+      ],
       "verification": [],
       "evidence": []
     },
@@ -8860,6 +8865,29 @@
       ],
       "dependencies": [
         "TESTFUZZ-001"
+      ],
+      "progress": [],
+      "verification": [],
+      "evidence": []
+    },
+    {
+      "id": "SETTREFACTOR-003A",
+      "title": "Extract settlement treasury heartbeat derivation service",
+      "status": "open",
+      "updated": "2026-05-07",
+      "why": "SETTREFACTOR-003 targeted treasury-hook methods in BannerModSettlementService, but current code no longer has treasury references there. The live treasury integration now sits in SettlementHeartbeatService's governor heartbeat path, so the extraction must target the actual runtime seam.",
+      "scope": [
+        "Create SettlementTreasuryDerivationService under settlement/runtime/ for the live governor-heartbeat treasury integration currently embedded in SettlementHeartbeatService.",
+        "Route SettlementHeartbeatService through the new service without changing heartbeat timing, batch counters, or settlement refresh/orchestrator stages.",
+        "Add focused SettlementTreasuryDerivationServiceTest coverage, or move existing heartbeat treasury assertions if present, so the extracted seam is covered."
+      ],
+      "acceptance": [
+        "settlement/runtime/SettlementTreasuryDerivationService.java exists and owns the BannerModTreasuryManager-backed governor heartbeat treasury derivation call.",
+        "SettlementHeartbeatService no longer imports or directly calls BannerModTreasuryManager for the treasury derivation hook, while its batch counter keys and stage transitions remain unchanged.",
+        "SettlementTreasuryDerivationServiceTest covers the extracted seam; ./gradlew compileJava and ./gradlew test pass; tools/backlog validate passes."
+      ],
+      "dependencies": [
+        "SETTREFACTOR-002"
       ],
       "progress": [],
       "verification": [],
