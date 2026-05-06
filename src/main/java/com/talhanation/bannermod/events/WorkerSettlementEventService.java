@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.events;
 
+import com.talhanation.bannermod.citizen.runtime.CitizenBirthService;
 import com.talhanation.bannermod.citizen.CitizenProfession;
 import com.talhanation.bannermod.config.WorkersServerConfig;
 import com.talhanation.bannermod.entity.civilian.AbstractWorkerEntity;

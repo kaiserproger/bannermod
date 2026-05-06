@@ -1,8 +1,10 @@
-package com.talhanation.bannermod.events;
+package com.talhanation.bannermod.citizen.runtime;
 
 import com.talhanation.bannermod.config.WorkersServerConfig;
 import com.talhanation.bannermod.entity.citizen.CitizenEntity;
 import com.talhanation.bannermod.entity.citizen.CitizenIndex;
+import com.talhanation.bannermod.events.ClaimEvents;
+import com.talhanation.bannermod.events.WorkerSettlementClaimPolicy;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.registry.citizen.ModCitizenEntityTypes;
 import com.talhanation.bannermod.settlement.civilian.CitizenBirthRules;
@@ -30,7 +32,7 @@ import java.util.UUID;
  * out of scope for this slice — a server restart resets the cooldown, which
  * is acceptable for a 24000-tick (1 day) default.
  */
-final class CitizenBirthService {
+public final class CitizenBirthService {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final Map<UUID, Long> LAST_BIRTH_GAME_TIME = new HashMap<>();
     private static final Map<UUID, CitizenBirthRules.DenialReason> LAST_DENIAL_REASON = new HashMap<>();
@@ -38,12 +40,12 @@ final class CitizenBirthService {
     private CitizenBirthService() {
     }
 
-    static void resetRuntimeState() {
+    public static void resetRuntimeState() {
         LAST_BIRTH_GAME_TIME.clear();
         LAST_DENIAL_REASON.clear();
     }
 
-    static void runCitizenBirthPass(ServerLevel level) {
+    public static void runCitizenBirthPass(ServerLevel level) {
         if (level == null || ClaimEvents.claimManager() == null) {
             return;
         }

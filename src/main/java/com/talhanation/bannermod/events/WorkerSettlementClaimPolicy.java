@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.events;
 
+import com.talhanation.bannermod.citizen.runtime.CitizenBirthService;
 import com.talhanation.bannermod.entity.civilian.AbstractWorkerEntity;
 import com.talhanation.bannermod.entity.civilian.AnimalFarmerEntity;
 import com.talhanation.bannermod.entity.civilian.BuilderEntity;
@@ -44,7 +45,7 @@ import java.util.EnumMap;
 import java.util.Map;
 import java.util.UUID;
 
-final class WorkerSettlementClaimPolicy {
+public final class WorkerSettlementClaimPolicy {
     private WorkerSettlementClaimPolicy() {
     }
 
@@ -107,7 +108,7 @@ final class WorkerSettlementClaimPolicy {
         return BannerModSettlementBinding.resolveSettlementStatus(ClaimEvents.claimManager(), villager.blockPosition(), factionId);
     }
 
-    static BannerModSettlementBinding.Binding resolveClaimGrowthBinding(RecruitsClaim claim, String settlementFactionId) {
+    public static BannerModSettlementBinding.Binding resolveClaimGrowthBinding(RecruitsClaim claim, String settlementFactionId) {
         ChunkPos anchorChunk = resolveClaimAnchorChunk(claim);
         return BannerModSettlementBinding.resolveSettlementStatus(claim, anchorChunk, settlementFactionId);
     }
@@ -199,7 +200,7 @@ final class WorkerSettlementClaimPolicy {
      * Returns 0 when no snapshot is available — the spawn rules treat that as
      * "no slack" and deny when {@code requireHousing} is on.
      */
-    static int housingSlackForClaim(ServerLevel level, RecruitsClaim claim) {
+    public static int housingSlackForClaim(ServerLevel level, RecruitsClaim claim) {
         if (level == null || claim == null) {
             return 0;
         }
@@ -230,7 +231,7 @@ final class WorkerSettlementClaimPolicy {
      * Used by {@link CitizenBirthService} to gate births on a settlement
      * actually having food.
      */
-    static int claimFoodCount(ServerLevel level, RecruitsClaim claim) {
+    public static int claimFoodCount(ServerLevel level, RecruitsClaim claim) {
         if (level == null || claim == null || claim.getClaimedChunks().isEmpty()) {
             return 0;
         }
@@ -266,7 +267,7 @@ final class WorkerSettlementClaimPolicy {
      * already gate on {@link #housingSlackForClaim} so this is a best-effort
      * assignment for the path where housing is not strictly required.
      */
-    static void assignHomeIfAvailable(ServerLevel level, RecruitsClaim claim, UUID residentUuid, long gameTime) {
+    public static void assignHomeIfAvailable(ServerLevel level, RecruitsClaim claim, UUID residentUuid, long gameTime) {
         if (level == null || claim == null || residentUuid == null) {
             return;
         }
