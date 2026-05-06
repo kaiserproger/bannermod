@@ -38,14 +38,22 @@ public class RecruitsGroupsManager {
         data.setDirty();
     }
     public void addOrUpdateGroup(ServerLevel level, ServerPlayer player, RecruitsGroup incoming) {
-        if (incoming == null || level == null) return;
+        if (incoming == null || level == null || player == null) return;
 
         UUID id = resolveGroup(incoming.getUUID());
         RecruitsGroup existing = groupMap.get(id);
 
         if (existing != null) {
+            if (!player.hasPermissions(2) && !player.getUUID().equals(existing.getPlayerUUID())) {
+                return;
+            }
+
             incoming.members = existing.members;
             incoming.setUUID(existing.getUUID());
+            incoming.setPlayer(new RecruitsPlayerInfo(existing.getPlayerUUID(), existing.getPlayerName()));
+        }
+        else {
+            incoming.setPlayer(player);
         }
 
         removeGroup(id);
@@ -316,4 +324,3 @@ public class RecruitsGroupsManager {
     }
 
 }
-

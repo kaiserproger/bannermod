@@ -30,6 +30,9 @@ public class GroupAssignmentAuthorityGameTests {
     private static final UUID TRANSFER_GROUP_UUID = UUID.fromString("00000000-0000-0000-0000-000000000824");
     private static final UUID SPOOFED_TRANSFER_GROUP_UUID = UUID.fromString("00000000-0000-0000-0000-000000000825");
     private static final UUID TRUSTED_NEW_OWNER_UUID = UUID.fromString("00000000-0000-0000-0000-000000000826");
+    private static final UUID UPDATE_GROUP_UUID = UUID.fromString("00000000-0000-0000-0000-000000000827");
+    private static final UUID UPDATE_OWNER_UUID = UUID.fromString("00000000-0000-0000-0000-000000000828");
+    private static final UUID UPDATE_OUTSIDER_UUID = UUID.fromString("00000000-0000-0000-0000-000000000829");
 
     @PrefixGameTestTemplate(false)
     @GameTest(template = "harness_empty")
@@ -115,6 +118,31 @@ public class GroupAssignmentAuthorityGameTests {
         helper.assertTrue(TRUSTED_NEW_OWNER_UUID.equals(group.getPlayerUUID()), "Expected valid transfer to update group owner");
         helper.assertTrue("trusted-new-owner".equals(group.getPlayerName()), "Expected group owner name from server player state");
         helper.assertTrue(TRUSTED_NEW_OWNER_UUID.equals(recruit.getOwnerUUID()), "Expected valid transfer to update member owner");
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void groupUpdateRejectsNonOwnerAndKeepsExistingGroup(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        ServerPlayer owner = createPlayer(helper, level, UPDATE_OWNER_UUID, "update-owner");
+        ServerPlayer outsider = createPlayer(helper, level, UPDATE_OUTSIDER_UUID, "update-outsider");
+
+        RecruitsGroup group = new RecruitsGroup("Owner Group", owner, 1);
+        group.setUUID(UPDATE_GROUP_UUID);
+        RecruitEvents.groupsManager().addOrUpdateGroup(level, owner, group);
+
+        RecruitsGroup spoofedUpdate = new RecruitsGroup("Spoofed Group", outsider, 9);
+        spoofedUpdate.setUUID(UPDATE_GROUP_UUID);
+        spoofedUpdate.removed = true;
+        RecruitEvents.groupsManager().addOrUpdateGroup(level, outsider, spoofedUpdate);
+
+        RecruitsGroup saved = RecruitEvents.groupsManager().getGroup(UPDATE_GROUP_UUID);
+        helper.assertTrue(saved != null, "Expected denied update to keep existing group");
+        helper.assertTrue(UPDATE_OWNER_UUID.equals(saved.getPlayerUUID()), "Expected denied update to keep owner UUID");
+        helper.assertTrue("update-owner".equals(saved.getPlayerName()), "Expected denied update to keep owner name");
+        helper.assertTrue("Owner Group".equals(saved.getName()), "Expected denied update to keep group name");
+        helper.assertFalse(saved.removed, "Expected denied update not to remove existing group");
         helper.succeed();
     }
 
