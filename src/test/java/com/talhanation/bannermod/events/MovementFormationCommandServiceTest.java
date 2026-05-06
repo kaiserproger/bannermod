@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.events;
 
+import com.talhanation.bannermod.army.command.runtime.MovementFormationCommandService;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
