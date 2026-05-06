@@ -44,6 +44,7 @@ public final class NpcSocietyAccess {
                                                            NpcDailyPhase dailyPhase,
                                                            NpcIntent currentIntent,
                                                            NpcAnchorType currentAnchor,
+                                                           @Nullable NpcSocietyDecisionSnapshot decisionSnapshot,
                                                            long gameTime) {
         return NpcSocietySavedData.get(level).runtime().reconcilePhaseOneState(
                 residentUuid,
@@ -53,6 +54,7 @@ public final class NpcSocietyAccess {
                 dailyPhase,
                 currentIntent,
                 currentAnchor,
+                decisionSnapshot,
                 gameTime
         );
     }
@@ -136,6 +138,9 @@ public final class NpcSocietyAccess {
             housingUrgencyTag = "HIGH";
             housingReasonTag = "OVERCROWDED";
         }
+        NpcSocietyDecisionSnapshot decisionSnapshot = profile.decisionSnapshot() == null
+                ? NpcSocietyDecisionSnapshot.empty()
+                : profile.decisionSnapshot();
         return new NpcPhaseOneSnapshot(
                 profile.lifeStage().name(),
                 profile.sex().name(),
@@ -148,6 +153,11 @@ public final class NpcSocietyAccess {
                 profile.dailyPhase().name(),
                 profile.currentIntent().name(),
                 profile.currentAnchor().name(),
+                decisionSnapshot.stateTag(),
+                decisionSnapshot.currentGoalId(),
+                decisionSnapshot.choiceReasonTag(),
+                decisionSnapshot.blockedGoalId(),
+                decisionSnapshot.blockedReasonTag(),
                 household == null ? 0 : household.memberResidentUuids().size(),
                 household == null ? NpcHouseholdHousingState.HOMELESS.name() : household.housingState().name(),
                 profile.hungerNeed(),

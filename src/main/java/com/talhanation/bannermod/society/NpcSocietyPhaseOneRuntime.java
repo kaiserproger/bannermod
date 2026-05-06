@@ -49,6 +49,7 @@ public final class NpcSocietyPhaseOneRuntime {
         int residentCapacity = homeBuilding == null ? 0 : homeBuilding.residentCapacity();
         UUID householdId = NpcHouseholdAccess.reconcileResidentHome(level, residentUuid, homeBuildingUuid, residentCapacity, ctx.gameTime());
         NpcFamilyAccess.reconcileFamilyForResident(level, residentUuid, ctx.gameTime());
+        NpcSocietyDecisionSnapshot decisionSnapshot = NpcSocietyDecisionSnapshot.capture(ctx, activeTask);
         NpcSocietyAccess.reconcilePhaseOneState(
                 level,
                 residentUuid,
@@ -58,6 +59,7 @@ public final class NpcSocietyPhaseOneRuntime {
                 resolveDailyPhase(ctx, activeTask),
                 resolveIntent(ctx, activeTask),
                 resolveAnchor(ctx, activeTask, workBuildingUuid, buildingsByUuid),
+                decisionSnapshot,
                 ctx.gameTime()
         );
     }

@@ -20,6 +20,11 @@ public record NpcPhaseOneSnapshot(
         String dailyPhaseTag,
         String currentIntentTag,
         String currentAnchorTag,
+        String aiStateTag,
+        @Nullable String aiCurrentGoalId,
+        String aiChoiceReasonTag,
+        @Nullable String aiBlockedGoalId,
+        String aiBlockedReasonTag,
         int householdSize,
         String householdHousingStateTag,
         int hungerNeed,
@@ -50,6 +55,11 @@ public record NpcPhaseOneSnapshot(
                 NpcDailyPhase.UNSPECIFIED.name(),
                 NpcIntent.UNSPECIFIED.name(),
                 NpcAnchorType.NONE.name(),
+                "IDLE",
+                null,
+                "NO_STARTABLE_GOAL",
+                null,
+                "NONE",
                 0,
                 NpcHouseholdHousingState.HOMELESS.name(),
                 0,
@@ -81,6 +91,11 @@ public record NpcPhaseOneSnapshot(
         buf.writeUtf(safeTag(this.dailyPhaseTag));
         buf.writeUtf(safeTag(this.currentIntentTag));
         buf.writeUtf(safeTag(this.currentAnchorTag));
+        buf.writeUtf(safeTag(this.aiStateTag));
+        writeNullableString(buf, this.aiCurrentGoalId);
+        buf.writeUtf(safeTag(this.aiChoiceReasonTag));
+        writeNullableString(buf, this.aiBlockedGoalId);
+        buf.writeUtf(safeTag(this.aiBlockedReasonTag));
         buf.writeVarInt(Math.max(0, this.householdSize));
         buf.writeUtf(safeTag(this.householdHousingStateTag));
         buf.writeVarInt(Math.max(0, this.hungerNeed));
@@ -117,6 +132,11 @@ public record NpcPhaseOneSnapshot(
         String dailyPhaseTag = buf.readUtf();
         String currentIntentTag = buf.readUtf();
         String currentAnchorTag = buf.readUtf();
+        String aiStateTag = buf.readUtf();
+        String aiCurrentGoalId = readNullableString(buf);
+        String aiChoiceReasonTag = buf.readUtf();
+        String aiBlockedGoalId = readNullableString(buf);
+        String aiBlockedReasonTag = buf.readUtf();
         int householdSize = buf.readVarInt();
         String householdHousingStateTag = buf.readUtf();
         int hungerNeed = buf.readVarInt();
@@ -148,6 +168,11 @@ public record NpcPhaseOneSnapshot(
                 dailyPhaseTag,
                 currentIntentTag,
                 currentAnchorTag,
+                aiStateTag,
+                aiCurrentGoalId,
+                aiChoiceReasonTag,
+                aiBlockedGoalId,
+                aiBlockedReasonTag,
                 householdSize,
                 householdHousingStateTag,
                 hungerNeed,
@@ -187,6 +212,18 @@ public record NpcPhaseOneSnapshot(
         return "gui.bannermod.society.anchor." + safeTag(this.currentAnchorTag).toLowerCase(Locale.ROOT);
     }
 
+    public String aiStateTranslationKey() {
+        return "gui.bannermod.society.ai.state." + safeTag(this.aiStateTag).toLowerCase(Locale.ROOT);
+    }
+
+    public String aiChoiceReasonTranslationKey() {
+        return "gui.bannermod.society.ai.reason." + safeTag(this.aiChoiceReasonTag).toLowerCase(Locale.ROOT);
+    }
+
+    public String aiBlockedReasonTranslationKey() {
+        return "gui.bannermod.society.ai.reason." + safeTag(this.aiBlockedReasonTag).toLowerCase(Locale.ROOT);
+    }
+
     public String householdHousingStateTranslationKey() {
         return "gui.bannermod.society.household_housing." + safeTag(this.householdHousingStateTag).toLowerCase(Locale.ROOT);
     }
@@ -223,6 +260,14 @@ public record NpcPhaseOneSnapshot(
 
     public static String shortId(@Nullable UUID uuid) {
         return uuid == null ? "-" : uuid.toString().substring(0, 8);
+    }
+
+    public String aiCurrentGoalLabel() {
+        return NpcSocietyDecisionSnapshot.goalLabelOrDash(this.aiCurrentGoalId);
+    }
+
+    public String aiBlockedGoalLabel() {
+        return NpcSocietyDecisionSnapshot.goalLabelOrDash(this.aiBlockedGoalId);
     }
 
     public List<NpcMemorySummarySnapshot> safeRecentMemories() {

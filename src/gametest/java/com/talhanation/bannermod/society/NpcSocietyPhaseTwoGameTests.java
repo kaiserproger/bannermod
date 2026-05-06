@@ -89,6 +89,12 @@ public final class NpcSocietyPhaseTwoGameTests {
                 "Expected hunger pressure to publish EAT intent.");
         helper.assertTrue(stored.currentAnchor() == NpcAnchorType.MARKET,
                 "Expected hungry resident without a home to publish MARKET as the current anchor.");
+        NpcPhaseOneSnapshot aiSnapshot = NpcSocietyAccess.phaseOneSnapshot(level, residentId, null);
+        helper.assertTrue("eat".equals(aiSnapshot.aiCurrentGoalLabel()),
+                "Expected AI observability to publish the selected eat goal.");
+        helper.assertTrue("hunger_pressure".equals(aiSnapshot.aiChoiceReasonTag().toLowerCase())
+                        || "severe_hunger".equals(aiSnapshot.aiChoiceReasonTag().toLowerCase()),
+                "Expected AI observability to explain EAT via hunger pressure.");
         helper.succeed();
     }
 
@@ -113,7 +119,8 @@ public final class NpcSocietyPhaseTwoGameTests {
                 new com.talhanation.bannermod.settlement.dispatch.BannerModSellerDispatchRuntime()
         );
         NpcSocietyProfile profile = NpcSocietyProfile.createDefault(residentId, NIGHT_TIME)
-                .withPhaseOneState(null, homeUuid, null, NpcDailyPhase.ACTIVE, NpcIntent.UNSPECIFIED, NpcAnchorType.NONE, NIGHT_TIME)
+                .withPhaseOneState(null, homeUuid, null, NpcDailyPhase.ACTIVE, NpcIntent.UNSPECIFIED, NpcAnchorType.NONE,
+                        NpcSocietyDecisionSnapshot.empty(), NIGHT_TIME)
                 .withNeedState(10, 95, 10, 10, NIGHT_TIME);
 
         seedProfile(level, profile);
@@ -130,6 +137,12 @@ public final class NpcSocietyPhaseTwoGameTests {
                 "Expected a heavily fatigued resident with a home to choose GO_HOME first.");
         helper.assertTrue(stored.currentAnchor() == NpcAnchorType.HOME,
                 "Expected GO_HOME to publish the home anchor.");
+        NpcPhaseOneSnapshot aiSnapshot = NpcSocietyAccess.phaseOneSnapshot(level, residentId, null);
+        helper.assertTrue("go_home".equals(aiSnapshot.aiCurrentGoalLabel()),
+                "Expected AI observability to publish the go-home goal.");
+        helper.assertTrue("rest_window".equals(aiSnapshot.aiChoiceReasonTag().toLowerCase())
+                        || "fatigue_spike".equals(aiSnapshot.aiChoiceReasonTag().toLowerCase()),
+                "Expected AI observability to explain why GO_HOME won.");
         helper.succeed();
     }
 
@@ -165,6 +178,71 @@ public final class NpcSocietyPhaseTwoGameTests {
                 "Expected strong social pressure to select SOCIALISE.");
         helper.assertTrue(stored.currentAnchor() == NpcAnchorType.MARKET,
                 "Expected socialise to publish MARKET when an open market exists.");
+        NpcPhaseOneSnapshot aiSnapshot = NpcSocietyAccess.phaseOneSnapshot(level, residentId, null);
+        helper.assertTrue("socialise".equals(aiSnapshot.aiCurrentGoalLabel()),
+                "Expected AI observability to publish the selected socialise goal.");
+        helper.assertTrue("social_pressure".equals(aiSnapshot.aiChoiceReasonTag().toLowerCase()),
+                "Expected AI observability to explain SOCIALISE via social pressure.");
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void hungryHomelessResidentWithoutMarketPublishesBlockedEatReason(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        UUID residentId = UUID.fromString("00000000-0000-0000-0000-000000042021");
+        BannerModSettlementSnapshot snapshot = snapshot(
+                ACTIVE_TIME,
+                List.of(villagerResident(residentId)),
+                List.of(),
+                BannerModSettlementMarketState.empty()
+        );
+        BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals();
+        BannerModHomeAssignmentRuntime homeRuntime = new BannerModHomeAssignmentRuntime();
+        NpcSocietyProfile profile = NpcSocietyProfile.createDefault(residentId, ACTIVE_TIME)
+                .withNeedState(96, 15, 10, 10, ACTIVE_TIME);
+
+        seedProfile(level, profile);
+        BannerModSettlementManager.get(level).putSnapshot(snapshot);
+
+        ResidentGoalContext ctx = new ResidentGoalContext(villagerResident(residentId), snapshot, ACTIVE_TIME, profile);
+        scheduler.tick(ctx);
+
+        ResidentTask task = scheduler.currentTask(residentId).orElseThrow();
+        NpcSocietyPhaseOneRuntime.updateResidentProfile(level, homeRuntime, ctx, task, byBuilding(snapshot));
+
+        NpcPhaseOneSnapshot aiSnapshot = NpcSocietyAccess.phaseOneSnapshot(level, residentId, null);
+        helper.assertTrue("eat".equals(aiSnapshot.aiBlockedGoalLabel()),
+                "Expected blocked-goal observability to report eat when hunger is high but no food access exists.");
+        helper.assertTrue("no_food_access".equals(aiSnapshot.aiBlockedReasonTag().toLowerCase()),
+                "Expected blocked-goal observability to explain the denial as missing food access.");
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void villagerThreatPublishesBlockedDefendReasonWhileHiding(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        UUID residentId = UUID.fromString("00000000-0000-0000-0000-000000042022");
+        BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals();
+        BannerModHomeAssignmentRuntime homeRuntime = new BannerModHomeAssignmentRuntime();
+        NpcSocietyProfile profile = NpcSocietyProfile.createDefault(residentId, ACTIVE_TIME)
+                .withNeedState(5, 5, 5, 92, ACTIVE_TIME);
+        ResidentGoalContext ctx = new ResidentGoalContext(villagerResident(residentId), null, ACTIVE_TIME, profile);
+
+        seedProfile(level, profile);
+        scheduler.tick(ctx);
+
+        ResidentTask task = requireTask(helper, scheduler, residentId, HideResidentGoal.ID.toString());
+        NpcSocietyPhaseOneRuntime.updateResidentProfile(level, homeRuntime, ctx, task, Map.of());
+
+        NpcPhaseOneSnapshot aiSnapshot = NpcSocietyAccess.phaseOneSnapshot(level, residentId, null);
+        helper.assertTrue("hide".equals(aiSnapshot.aiCurrentGoalLabel()),
+                "Expected AI observability to publish the current hide goal for threatened villagers.");
+        helper.assertTrue("defend".equals(aiSnapshot.aiBlockedGoalLabel()),
+                "Expected AI observability to show defend as the refused alternative for villagers under threat.");
+        helper.assertTrue("role_cannot_defend".equals(aiSnapshot.aiBlockedReasonTag().toLowerCase()),
+                "Expected AI observability to explain that villagers cannot take the defend path.");
         helper.succeed();
     }
 
@@ -216,6 +294,7 @@ public final class NpcSocietyPhaseTwoGameTests {
                 NpcDailyPhase.ACTIVE,
                 NpcIntent.WORK,
                 NpcAnchorType.WORKPLACE,
+                NpcSocietyDecisionSnapshot.empty(),
                 ACTIVE_TIME
         );
         helper.assertTrue(worker.shouldWork(),
@@ -230,6 +309,7 @@ public final class NpcSocietyPhaseTwoGameTests {
                 NpcDailyPhase.ACTIVE,
                 NpcIntent.SOCIALISE,
                 NpcAnchorType.MARKET,
+                NpcSocietyDecisionSnapshot.empty(),
                 ACTIVE_TIME + 1L
         );
         helper.assertFalse(worker.shouldWork(),
@@ -262,6 +342,7 @@ public final class NpcSocietyPhaseTwoGameTests {
                 NpcDailyPhase.ACTIVE,
                 NpcIntent.SOCIALISE,
                 NpcAnchorType.MARKET,
+                NpcSocietyDecisionSnapshot.empty(),
                 ACTIVE_TIME
         );
         double startDistance = citizen.distanceToSqr(Vec3.atCenterOf(marketPos));

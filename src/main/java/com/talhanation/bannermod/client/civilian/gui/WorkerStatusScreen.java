@@ -57,6 +57,34 @@ public class WorkerStatusScreen extends Screen {
         ));
         family.setTooltip(Tooltip.create(text("gui.bannermod.family_tree.open.tooltip")));
 
+        SmallCommandButton ai = this.addRenderableWidget(new SmallCommandButton(
+                this.left + WIDTH - 72,
+                this.top + 68,
+                56,
+                18,
+                MilitaryGuiStyle.clampLabel(this.font, text("gui.bannermod.society.ai.button"), 50),
+                button -> {
+                    if (this.minecraft != null) {
+                        this.minecraft.setScreen(new NpcAiDecisionScreen(this, this.snapshot.phaseOne()));
+                    }
+                }
+        ));
+        ai.setTooltip(Tooltip.create(text("gui.bannermod.society.ai.tooltip")));
+
+        SmallCommandButton memory = this.addRenderableWidget(new SmallCommandButton(
+                this.left + WIDTH - 72,
+                this.top + 90,
+                56,
+                18,
+                MilitaryGuiStyle.clampLabel(this.font, text("gui.bannermod.society.memory.button"), 50),
+                button -> {
+                    if (this.minecraft != null) {
+                        this.minecraft.setScreen(new NpcMemoryLedgerScreen(this, this.snapshot.phaseOne()));
+                    }
+                }
+        ));
+        memory.setTooltip(Tooltip.create(text("gui.bannermod.society.memory.tooltip")));
+
         // Bottom action row: 4 evenly spaced buttons inside WIDTH.
         // Stride between centers = (WIDTH - 16) / 4 = 59 -> stays inside parchment frame.
         int rowY = this.top + HEIGHT - 26;

@@ -65,6 +65,7 @@ public final class NpcSocietyRuntime {
                                                     NpcDailyPhase dailyPhase,
                                                     NpcIntent currentIntent,
                                                     NpcAnchorType currentAnchor,
+                                                    @Nullable NpcSocietyDecisionSnapshot decisionSnapshot,
                                                     long gameTime) {
         NpcSocietyProfile profile = ensureResident(residentUuid, gameTime);
         NpcSocietyProfile updated = profile.withPhaseOneState(
@@ -74,6 +75,7 @@ public final class NpcSocietyRuntime {
                 dailyPhase,
                 currentIntent,
                 currentAnchor,
+                decisionSnapshot,
                 gameTime
         );
         if (updated == profile) {

@@ -180,6 +180,7 @@ final class BannerModSettlementClaimTickService {
                         com.talhanation.bannermod.society.NpcDailyPhase.UNSPECIFIED,
                         com.talhanation.bannermod.society.NpcIntent.UNSPECIFIED,
                         com.talhanation.bannermod.society.NpcAnchorType.NONE,
+                        com.talhanation.bannermod.society.NpcSocietyDecisionSnapshot.empty(),
                         gameTime
                 );
             }

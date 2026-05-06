@@ -258,19 +258,16 @@ The next pass should not just append features. It should cleanly separate what a
 
 BannerMod already has workers, citizens, recruits, settlements, politics, and war. What it does not yet have is a convincing medieval society. Current NPCs are still too close to task executors attached to buildings or command state.
 
-This document defines a phased plan to evolve NPCs into self-contained social actors with:
+This document now focuses on one narrower target: make NPCs feel intelligent, readable, and socially grounded in normal Minecraft play.
 
-- age and life stages
-- sex and demographic continuity
-- household and kinship
-- memory and grudges
-- social needs and conversations
-- loyalty, fear, anger, and collective retaliation
-- revolt potential
-- religion and cultural fault lines
-- expanded resident GUI surfaces that expose this state clearly to the player
+The target is not "maximum realism" or "more AI for its own sake". The target is a readable, reactive, scalable medieval society that:
 
-The target is not "more AI for its own sake". The target is a readable, reactive, scalable medieval society that feels alive near the player and remains affordable at settlement scale.
+- feels alive near the player
+- explains itself through visible behavior and GUI observability
+- reacts to family, home, danger, hunger, and player actions
+- remains affordable at settlement scale
+
+Anything that adds hidden complexity without strong visible gameplay value should be delayed or removed.
 
 ## North Star
 
@@ -279,8 +276,10 @@ NPCs should stop feeling like automation nodes and start feeling like people who
 - belong to a home, family, faith, and settlement
 - remember what happened to them and to their relatives
 - react to the player as a social and political actor, not just as a nearby entity
-- can cooperate, comply, resist, flee, retaliate, or revolt
+- can cooperate, comply, resist, flee, or retaliate in understandable ways
 - continue to make sense under multiplayer and server-authoritative rules
+
+The practical design goal is closer to "Kingdom Come feeling inside Minecraft constraints" than to a full historical-society simulator.
 
 ## Success Threshold
 
@@ -290,10 +289,19 @@ Minimum believable threshold:
 
 - NPCs have a day and night routine.
 - NPCs have homes and family links.
+- NPC children exist as a real visible part of settlement life.
 - NPCs remember violence, theft, hunger, and protection.
 - NPCs talk, gather, rest, and work at sensible times.
 - NPCs can fear or hate the player for persistent reasons.
-- A settlement can shift from obedience to unrest without direct scripting.
+- A settlement can become tense, fearful, or resistant without direct scripting.
+
+Non-threshold ideas that should not block core AI quality:
+
+- deep religion simulation
+- detailed witness chains
+- detailed class hierarchy
+- hamlet autonomy
+- heavy off-screen society simulation
 
 ## Design Constraints
 
@@ -334,9 +342,8 @@ Longer-lived values that define social behavior:
 - trust toward player or other actors
 - fear toward player or hostile groups
 - anger or grievance values
-- piety or religious commitment
-- social standing
-- unrest contribution
+
+Keep this layer intentionally compact. If a value is not visible in behavior, GUI, or clear settlement consequences, it should not become a first-class axis yet.
 
 This layer changes slowly through events, memory decay, and settlement conditions.
 
@@ -348,6 +355,9 @@ Short-to-medium-term internal drivers:
 - fatigue
 - safety
 - social need
+
+Optional later expansion only after the core four feel good in live play:
+
 - belonging
 - morale
 - health stress
@@ -367,6 +377,15 @@ Memory types:
 
 Memory is required for durable consequences. Without it, NPCs only feel alive in the moment.
 
+However, memory spread should stay simple in the main plan:
+
+- direct memory on the victim
+- weaker echo to family
+- weaker echo to household
+- optional settlement-level pressure bump for major events
+
+Do not build a heavyweight witness, rumor-chain, or forensic simulation unless the cheap social spread model proves insufficient.
+
 ### 5. Intent Layer
 
 High-level current intention, selected by utility scoring:
@@ -376,14 +395,13 @@ High-level current intention, selected by utility scoring:
 - work
 - eat
 - socialize
-- worship
 - seek supplies
 - flee
 - defend
-- protest
-- riot
 
 The intent layer should update on a timer budget or on events, not every tick.
+
+`worship`, `protest`, and `riot` are no longer core-plan requirements. They can return later only if the everyday social AI is already strong and readable.
 
 ### 6. Execution Layer
 
@@ -456,18 +474,20 @@ Requirements:
 - adulthood unlocks full labor, combat, household creation, and parenthood
 - elders remain socially important even if less efficient physically
 
+Children stay in the core plan because they provide immediate visible social texture, family stakes, and stronger emotional consequences for violence, hunger, and displacement.
+
 ### Sex And Demography
 
-The initial plan assumes binary sex state because the user goal is medieval demographic simulation, not a generic body system.
+The initial plan assumes a simple sex state only as family-identity scaffolding, not as a standalone simulation pillar.
 
-It should affect:
+It may affect:
 
 - reproduction and birth modeling
 - family structures
 - inheritance or household continuity if those systems are later added
 - some social norms if culture or religion uses them
 
-It should not create trivial "male gets strength, female gets weakness" arcade logic. Any such differences should come from role, age, status, and equipment first.
+It should not create trivial stat stereotypes or demand a full demographic simulator before family behavior is already strong.
 
 ### Household
 
@@ -478,9 +498,7 @@ Each household should eventually track:
 - adults
 - children
 - home anchor
-- household storage or reserve state
-- class tier
-- faith
+- simple household pressure
 - tension or insecurity
 
 Household-level simulation is cheaper and more believable than trying to simulate everyone as a lone actor.
@@ -526,6 +544,8 @@ Start with only meaningful events:
 - revolt participation
 - punishment by authority
 
+If an event does not clearly change later AI choice, it should not be promoted into the first memory set.
+
 ### Memory Storage Strategy
 
 Per NPC:
@@ -548,9 +568,10 @@ Per important actor or group:
 - anger
 - gratitude
 - loyalty
-- grief
 
 These values should drive intent selection, speech flavor, and crowd behavior.
+
+Keep the live model small. `grief`, `piety`, `status`, and other nuanced axes should stay out until the core five produce clear gameplay.
 
 ## Collective Reaction Model
 
@@ -561,11 +582,10 @@ The player should be able to push NPCs too far.
 1. discomfort
 2. distrust
 3. fear
-4. active grievance
+4. grievance
 5. refusal or passive resistance
 6. local self-defense
-7. organized unrest
-8. revolt
+7. settlement unrest
 
 ### Collective Inputs
 
@@ -583,14 +603,14 @@ The player should be able to push NPCs too far.
 - civilians flee or hide
 - households refuse labor or tax compliance
 - rumor and memory spread through kin and neighbors
-- armed residents form mobs or militias
-- settlement-level revolt state becomes active
+- armed residents may form local self-defense clusters
+- settlement-level unrest becomes active
 
 ## Religion And Cultural Fault Lines
 
-Religion should be treated as a social system, not a buff source.
+Religion and culture are no longer active core-plan pillars. If present, they should begin only as lightweight identity tags.
 
-Minimal first-class uses:
+Possible later uses:
 
 - identity and belonging
 - ritual gathering windows
@@ -606,7 +626,7 @@ Potential fault lines:
 - blood feud between households
 - cultural contempt or ethnic hostility
 
-These values should be allowed to stay dormant until activated by memory and pressure.
+Do not let religion or culture delay core AI work around home, family, memory, work, safety, and daily routines.
 
 ## Resident GUI Expansion
 
@@ -774,6 +794,10 @@ Still needs refactor:
 - safety, belonging, morale, and health stress are not yet part of the same shared model
 - the current utility model is still a first pass rather than a final long-horizon planner
 
+Priority adjustment:
+- finishing the AI brain is now more important than adding new social subsystems
+- stability, anti-thrashing, family-aware decisions, and memory-aware decisions should be treated as the next core AI work
+
 ### Phase 3. Memory And Relationships
 
 - introduce bounded memory records
@@ -806,6 +830,11 @@ Still needs refactor:
 
 Deliverable goal: the player can no longer abuse people without social consequences.
 
+Scope correction:
+- keep rumor spread abstract and cheap
+- do not build a detailed witness-chain simulation
+- prefer household/family/settlement propagation over per-conversation rumor tracing
+
 ### Phase 5. Religion, Status, And Unrest
 
 - add faith and class or status pressures
@@ -814,6 +843,8 @@ Deliverable goal: the player can no longer abuse people without social consequen
 - add protest, refusal, and riot intents
 
 Deliverable goal: conflict emerges from social structure, not only direct combat.
+
+This phase is now explicitly lower priority than AI quality, family behavior, children, and memory consequences.
 
 ### Phase 6. Birth, Growth, And Continuity
 
@@ -832,9 +863,12 @@ Deliverable goal: settlement population becomes a living lineage, not a static r
 
 Deliverable goal: the social model scales beyond one loaded village.
 
+This phase should not expand before near-player AI already feels convincingly intelligent.
+
 ## Risks
 
 - Overfitting realism before basic readability exists.
+- Treating hidden simulation depth as a substitute for smart visible behavior.
 - Writing too much data to individual entities instead of stable household or settlement structures.
 - Letting async planners read live world state directly.
 - Making every NPC evaluate too many expensive options too often.
@@ -847,6 +881,10 @@ Deliverable goal: the social model scales beyond one loaded village.
 - universal dialogue trees
 - deep romance simulation before household and memory foundations exist
 - full historical economy before basic daily life is solved
+- detailed witness chains and rumor graphs
+- detailed class hierarchy
+- hamlet autonomy as a mainline system
+- deep religion gameplay
 
 ## Open Questions
 

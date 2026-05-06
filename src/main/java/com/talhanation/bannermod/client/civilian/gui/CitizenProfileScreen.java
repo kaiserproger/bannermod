@@ -56,6 +56,30 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
                 }
         ).bounds(buttonX, buttonY, 134, 16).build());
         this.addRenderableWidget(new LedgerButton(
+                this.leftPos + this.imageWidth - 158,
+                this.topPos + 10,
+                36,
+                16,
+                MilitaryGuiStyle.clampLabel(this.font, Component.translatable("gui.bannermod.society.ai.button"), 30),
+                button -> {
+                    if (this.minecraft != null) {
+                        this.minecraft.setScreen(new NpcAiDecisionScreen(this, this.phaseOneSnapshot));
+                    }
+                }
+        ));
+        this.addRenderableWidget(new LedgerButton(
+                this.leftPos + this.imageWidth - 116,
+                this.topPos + 10,
+                48,
+                16,
+                MilitaryGuiStyle.clampLabel(this.font, Component.translatable("gui.bannermod.society.memory.button"), 42),
+                button -> {
+                    if (this.minecraft != null) {
+                        this.minecraft.setScreen(new NpcMemoryLedgerScreen(this, this.phaseOneSnapshot));
+                    }
+                }
+        ));
+        this.addRenderableWidget(new LedgerButton(
                 this.leftPos + this.imageWidth - 62,
                 this.topPos + 10,
                 48,

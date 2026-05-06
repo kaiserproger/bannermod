@@ -25,6 +25,11 @@ class NpcPhaseOneSnapshotRoundTripTest {
                 NpcDailyPhase.ACTIVE.name(),
                 NpcIntent.GO_HOME.name(),
                 NpcAnchorType.HOME.name(),
+                "EXECUTING",
+                "bannermod:resident/goal/go_home",
+                "REST_WINDOW",
+                "bannermod:resident/goal/eat",
+                "NO_FOOD_ACCESS",
                 5,
                 NpcHouseholdHousingState.OVERCROWDED.name(),
                 12,
@@ -51,6 +56,11 @@ class NpcPhaseOneSnapshotRoundTripTest {
         assertEquals(snapshot.housingUrgencyTag(), decoded.housingUrgencyTag());
         assertEquals(snapshot.housingReasonTag(), decoded.housingReasonTag());
         assertEquals(snapshot.housingWaitingDays(), decoded.housingWaitingDays());
+        assertEquals(snapshot.aiStateTag(), decoded.aiStateTag());
+        assertEquals(snapshot.aiCurrentGoalId(), decoded.aiCurrentGoalId());
+        assertEquals(snapshot.aiChoiceReasonTag(), decoded.aiChoiceReasonTag());
+        assertEquals(snapshot.aiBlockedGoalId(), decoded.aiBlockedGoalId());
+        assertEquals(snapshot.aiBlockedReasonTag(), decoded.aiBlockedReasonTag());
         assertEquals(snapshot.safeRecentMemories(), decoded.safeRecentMemories());
     }
 }

@@ -17,10 +17,16 @@ public record NpcSocietyProfile(
         NpcDailyPhase dailyPhase,
         NpcIntent currentIntent,
         NpcAnchorType currentAnchor,
+        NpcSocietyDecisionSnapshot decisionSnapshot,
         int hungerNeed,
         int fatigueNeed,
         int socialNeed,
         int safetyNeed,
+        int trustScore,
+        int fearScore,
+        int angerScore,
+        int gratitudeScore,
+        int loyaltyScore,
         long version,
         long lastUpdatedGameTime
 ) {
@@ -40,10 +46,16 @@ public record NpcSocietyProfile(
                 NpcDailyPhase.UNSPECIFIED,
                 NpcIntent.UNSPECIFIED,
                 NpcAnchorType.NONE,
+                NpcSocietyDecisionSnapshot.empty(),
                 10,
                 10,
                 10,
                 10,
+                50,
+                0,
+                0,
+                0,
+                50,
                 1L,
                 gameTime
         );
@@ -66,10 +78,16 @@ public record NpcSocietyProfile(
                 profile.dailyPhase,
                 profile.currentIntent,
                 profile.currentAnchor,
+                profile.decisionSnapshot,
                 profile.hungerNeed,
                 profile.fatigueNeed,
                 profile.socialNeed,
                 profile.safetyNeed,
+                profile.trustScore,
+                profile.fearScore,
+                profile.angerScore,
+                profile.gratitudeScore,
+                profile.loyaltyScore,
                 profile.version,
                 gameTime
         );
@@ -77,17 +95,20 @@ public record NpcSocietyProfile(
 
     public NpcSocietyProfile withPhaseOneState(@Nullable UUID householdId,
                                               @Nullable UUID homeBuildingUuid,
-                                              @Nullable UUID workBuildingUuid,
-                                              NpcDailyPhase dailyPhase,
-                                              NpcIntent currentIntent,
-                                              NpcAnchorType currentAnchor,
-                                              long gameTime) {
+                                               @Nullable UUID workBuildingUuid,
+                                               NpcDailyPhase dailyPhase,
+                                               NpcIntent currentIntent,
+                                               NpcAnchorType currentAnchor,
+                                               @Nullable NpcSocietyDecisionSnapshot decisionSnapshot,
+                                               long gameTime) {
+        NpcSocietyDecisionSnapshot nextDecisionSnapshot = decisionSnapshot == null ? NpcSocietyDecisionSnapshot.empty() : decisionSnapshot;
         if (sameNullableUuid(this.householdId, householdId)
                 && sameNullableUuid(this.homeBuildingUuid, homeBuildingUuid)
                 && sameNullableUuid(this.workBuildingUuid, workBuildingUuid)
                 && sameEnum(this.dailyPhase, dailyPhase)
                 && sameEnum(this.currentIntent, currentIntent)
-                && sameEnum(this.currentAnchor, currentAnchor)) {
+                && sameEnum(this.currentAnchor, currentAnchor)
+                && this.decisionSnapshot.equals(nextDecisionSnapshot)) {
             return this;
         }
         return new NpcSocietyProfile(
@@ -102,10 +123,16 @@ public record NpcSocietyProfile(
                 dailyPhase == null ? NpcDailyPhase.UNSPECIFIED : dailyPhase,
                 currentIntent == null ? NpcIntent.UNSPECIFIED : currentIntent,
                 currentAnchor == null ? NpcAnchorType.NONE : currentAnchor,
+                nextDecisionSnapshot,
                 this.hungerNeed,
                 this.fatigueNeed,
                 this.socialNeed,
                 this.safetyNeed,
+                this.trustScore,
+                this.fearScore,
+                this.angerScore,
+                this.gratitudeScore,
+                this.loyaltyScore,
                 this.version + 1L,
                 gameTime
         );
@@ -138,10 +165,61 @@ public record NpcSocietyProfile(
                 this.dailyPhase,
                 this.currentIntent,
                 this.currentAnchor,
+                this.decisionSnapshot,
                 clampedHunger,
                 clampedFatigue,
                 clampedSocial,
                 clampedSafety,
+                this.trustScore,
+                this.fearScore,
+                this.angerScore,
+                this.gratitudeScore,
+                this.loyaltyScore,
+                this.version + 1L,
+                gameTime
+        );
+    }
+
+    public NpcSocietyProfile withSocialState(int trustScore,
+                                             int fearScore,
+                                             int angerScore,
+                                             int gratitudeScore,
+                                             int loyaltyScore,
+                                             long gameTime) {
+        int clampedTrust = clampNeed(trustScore);
+        int clampedFear = clampNeed(fearScore);
+        int clampedAnger = clampNeed(angerScore);
+        int clampedGratitude = clampNeed(gratitudeScore);
+        int clampedLoyalty = clampNeed(loyaltyScore);
+        if (this.trustScore == clampedTrust
+                && this.fearScore == clampedFear
+                && this.angerScore == clampedAnger
+                && this.gratitudeScore == clampedGratitude
+                && this.loyaltyScore == clampedLoyalty) {
+            return this;
+        }
+        return new NpcSocietyProfile(
+                this.residentUuid,
+                this.lifeStage,
+                this.sex,
+                this.householdId,
+                this.homeBuildingUuid,
+                this.workBuildingUuid,
+                this.cultureId,
+                this.faithId,
+                this.dailyPhase,
+                this.currentIntent,
+                this.currentAnchor,
+                this.decisionSnapshot,
+                this.hungerNeed,
+                this.fatigueNeed,
+                this.socialNeed,
+                this.safetyNeed,
+                clampedTrust,
+                clampedFear,
+                clampedAnger,
+                clampedGratitude,
+                clampedLoyalty,
                 this.version + 1L,
                 gameTime
         );
@@ -166,10 +244,16 @@ public record NpcSocietyProfile(
                 this.dailyPhase,
                 this.currentIntent,
                 this.currentAnchor,
+                this.decisionSnapshot,
                 this.hungerNeed,
                 this.fatigueNeed,
                 this.socialNeed,
                 this.safetyNeed,
+                this.trustScore,
+                this.fearScore,
+                this.angerScore,
+                this.gratitudeScore,
+                this.loyaltyScore,
                 this.version + 1L,
                 gameTime
         );
@@ -198,10 +282,16 @@ public record NpcSocietyProfile(
         tag.putString("DailyPhase", (this.dailyPhase == null ? NpcDailyPhase.UNSPECIFIED : this.dailyPhase).name());
         tag.putString("CurrentIntent", (this.currentIntent == null ? NpcIntent.UNSPECIFIED : this.currentIntent).name());
         tag.putString("CurrentAnchor", (this.currentAnchor == null ? NpcAnchorType.NONE : this.currentAnchor).name());
+        tag.put("DecisionSnapshot", (this.decisionSnapshot == null ? NpcSocietyDecisionSnapshot.empty() : this.decisionSnapshot).toTag());
         tag.putInt("HungerNeed", this.hungerNeed);
         tag.putInt("FatigueNeed", this.fatigueNeed);
         tag.putInt("SocialNeed", this.socialNeed);
         tag.putInt("SafetyNeed", this.safetyNeed);
+        tag.putInt("TrustScore", this.trustScore);
+        tag.putInt("FearScore", this.fearScore);
+        tag.putInt("AngerScore", this.angerScore);
+        tag.putInt("GratitudeScore", this.gratitudeScore);
+        tag.putInt("LoyaltyScore", this.loyaltyScore);
         tag.putLong("Version", this.version);
         tag.putLong("LastUpdatedGameTime", this.lastUpdatedGameTime);
         return tag;
@@ -221,10 +311,16 @@ public record NpcSocietyProfile(
                 NpcDailyPhase.fromName(tag.getString("DailyPhase")),
                 NpcIntent.fromName(tag.getString("CurrentIntent")),
                 NpcAnchorType.fromName(tag.getString("CurrentAnchor")),
+                NpcSocietyDecisionSnapshot.fromTag(tag.contains("DecisionSnapshot") ? tag.getCompound("DecisionSnapshot") : null),
                 clampNeed(tag.getInt("HungerNeed")),
                 clampNeed(tag.getInt("FatigueNeed")),
                 clampNeed(tag.getInt("SocialNeed")),
                 clampNeed(tag.getInt("SafetyNeed")),
+                clampNeed(tag.contains("TrustScore") ? tag.getInt("TrustScore") : 50),
+                clampNeed(tag.contains("FearScore") ? tag.getInt("FearScore") : 0),
+                clampNeed(tag.contains("AngerScore") ? tag.getInt("AngerScore") : 0),
+                clampNeed(tag.contains("GratitudeScore") ? tag.getInt("GratitudeScore") : 0),
+                clampNeed(tag.contains("LoyaltyScore") ? tag.getInt("LoyaltyScore") : 50),
                 Math.max(1L, tag.getLong("Version")),
                 tag.getLong("LastUpdatedGameTime")
         );
