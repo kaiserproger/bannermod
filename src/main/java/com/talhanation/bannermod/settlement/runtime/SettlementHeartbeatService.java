@@ -1,17 +1,17 @@
-package com.talhanation.bannermod.events;
+package com.talhanation.bannermod.settlement.runtime;
 
+import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.governance.BannerModGovernorHeartbeat;
 import com.talhanation.bannermod.governance.BannerModGovernorManager;
 import com.talhanation.bannermod.governance.BannerModTreasuryManager;
 import com.talhanation.bannermod.settlement.BannerModSettlementManager;
 import com.talhanation.bannermod.settlement.BannerModSettlementOrchestrator;
 import com.talhanation.bannermod.settlement.BannerModSettlementService;
-import com.talhanation.bannermod.settlement.runtime.SettlementClaimBindingService;
 import com.talhanation.bannermod.util.AdaptiveRuntimeBudgets;
 import com.talhanation.bannermod.util.RuntimeProfilingCounters;
 import net.minecraft.server.level.ServerLevel;
 
-final class SettlementHeartbeatService {
+public final class SettlementHeartbeatService {
     private static final int GOVERNOR_TICK_INTERVAL = 200;
     private static final int GOVERNOR_HEARTBEAT_BATCH_SIZE = 16;
     private static final int SETTLEMENT_REFRESH_BATCH_SIZE = 16;
@@ -25,13 +25,13 @@ final class SettlementHeartbeatService {
     private int governorMaintenanceStage;
     private int governorMaintenanceCursor;
 
-    void reset() {
+    public void reset() {
         governorCounter = 0;
         governorMaintenanceStage = GOVERNOR_STAGE_IDLE;
         governorMaintenanceCursor = 0;
     }
 
-    void tick(ServerLevel level) {
+    public void tick(ServerLevel level) {
         governorCounter++;
 
         if(governorMaintenanceStage == GOVERNOR_STAGE_IDLE && governorCounter >= GOVERNOR_TICK_INTERVAL){

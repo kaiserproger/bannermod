@@ -4,6 +4,7 @@ import com.talhanation.bannermod.config.RecruitsServerConfig;
 import com.talhanation.bannermod.army.command.CommandIntent;
 import com.talhanation.bannermod.army.command.CommandIntentDispatcher;
 import com.talhanation.bannermod.army.command.CommandIntentPriority;
+import com.talhanation.bannermod.army.command.RecruitCommandAuthority;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.network.payload.BannerModMessage;
 import net.minecraft.network.protocol.PacketFlow;
@@ -50,6 +51,10 @@ public class MessageMountEntityGui implements BannerModMessage<MessageMountEntit
 
     @SuppressWarnings({"all"})
     private void mount(ServerPlayer player, AbstractRecruitEntity recruit) {
+        if (!RecruitCommandAuthority.canDirectlyControl(player, recruit)) {
+            return;
+        }
+
         if (this.back && recruit.getMountUUID() != null) {
             CommandIntentDispatcher.dispatch(player, new CommandIntent.SiegeMachine(
                     player.level().getGameTime(), CommandIntentPriority.HIGH, false, null, null, true), List.of(recruit));

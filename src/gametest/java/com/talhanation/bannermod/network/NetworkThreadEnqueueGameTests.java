@@ -3,7 +3,10 @@ package com.talhanation.bannermod.network;
 import com.talhanation.bannermod.BannerModDedicatedServerGameTestSupport;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
+import com.talhanation.bannermod.network.messages.military.MessageMovement;
 import com.talhanation.bannermod.network.messages.military.MessageUpkeepPos;
+import com.talhanation.bannermod.network.throttle.PacketRateLimitConfig;
+import com.talhanation.bannermod.network.throttle.PacketRateLimiter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -22,10 +25,10 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.ArrayList;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
@@ -67,6 +70,8 @@ public class NetworkThreadEnqueueGameTests {
     private static final int DISPATCHES_PER_WORKER = 250;
     private static final int TOTAL_DISPATCHES = WORKER_COUNT * DISPATCHES_PER_WORKER;
     private static final UUID SENDER_UUID = UUID.fromString("00000000-0000-0000-0000-0000feed0001");
+    private static final UUID MOVEMENT_SENDER_UUID = UUID.fromString("00000000-0000-0000-0000-0000feed0002");
+    private static final UUID MOVEMENT_GROUP_UUID = UUID.fromString("00000000-0000-0000-0000-0000feed1002");
 
     @PrefixGameTestTemplate(false)
     @GameTest(template = "harness_empty", timeoutTicks = 1200)
@@ -143,6 +148,95 @@ public class NetworkThreadEnqueueGameTests {
             helper.assertTrue(
                     allOnMain,
                     "Every body must run on the main server thread (" + mainThreadName + "); observed distinct threads: "
+                            + snapshot.stream().distinct().sorted().toList()
+            );
+        });
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty", timeoutTicks = 1200)
+    public static void thousandConcurrentMovementPacketsDoNotTouchEntityCollectionsOffThread(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        MinecraftServer server = level.getServer();
+        helper.assertTrue(server != null, "Gametest must run inside a real MinecraftServer context");
+
+        ServerPlayer sender = (ServerPlayer) BannerModDedicatedServerGameTestSupport
+                .createFakeServerPlayer(level, MOVEMENT_SENDER_UUID, "movement-enqueue-test-sender");
+
+        AtomicInteger completed = new AtomicInteger();
+        List<Throwable> errors = Collections.synchronizedList(new ArrayList<>());
+        List<String> runnerThreadNames = Collections.synchronizedList(new ArrayList<>());
+
+        IPayloadContext deferringContext = new MainThreadDeferringContext(
+                sender,
+                server,
+                completed,
+                errors,
+                runnerThreadNames
+        );
+        BannerModNetworkContext bannerCtx = new BannerModNetworkContext(deferringContext);
+
+        PacketRateLimiter limiter = PacketRateLimiter.shared();
+        limiter.setCooldownSource(packetClass -> packetClass == MessageMovement.class ? 0L : -1L);
+        limiter.clearState();
+
+        try {
+            Thread[] workers = new Thread[WORKER_COUNT];
+            for (int t = 0; t < WORKER_COUNT; t++) {
+                workers[t] = new Thread(() -> {
+                    for (int i = 0; i < DISPATCHES_PER_WORKER; i++) {
+                        try {
+                            MessageMovement msg = new MessageMovement(
+                                    MOVEMENT_SENDER_UUID,
+                                    6,
+                                    MOVEMENT_GROUP_UUID,
+                                    0,
+                                    false
+                            );
+                            msg.executeServerSide(bannerCtx);
+                        } catch (Throwable t1) {
+                            errors.add(t1);
+                        }
+                    }
+                }, "movement-enqueue-test-worker-" + t);
+                workers[t].setDaemon(true);
+                workers[t].start();
+            }
+            for (Thread w : workers) {
+                try {
+                    w.join(10_000L);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    helper.fail("Worker thread join interrupted");
+                }
+                helper.assertTrue(!w.isAlive(), "Worker thread did not finish dispatching within 10s");
+            }
+        } finally {
+            PacketRateLimitConfig.install();
+            limiter.clearState();
+        }
+
+        String mainThreadName = server.getRunningThread().getName();
+        helper.succeedWhen(() -> {
+            helper.assertTrue(
+                    errors.isEmpty(),
+                    "Expected zero movement packet exceptions; first was: "
+                            + (errors.isEmpty() ? "<none>" : errors.get(0).toString())
+            );
+            int done = completed.get();
+            helper.assertTrue(
+                    done == TOTAL_DISPATCHES,
+                    "Expected " + TOTAL_DISPATCHES + " movement packet bodies to complete; got " + done
+            );
+            List<String> snapshot;
+            synchronized (runnerThreadNames) {
+                snapshot = new ArrayList<>(runnerThreadNames);
+            }
+            boolean allOnMain = snapshot.stream().allMatch(name -> name.equals(mainThreadName));
+            helper.assertTrue(
+                    allOnMain,
+                    "Every movement body must run on the main server thread (" + mainThreadName
+                            + "); observed distinct threads: "
                             + snapshot.stream().distinct().sorted().toList()
             );
         });

@@ -33,8 +33,9 @@ public class MessageClearUpkeep implements BannerModMessage<MessageClearUpkeep> 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
             ServerPlayer player = Objects.requireNonNull(context.getSender());
+            UUID actorUuid = authorizedPlayerUuid(player.getUUID(), this.uuid);
             List<AbstractRecruitEntity> recruits = this.group == null
-                    ? RecruitIndex.instance().ownerInRange(player.getCommandSenderWorld(), this.uuid, player.position(), 100.0D)
+                    ? RecruitIndex.instance().ownerInRange(player.getCommandSenderWorld(), actorUuid, player.position(), 100.0D)
                     : RecruitIndex.instance().groupInRange(player.getCommandSenderWorld(), this.group, player.position(), 100.0D);
             if (recruits == null) {
                 RuntimeProfilingCounters.increment("recruit.index.fallback_scans");
@@ -43,10 +44,23 @@ public class MessageClearUpkeep implements BannerModMessage<MessageClearUpkeep> 
                         player.getBoundingBox().inflate(100)
                 );
             }
+            if (this.group == null) {
+                recruits = recruits.stream()
+                        .filter(recruit -> recruit != null && isAuthorizedOwner(recruit.getOwnerUUID(), actorUuid))
+                        .toList();
+            }
             recruits.forEach(
-                    (recruit) -> CommandEvents.onClearUpkeepButton(uuid, recruit, group)
+                    (recruit) -> CommandEvents.onClearUpkeepButton(actorUuid, recruit, group)
             );
         });
+    }
+
+    static UUID authorizedPlayerUuid(UUID senderUuid, UUID ignoredWireUuid) {
+        return senderUuid;
+    }
+
+    static boolean isAuthorizedOwner(UUID recruitOwnerUuid, UUID actorUuid) {
+        return actorUuid != null && actorUuid.equals(recruitOwnerUuid);
     }
 
     public MessageClearUpkeep fromBytes(FriendlyByteBuf buf) {

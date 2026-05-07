@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.network.messages.military;
 
+import com.talhanation.bannermod.army.command.RecruitCommandAuthority;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.entity.military.AbstractLeaderEntity;
 import com.talhanation.bannermod.entity.military.CaptainEntity;
@@ -48,6 +49,7 @@ public class MessagePatrolLeaderAddWayPoint implements BannerModMessage<MessageP
             Entity entity = player.serverLevel().getEntity(this.worker);
             if (entity instanceof AbstractLeaderEntity leader
                     && leader.isAlive()
+                    && RecruitCommandAuthority.canDirectlyControl(player, leader)
                     && player.getBoundingBox().inflate(100.0D).intersects(leader.getBoundingBox())) {
                 this.addWayPoint(new BlockPos(x, y, z), player, leader);
             }

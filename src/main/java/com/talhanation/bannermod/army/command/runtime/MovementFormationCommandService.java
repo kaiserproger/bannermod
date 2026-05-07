@@ -1,4 +1,4 @@
-package com.talhanation.bannermod.events;
+package com.talhanation.bannermod.army.command.runtime;
 
 import com.talhanation.bannermod.ai.military.controller.RecruitCommandStateTransitions;
 import com.talhanation.bannermod.army.command.MovementCommandState;
@@ -7,6 +7,7 @@ import com.talhanation.bannermod.entity.military.AbstractLeaderEntity;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.entity.military.CaptainEntity;
 import com.talhanation.bannermod.entity.military.RecruitIndex;
+import com.talhanation.bannermod.events.RecruitEvents;
 import com.talhanation.bannermod.persistence.military.RecruitsGroup;
 import com.talhanation.bannermod.util.RuntimeProfilingCounters;
 import com.talhanation.bannermod.util.FormationUtils;
@@ -29,7 +30,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-final class MovementFormationCommandService {
+public final class MovementFormationCommandService {
 
     private static final String ACTIVE_GROUPS_KEY = "ActiveGroups";
     private static final String FORMATION_KEY = "Formation";
@@ -37,15 +38,15 @@ final class MovementFormationCommandService {
     private MovementFormationCommandService() {
     }
 
-    static void onMovementCommand(Player player, List<AbstractRecruitEntity> recruits, int movementState, int formation) {
+    public static void onMovementCommand(Player player, List<AbstractRecruitEntity> recruits, int movementState, int formation) {
         onMovementCommand(player, recruits, movementState, formation, false);
     }
 
-    static void onMovementCommand(Player player, List<AbstractRecruitEntity> recruits, int movementState, int formation, boolean tight) {
+    public static void onMovementCommand(Player player, List<AbstractRecruitEntity> recruits, int movementState, int formation, boolean tight) {
         onMovementCommand(player, recruits, movementState, formation, tight, null);
     }
 
-    static void onMovementCommand(Player player, List<AbstractRecruitEntity> recruits, int movementState, int formation, boolean tight, @Nullable Vec3 explicitTargetPos) {
+    public static void onMovementCommand(Player player, List<AbstractRecruitEntity> recruits, int movementState, int formation, boolean tight, @Nullable Vec3 explicitTargetPos) {
         if (formation != 0 && MovementCommandState.usesFormationTarget(movementState)) {
             Vec3 targetPos = null;
 
@@ -137,11 +138,11 @@ final class MovementFormationCommandService {
         }
     }
 
-    static void applyFormation(int formation, List<AbstractRecruitEntity> recruits, Player player, Vec3 targetPos) {
+    public static void applyFormation(int formation, List<AbstractRecruitEntity> recruits, Player player, Vec3 targetPos) {
         applyFormation(formation, recruits, player, targetPos, false);
     }
 
-    static void applyFormation(int formation, List<AbstractRecruitEntity> recruits, Player player, Vec3 targetPos, boolean tight) {
+    public static void applyFormation(int formation, List<AbstractRecruitEntity> recruits, Player player, Vec3 targetPos, boolean tight) {
         saveFormationCenter(player, targetPos);
         double spacingMultiplier = tight ? 0.5 : 1.0;
 
@@ -158,7 +159,7 @@ final class MovementFormationCommandService {
         }
     }
 
-    static void onFaceCommand(Player player, List<AbstractRecruitEntity> recruits, int formation, boolean tight) {
+    public static void onFaceCommand(Player player, List<AbstractRecruitEntity> recruits, int formation, boolean tight) {
         if (recruits.isEmpty()) {
             return;
         }
@@ -186,7 +187,7 @@ final class MovementFormationCommandService {
         }
     }
 
-    static void onMovementCommandGUI(AbstractRecruitEntity recruit, int movementState) {
+    public static void onMovementCommandGUI(AbstractRecruitEntity recruit, int movementState) {
         int state = recruit.getFollowState();
 
         switch (movementState) {
@@ -230,7 +231,7 @@ final class MovementFormationCommandService {
         recruit.forcedUpkeep = false;
     }
 
-    static void checkPatrolLeaderState(AbstractRecruitEntity recruit) {
+    public static void checkPatrolLeaderState(AbstractRecruitEntity recruit) {
         if (recruit instanceof AbstractLeaderEntity leader) {
             AbstractLeaderEntity.State patrolState = AbstractLeaderEntity.State.fromIndex(leader.getPatrollingState());
             AbstractLeaderEntity.State nextState = RecruitCommandStateTransitions.afterManualMovement(patrolState);
@@ -243,7 +244,7 @@ final class MovementFormationCommandService {
         }
     }
 
-    static void onServerPlayerTick(ServerPlayer serverPlayer) {
+    public static void onServerPlayerTick(ServerPlayer serverPlayer) {
         int formation = getSavedFormation(serverPlayer);
         if (formation <= 0) {
             return;
@@ -281,12 +282,12 @@ final class MovementFormationCommandService {
         saveFormationPos(serverPlayer, new int[]{(int) targetPosition.x, (int) targetPosition.z});
     }
 
-    static void initializePlayerCommandState(Player player) {
+    public static void initializePlayerCommandState(Player player) {
         CompoundTag playerData = player.getPersistentData();
         initializePlayerCommandState(playerData, (int) player.getX(), (int) player.getZ(), RecruitsServerConfig.MaxRecruitsForPlayer.get());
     }
 
-    static void initializePlayerCommandState(CompoundTag playerData, int playerX, int playerZ, int maxRecruits) {
+    public static void initializePlayerCommandState(CompoundTag playerData, int playerX, int playerZ, int maxRecruits) {
         CompoundTag data = playerData.getCompound(Player.PERSISTED_NBT_TAG);
 
         if (!data.contains("MaxRecruits")) {
@@ -311,12 +312,12 @@ final class MovementFormationCommandService {
         playerData.put(Player.PERSISTED_NBT_TAG, data);
     }
 
-    static void copyPersistentCommandPreferences(Player original, Player clone) {
+    public static void copyPersistentCommandPreferences(Player original, Player clone) {
         copyPersistentCommandPreferences(original.getPersistentData(), clone.getPersistentData());
         initializePlayerCommandState(clone);
     }
 
-    static void copyPersistentCommandPreferences(CompoundTag originalPlayerData, CompoundTag clonePlayerData) {
+    public static void copyPersistentCommandPreferences(CompoundTag originalPlayerData, CompoundTag clonePlayerData) {
         CompoundTag originalData = originalPlayerData.getCompound(Player.PERSISTED_NBT_TAG);
         CompoundTag cloneData = clonePlayerData.getCompound(Player.PERSISTED_NBT_TAG);
 
@@ -330,17 +331,17 @@ final class MovementFormationCommandService {
         clonePlayerData.put(Player.PERSISTED_NBT_TAG, cloneData);
     }
 
-    static int getSavedFormation(Player player) {
+    public static int getSavedFormation(Player player) {
         return getPersistedData(player).getInt(FORMATION_KEY);
     }
 
-    static void saveFormation(Player player, int formation) {
+    public static void saveFormation(Player player, int formation) {
         CompoundTag persisted = getPersistedData(player);
         persisted.putInt(FORMATION_KEY, formation);
         savePersistedData(player, persisted);
     }
 
-    static void saveUUIDList(Player player, String key, Collection<UUID> uuids) {
+    public static void saveUUIDList(Player player, String key, Collection<UUID> uuids) {
         CompoundTag persisted = getPersistedData(player);
         ListTag list = new ListTag();
 
@@ -354,7 +355,7 @@ final class MovementFormationCommandService {
         savePersistedData(player, persisted);
     }
 
-    static List<UUID> getSavedUUIDList(Player player, String key) {
+    public static List<UUID> getSavedUUIDList(Player player, String key) {
         CompoundTag persisted = getPersistedData(player);
         List<UUID> result = new ArrayList<>();
         if (!persisted.contains(key, Tag.TAG_LIST)) {
@@ -372,17 +373,17 @@ final class MovementFormationCommandService {
         return result;
     }
 
-    static int[] getSavedFormationPos(Player player) {
+    public static int[] getSavedFormationPos(Player player) {
         return getPersistedData(player).getIntArray("FormationPos");
     }
 
-    static void saveFormationPos(Player player, int[] pos) {
+    public static void saveFormationPos(Player player, int[] pos) {
         CompoundTag persisted = getPersistedData(player);
         persisted.putIntArray("FormationPos", pos);
         savePersistedData(player, persisted);
     }
 
-    static void saveFormationCenter(Player player, Vec3 center) {
+    public static void saveFormationCenter(Player player, Vec3 center) {
         CompoundTag persisted = getPersistedData(player);
         persisted.putDouble("FormationCenterX", center.x);
         persisted.putDouble("FormationCenterY", center.y);
@@ -391,7 +392,7 @@ final class MovementFormationCommandService {
     }
 
     @Nullable
-    static Vec3 getSavedFormationCenter(Player player) {
+    public static Vec3 getSavedFormationCenter(Player player) {
         CompoundTag persisted = getPersistedData(player);
         if (!persisted.contains("FormationCenterX")) {
             return null;
