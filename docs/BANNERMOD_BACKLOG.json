@@ -8640,8 +8640,8 @@
     {
       "id": "PACKETAUTH-007",
       "title": "Verify recruit ownership in MessageMountEntityGui",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "MessageMountEntityGui resolves any recruit within 32 blocks by UUID and dispatches a SiegeMachine mount intent without any ownership / canDirectlyControl check. A client can mount-control any visible recruit (own or foreign).",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessageMountEntityGui.java executeServerSide / mount(); add RecruitCommandAuthority.canDirectlyControl(sender, recruit) before the dispatch (mirror MessageAggroGui/MessageDismountGui)."
@@ -8651,8 +8651,14 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) MessageMountEntityGui.mount now checks RecruitCommandAuthority.canDirectlyControl(player, recruit) before any SiegeMachine intent dispatch. 2) MessageMountEntityGuiAuthorityTest confirms the authority check appears before SiegeMachine dispatch, covering forged foreign recruit UUID denial. 3) ./gradlew compileJava and ./gradlew test passed on the task branch and integrated branch. 4) tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-008",
@@ -8682,8 +8688,8 @@
     {
       "id": "PACKETAUTH-009",
       "title": "Verify leader ownership in MessagePatrolLeaderAddWayPoint",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "MessagePatrolLeaderAddWayPoint resolves an AbstractLeaderEntity by UUID and only verifies a range AABB / distance before calling leader.addWayPoint(...). No ownership check; any client in range can mutate a foreign player's leader entity (waypoints, cycle, speed, info mode, etc.).",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessagePatrolLeaderAddWayPoint.java executeServerSide; add canDirectlyControl(sender, leader) (or equivalent owner-equality check via leader.getOwnerUUID()) before the mutation."
@@ -8693,8 +8699,14 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) MessagePatrolLeaderAddWayPoint now requires RecruitCommandAuthority.canDirectlyControl(player, leader) before addWayPoint mutation. 2) PatrolLeaderWaypointAuthorityTest confirms foreign non-op has no command role and the authority gate occurs before the only waypoint mutation path. 3) ./gradlew compileJava and ./gradlew test passed on the task branch and integrated branch. 4) tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-010",
