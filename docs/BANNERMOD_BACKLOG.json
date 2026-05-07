@@ -8657,8 +8657,8 @@
     {
       "id": "PACKETAUTH-008",
       "title": "Verify leader ownership in MessageAssassinCount",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "in_progress",
+      "updated": "2026-05-08",
       "why": "MessageAssassinCount targets an AssassinLeaderEntity by UUID and only checks a 16-block AABB before calling leader.setCount(this.count). No ownership check; any client in range can rewrite a foreign assassin leader's count.",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessageAssassinCount.java executeServerSide; add ownership / canDirectlyControl gate using leader.getOwnerUUID() vs sender.getUUID() (or sender.hasPermissions(2))."
@@ -8666,8 +8666,16 @@
       "acceptance": [
         "Handler bails when sender does not own the leader; regression test with a foreign assassin leader confirms count is unchanged."
       ],
-      "dependencies": [],
-      "progress": [],
+      "dependencies": [
+        "PACKETAUTH-008A",
+        "PACKETAUTH-008B"
+      ],
+      "progress": [
+        {
+          "date": "2026-05-08",
+          "text": "Attempted PACKETAUTH-008 on feature/packetauth-008; live code inspection found AssassinLeaderEntity has no existing server-authoritative owner/control source. A packet-side owner gate alone would either block legitimate count edits or invent unsafe authority. Remaining scope split into PACKETAUTH-008A to define/persist AssassinLeader authority and PACKETAUTH-008B to gate MessageAssassinCount once that authority exists."
+        }
+      ],
       "verification": [],
       "evidence": []
     },
@@ -8918,6 +8926,50 @@
       ],
       "dependencies": [
         "SETTREFACTOR-002"
+      ],
+      "progress": [],
+      "verification": [],
+      "evidence": []
+    },
+    {
+      "id": "PACKETAUTH-008A",
+      "title": "Define server-authoritative AssassinLeader ownership",
+      "status": "open",
+      "updated": "2026-05-08",
+      "why": "PACKETAUTH-008 needs an ownership check, but AssassinLeaderEntity currently has no persisted server-authoritative owner source. Adding a packet-side owner gate without defining how leaders become owned would either block legitimate count edits or let clients claim authority indirectly.",
+      "scope": [
+        "Audit AssassinLeaderEntity spawn, interaction, menu-open, and count-update flows to choose the server-owned authority source for assassin leaders.",
+        "Implement and persist the chosen owner/control field without trusting client-supplied packet data.",
+        "Add focused tests proving the owner/control field survives save/load or the relevant server lifecycle path."
+      ],
+      "acceptance": [
+        "AssassinLeaderEntity has a documented server-authoritative owner/control source that is assigned outside MessageAssassinCount and persisted if the entity persists.",
+        "Tests prove the owner/control field is assigned through the server-side flow and cannot be set by client count packets.",
+        "./gradlew compileJava and ./gradlew test pass; tools/backlog validate passes."
+      ],
+      "dependencies": [],
+      "progress": [],
+      "verification": [],
+      "evidence": []
+    },
+    {
+      "id": "PACKETAUTH-008B",
+      "title": "Gate MessageAssassinCount by AssassinLeader authority",
+      "status": "open",
+      "updated": "2026-05-08",
+      "why": "After PACKETAUTH-008A defines trustworthy AssassinLeader authority, MessageAssassinCount can safely reject foreign sender mutations without breaking legitimate users.",
+      "scope": [
+        "Update MessageAssassinCount executeServerSide to reject senders that do not own/control the target AssassinLeaderEntity and are not op.",
+        "Keep the existing range/AABB validation intact.",
+        "Add a forged-sender regression test proving a foreign non-op leaves count unchanged, plus an owner or op allow-path test."
+      ],
+      "acceptance": [
+        "MessageAssassinCount bails when sender does not own/control the leader and lacks op permission.",
+        "Regression test with a foreign assassin leader confirms count is unchanged; owner/op allow path still updates count.",
+        "./gradlew compileJava and ./gradlew test pass; tools/backlog validate passes."
+      ],
+      "dependencies": [
+        "PACKETAUTH-008A"
       ],
       "progress": [],
       "verification": [],
