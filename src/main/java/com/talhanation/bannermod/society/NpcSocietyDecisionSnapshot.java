@@ -6,6 +6,7 @@ import com.talhanation.bannermod.settlement.BannerModSettlementResidentScheduleW
 import com.talhanation.bannermod.settlement.dispatch.SellerResidentGoal;
 import com.talhanation.bannermod.settlement.goal.ResidentGoalContext;
 import com.talhanation.bannermod.settlement.goal.ResidentTask;
+import com.talhanation.bannermod.settlement.goal.ResidentTaskOutcome;
 import com.talhanation.bannermod.settlement.goal.impl.DefendResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.DeliverResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.EatResidentGoal;
@@ -34,17 +35,22 @@ public record NpcSocietyDecisionSnapshot(
         String lastIntentTag,
         long currentIntentStartedGameTime
 ) {
+    public static final String BLOCKED_REASON_NONE = "NONE";
+    public static final String BLOCKED_REASON_TASK_TIMED_OUT = "TASK_TIMED_OUT";
+    public static final String BLOCKED_REASON_CONTEXT_INVALIDATED = "CONTEXT_INVALIDATED";
+
     public static NpcSocietyDecisionSnapshot empty() {
-        return new NpcSocietyDecisionSnapshot("IDLE", null, "NO_STARTABLE_GOAL", "NO_CLEAR_ROUTE", null, "NONE", NpcIntent.UNSPECIFIED.name(), 0L);
+        return new NpcSocietyDecisionSnapshot("IDLE", null, "NO_STARTABLE_GOAL", "NO_CLEAR_ROUTE", null, BLOCKED_REASON_NONE, NpcIntent.UNSPECIFIED.name(), 0L);
     }
 
     public static NpcSocietyDecisionSnapshot capture(@Nullable ResidentGoalContext ctx,
                                                      @Nullable ResidentTask activeTask,
-                                                     @Nullable String routeReasonTag) {
+                                                     @Nullable String routeReasonTag,
+                                                     @Nullable ResidentTaskOutcome lastOutcome) {
         if (ctx == null) {
             return empty();
         }
-        BlockedGoal blocked = describeBlockedGoal(ctx, activeTask);
+        BlockedGoal blocked = describeBlockedGoal(ctx, activeTask, lastOutcome);
         String stateTag = describeState(activeTask, blocked);
         String currentGoalId = activeTask == null || activeTask.goalId() == null ? null : activeTask.goalId().toString();
         String choiceReasonTag = activeTask == null ? "NO_STARTABLE_GOAL" : describeChoiceReason(ctx, activeTask.goalId());
@@ -133,12 +139,30 @@ public record NpcSocietyDecisionSnapshot(
         if (goalId == null) {
             return "NO_STARTABLE_GOAL";
         }
+        String previousGoalId = ctx.societyProfile() == null || ctx.societyProfile().decisionSnapshot() == null
+                ? null
+                : ctx.societyProfile().decisionSnapshot().currentGoalId();
+        if (goalId.toString().equals(previousGoalId) && shouldExplainCommitment(ctx, goalId)) {
+            return "COMMITTING_TO_CURRENT_GOAL";
+        }
         if (GoHomeResidentGoal.ID.equals(goalId)) {
+            if (ctx.hasRecentGoalFailure() && ctx.hasHome()) {
+                return ctx.hasFamilyTies() ? "RETURNING_TO_HOUSEHOLD" : "HOMEWARD_PULL";
+            }
             if (ctx.isRestPhase()) {
                 return "REST_WINDOW";
             }
             if (ctx.fatigueNeed() >= 80) {
                 return "FATIGUE_SPIKE";
+            }
+            if (ctx.shouldPreferHomeFallback()) {
+                return ctx.hasFamilyTies() ? "RETURNING_TO_HOUSEHOLD" : "HOMEWARD_PULL";
+            }
+            if (ctx.hasFamilyTies() && (ctx.hasDependents() || ctx.safetyNeed() >= 45)) {
+                return "RETURNING_TO_HOUSEHOLD";
+            }
+            if (ctx.fearScore() >= 60) {
+                return "MEMORY_DRIVEN_FEAR";
             }
             return ctx.safetyNeed() >= 70 ? "SEEKING_SHELTER" : "HOMEWARD_PULL";
         }
@@ -146,27 +170,63 @@ public record NpcSocietyDecisionSnapshot(
             return "EARLY_ACTIVE_WINDOW";
         }
         if (RestResidentGoal.ID.equals(goalId)) {
+            if (ctx.hasRecentGoalFailure() && ctx.hasHome()) {
+                return "HOUSEHOLD_RECOVERY";
+            }
+            if (ctx.hasFamilyTies() && ctx.hasHome()) {
+                return "HOUSEHOLD_RECOVERY";
+            }
             return ctx.isRestPhase() ? "REST_WINDOW" : "FATIGUE_SPIKE";
         }
         if (EatResidentGoal.ID.equals(goalId)) {
             return ctx.hungerNeed() >= 80 ? "SEVERE_HUNGER" : "HUNGER_PRESSURE";
         }
         if (SeekSuppliesResidentGoal.ID.equals(goalId)) {
-            return "NO_HOME_FOOD_RUN";
+            if (ctx.hasRecentGoalFailure() && ctx.previousBlockedIntent() == NpcIntent.EAT) {
+                return "FOOD_RECOVERY_RUN";
+            }
+            if (!ctx.hasHome()) {
+                return "NO_HOME_FOOD_RUN";
+            }
+            if (!ctx.hasMarketFoodAccess() || ctx.hasOnlyStockpileFoodAccess()) {
+                return "HOME_FOOD_SHORTAGE";
+            }
+            return ctx.householdSize() >= 3 || ctx.hasDependents() ? "PROVIDING_FOR_HOUSEHOLD" : "HOME_FOOD_SHORTAGE";
         }
         if (SocialiseResidentGoal.ID.equals(goalId)) {
+            if (ctx.hasRecentGoalFailure() && ctx.hasHome() && ctx.hasFamilyTies()) {
+                return "HOUSEHOLD_RECOVERY";
+            }
+            if (ctx.shouldPreferHouseholdSocial()) {
+                return "HOUSEHOLD_BELONGING";
+            }
+            if (ctx.hasFamilyTies()) {
+                return "HOUSEHOLD_BELONGING";
+            }
             return "SOCIAL_PRESSURE";
         }
         if (HideResidentGoal.ID.equals(goalId)) {
+            if (ctx.fearScore() >= 60) {
+                return "MEMORY_DRIVEN_FEAR";
+            }
+            if (ctx.hasFamilyTies()) {
+                return "PROTECTING_HOUSEHOLD";
+            }
             return "THREAT_AVOIDANCE";
         }
         if (DefendResidentGoal.ID.equals(goalId)) {
+            if (ctx.hasFamilyTies()) {
+                return "DEFENDING_HOUSEHOLD";
+            }
             return "THREAT_RESPONSE";
         }
         if (SellerResidentGoal.ID.equals(goalId)) {
             return "READY_MARKET_DISPATCH";
         }
         if (WorkResidentGoal.ID.equals(goalId)) {
+            if (ctx.isHouseholdPressured() || ctx.hasDependents()) {
+                return "PROVIDING_FOR_HOUSEHOLD";
+            }
             return "ASSIGNED_SHIFT";
         }
         if (FetchResidentGoal.ID.equals(goalId) || DeliverResidentGoal.ID.equals(goalId)) {
@@ -185,10 +245,15 @@ public record NpcSocietyDecisionSnapshot(
         if (IdleResidentGoal.ID.equals(activeTask.goalId())) {
             return blocked.goalId != null ? "BLOCKED" : "IDLE";
         }
+        if (blocked.goalId != null && isRecoveryReason(blocked.reasonTag)) {
+            return "RECOVERING";
+        }
         return "EXECUTING";
     }
 
-    private static BlockedGoal describeBlockedGoal(ResidentGoalContext ctx, @Nullable ResidentTask activeTask) {
+    private static BlockedGoal describeBlockedGoal(ResidentGoalContext ctx,
+                                                   @Nullable ResidentTask activeTask,
+                                                   @Nullable ResidentTaskOutcome lastOutcome) {
         if (ctx.safetyNeed() >= 35 && !ctx.canDefend()) {
             if (activeTask == null || HideResidentGoal.ID.equals(activeTask.goalId())) {
                 return new BlockedGoal(DefendResidentGoal.ID.toString(), "ROLE_CANNOT_DEFEND");
@@ -197,7 +262,7 @@ public record NpcSocietyDecisionSnapshot(
         if ((ctx.isRestPhase() || ctx.fatigueNeed() >= 70 || ctx.safetyNeed() >= 70) && !ctx.hasHome()) {
             return new BlockedGoal(GoHomeResidentGoal.ID.toString(), "NO_HOME");
         }
-        if (ctx.hungerNeed() >= 35 && !ctx.hasHome() && !hasFoodAccess(ctx)) {
+        if (ctx.hungerNeed() >= 35 && !ctx.hasHome() && !ctx.hasSupplyAccess()) {
             return new BlockedGoal(EatResidentGoal.ID.toString(), "NO_FOOD_ACCESS");
         }
         if (ctx.resident().role() == BannerModSettlementResidentRole.CONTROLLED_WORKER && ctx.isActivePhase()) {
@@ -209,16 +274,29 @@ public record NpcSocietyDecisionSnapshot(
             }
         }
         if (ctx.socialNeed() >= 60
-                && ctx.isActivePhase()
+                && ctx.isDayRoutinePhase()
                 && !supportsSocialWindow(ctx)
                 && (activeTask == null || !SocialiseResidentGoal.ID.equals(activeTask.goalId()))) {
             return new BlockedGoal(SocialiseResidentGoal.ID.toString(), "ROUTINE_WINDOW_MISMATCH");
         }
-        return new BlockedGoal(null, "NONE");
+        if (lastOutcome != null
+                && lastOutcome.isFailure()
+                && ctx.gameTime() - lastOutcome.finishedGameTime() <= 240L
+                && (activeTask == null || !lastOutcome.goalId().equals(activeTask.goalId()))) {
+            return new BlockedGoal(lastOutcome.goalId().toString(), outcomeReasonTag(lastOutcome));
+        }
+        return new BlockedGoal(null, BLOCKED_REASON_NONE);
     }
 
-    private static boolean hasFoodAccess(ResidentGoalContext ctx) {
-        return ctx.settlement() != null && ctx.settlement().marketState().openMarketCount() > 0;
+    private static String outcomeReasonTag(ResidentTaskOutcome lastOutcome) {
+        if (lastOutcome == null || lastOutcome.stopReason() == null) {
+            return BLOCKED_REASON_NONE;
+        }
+        return switch (lastOutcome.stopReason()) {
+            case TIMED_OUT -> BLOCKED_REASON_TASK_TIMED_OUT;
+            case CONTEXT_INVALID -> BLOCKED_REASON_CONTEXT_INVALIDATED;
+            default -> BLOCKED_REASON_NONE;
+        };
     }
 
     private static boolean hasWorkAssignment(ResidentGoalContext ctx) {
@@ -227,9 +305,26 @@ public record NpcSocietyDecisionSnapshot(
                 || assignmentState == BannerModSettlementResidentAssignmentState.ASSIGNED_MISSING_BUILDING;
     }
 
+    private static boolean isRecoveryReason(String reasonTag) {
+        return BLOCKED_REASON_TASK_TIMED_OUT.equals(reasonTag) || BLOCKED_REASON_CONTEXT_INVALIDATED.equals(reasonTag);
+    }
+
     private static boolean supportsSocialWindow(ResidentGoalContext ctx) {
+        if (ctx.isLeisurePhase()) {
+            return true;
+        }
         return ctx.window() == BannerModSettlementResidentScheduleWindowSeed.CIVIC_DAY
                 || ctx.window() == BannerModSettlementResidentScheduleWindowSeed.DAYLIGHT_FLEX;
+    }
+
+    private static boolean shouldExplainCommitment(ResidentGoalContext ctx, ResourceLocation goalId) {
+        if (ctx == null || goalId == null) {
+            return false;
+        }
+        if (HideResidentGoal.ID.equals(goalId) || DefendResidentGoal.ID.equals(goalId)) {
+            return false;
+        }
+        return ctx.fatigueNeed() < 90 && ctx.hungerNeed() < 90 && ctx.safetyNeed() < 85;
     }
 
     private static String safeTag(@Nullable String value) {

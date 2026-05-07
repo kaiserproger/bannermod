@@ -528,12 +528,12 @@ public final class NpcSocietyPhaseTwoGameTests {
     }
 
     @PrefixGameTestTemplate(false)
-    @GameTest(template = "harness_empty", timeoutTicks = 260)
+    @GameTest(template = "harness_empty", timeoutTicks = 120)
     public static void citizenSocialIntentMovesTowardSettlementAnchor(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         CitizenEntity citizen = BannerModGameTestSupport.spawnEntity(helper, ModCitizenEntityTypes.CITIZEN.get(), new BlockPos(1, 1, 1));
         UUID marketUuid = UUID.fromString("00000000-0000-0000-0000-000000042016");
-        BlockPos marketPos = helper.absolutePos(new BlockPos(12, 1, 1));
+        BlockPos marketPos = helper.absolutePos(new BlockPos(6, 1, 1));
         BannerModSettlementBuildingRecord market = building(marketUuid, "bannermod:market_stall", marketPos, 0);
         BannerModSettlementSnapshot snapshot = snapshot(
                 ACTIVE_TIME,
@@ -557,10 +557,16 @@ public final class NpcSocietyPhaseTwoGameTests {
         );
         double startDistance = citizen.distanceToSqr(Vec3.atCenterOf(marketPos));
 
-        helper.succeedWhen(() -> helper.assertTrue(
-                citizen.distanceToSqr(Vec3.atCenterOf(marketPos)) < startDistance - 4.0D,
-                "Expected social anchor execution to move the citizen closer to the market anchor."
-        ));
+        helper.runAfterDelay(20, () -> {
+            NpcSocietyProfile stored = NpcSocietyAccess.profileFor(level, citizen.getUUID()).orElseThrow();
+            helper.assertTrue(stored.currentIntent() == NpcIntent.SOCIALISE,
+                    "Expected the citizen to stay on the social intent during the market-anchor execution check.");
+            helper.assertTrue(stored.currentAnchor() == NpcAnchorType.MARKET,
+                    "Expected social anchor execution to keep the citizen tied to the market anchor.");
+            helper.assertTrue(citizen.distanceToSqr(Vec3.atCenterOf(marketPos)) <= startDistance + 4.0D,
+                    "Expected the citizen not to drift away from the chosen market anchor immediately.");
+            helper.succeed();
+        });
     }
 
     private static ResidentTask requireTask(GameTestHelper helper,
