@@ -8711,8 +8711,8 @@
     {
       "id": "PACKETAUTH-010",
       "title": "Verify leader ownership in MessagePatrolLeaderRemoveWayPoint",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "MessagePatrolLeaderRemoveWayPoint resolves an AbstractLeaderEntity by UUID and only verifies a range AABB / distance before calling leader.removeLastWayPoint(...). No ownership check; any client in range can mutate a foreign player's leader entity (waypoints, cycle, speed, info mode, etc.).",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessagePatrolLeaderRemoveWayPoint.java executeServerSide; add canDirectlyControl(sender, leader) (or equivalent owner-equality check via leader.getOwnerUUID()) before the mutation."
@@ -8722,14 +8722,20 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) MessagePatrolLeaderRemoveWayPoint now requires RecruitCommandAuthority.canDirectlyControl(player, leader) before removeLastWayPoint mutation. 2) PatrolLeaderWaypointAuthorityTest confirms foreign non-op has no command role and the authority gate occurs before the only remove-waypoint mutation path. 3) Focused PatrolLeaderWaypointAuthorityTest, ./gradlew compileJava, ./gradlew test, and ./gradlew compileGametestJava passed on the integrated branch. 4) tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-011",
       "title": "Verify leader ownership in MessagePatrolLeaderSetCycle",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "MessagePatrolLeaderSetCycle resolves an AbstractLeaderEntity by UUID and only verifies a range AABB / distance before calling leader.setCycle(...). No ownership check; any client in range can mutate a foreign player's leader entity (waypoints, cycle, speed, info mode, etc.).",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessagePatrolLeaderSetCycle.java executeServerSide; add canDirectlyControl(sender, leader) (or equivalent owner-equality check via leader.getOwnerUUID()) before the mutation."
@@ -8739,8 +8745,14 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) MessagePatrolLeaderSetCycle now requires RecruitCommandAuthority.canDirectlyControl(player, leader) before setCycle mutation. 2) PatrolLeaderWaypointAuthorityTest confirms foreign non-op has no command role and the authority gate occurs before the only cycle mutation path. 3) Focused PatrolLeaderWaypointAuthorityTest, ./gradlew compileJava, ./gradlew test, and ./gradlew compileGametestJava passed on the integrated branch. 4) tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-012",
