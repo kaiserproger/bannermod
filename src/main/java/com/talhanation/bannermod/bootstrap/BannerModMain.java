@@ -77,6 +77,8 @@ public class BannerModMain {
         modEventBus.addListener(this::setup);
         modEventBus.addListener(BannerModNetworkBootstrap::registerPayloads);
 
+        com.talhanation.bannermod.registry.ModAttachments.ATTACHMENT_TYPES.register(modEventBus);
+
         // Register military deferred registers (from bannermod.registry.military)
         com.talhanation.bannermod.registry.military.ModBlocks.BLOCKS.register(modEventBus);
         com.talhanation.bannermod.registry.military.ModPois.POIS.register(modEventBus);
