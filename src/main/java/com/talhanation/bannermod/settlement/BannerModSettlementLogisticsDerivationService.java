@@ -23,19 +23,19 @@ final class BannerModSettlementLogisticsDerivationService {
                                   boolean governedSettlement,
                                   boolean claimedSettlement) {
         BannerModSeaTradeSummary.Summary seaTradeSummary = BannerModSeaTradeSummary.summarise(liveSeaTradeEntrypoints);
-        BannerModSettlementService.ReservationSignalSeed reservationSignalSeed = BannerModSettlementService.summarizeReservationSignalSeed(
+        BannerModSettlementSnapshotRuntime.ReservationSignalSeed reservationSignalSeed = BannerModSettlementSnapshotRuntime.summarizeReservationSignalSeed(
                 buildings,
                 localRoutes,
                 reservations
         );
-        BannerModSettlementStockpileSummary stockpileSummary = BannerModSettlementService.summarizeStockpiles(buildings, liveSeaTradeEntrypoints);
-        BannerModSettlementDesiredGoodsSnapshot desiredGoodsSnapshot = BannerModSettlementService.summarizeDesiredGoods(
+        BannerModSettlementStockpileSummary stockpileSummary = BannerModSettlementSnapshotRuntime.summarizeStockpiles(buildings, liveSeaTradeEntrypoints);
+        BannerModSettlementDesiredGoodsSnapshot desiredGoodsSnapshot = BannerModSettlementSnapshotRuntime.summarizeDesiredGoods(
                 buildings,
                 stockpileSummary,
                 marketState,
                 seaTradeSummary
         );
-        BannerModSettlementProjectCandidateSnapshot projectCandidateSnapshot = BannerModSettlementService.summarizeProjectCandidate(
+        BannerModSettlementProjectCandidateSnapshot projectCandidateSnapshot = BannerModSettlementSnapshotRuntime.summarizeProjectCandidate(
                 buildings,
                 stockpileSummary,
                 desiredGoodsSnapshot,
@@ -43,7 +43,7 @@ final class BannerModSettlementLogisticsDerivationService {
                 governedSettlement,
                 claimedSettlement
         );
-        BannerModSettlementTradeRouteHandoffSnapshot tradeRouteHandoffSnapshot = BannerModSettlementService.summarizeTradeRouteHandoffSnapshot(
+        BannerModSettlementTradeRouteHandoffSnapshot tradeRouteHandoffSnapshot = BannerModSettlementSnapshotRuntime.summarizeTradeRouteHandoffSnapshot(
                 stockpileSummary,
                 marketState,
                 desiredGoodsSnapshot,
@@ -51,7 +51,7 @@ final class BannerModSettlementLogisticsDerivationService {
                 seaTradeSummary,
                 localSeaTradeExecutions
         );
-        BannerModSettlementSupplySignalState supplySignalState = BannerModSettlementService.summarizeSupplySignals(
+        BannerModSettlementSupplySignalState supplySignalState = BannerModSettlementSnapshotRuntime.summarizeSupplySignals(
                 desiredGoodsSnapshot,
                 stockpileSummary,
                 marketState,
@@ -75,6 +75,6 @@ final class BannerModSettlementLogisticsDerivationService {
                            BannerModSettlementProjectCandidateSnapshot projectCandidateSnapshot,
                            BannerModSettlementTradeRouteHandoffSnapshot tradeRouteHandoffSnapshot,
                            BannerModSettlementSupplySignalState supplySignalState,
-                           BannerModSettlementService.ReservationSignalSeed reservationSignalSeed) {
+                           BannerModSettlementSnapshotRuntime.ReservationSignalSeed reservationSignalSeed) {
     }
 }
