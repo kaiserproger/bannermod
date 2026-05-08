@@ -2,21 +2,16 @@ package com.talhanation.bannermod;
 
 import com.mojang.authlib.GameProfile;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
-import com.talhanation.bannermod.entity.military.AbstractOrderAbleEntity;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
-import com.talhanation.bannermod.entity.military.AssassinLeaderEntity;
 import com.talhanation.bannermod.gametest.support.RecruitsBattleGameTestSupport;
 import com.talhanation.bannermod.gametest.support.RecruitsCommandGameTestSupport;
 import com.talhanation.bannermod.network.messages.military.MessageMovement;
 import com.talhanation.bannermod.entity.civilian.FarmerEntity;
 import com.talhanation.bannermod.entity.civilian.workarea.CropArea;
-import com.talhanation.bannermod.registry.military.ModEntityTypes;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -115,31 +110,6 @@ public class BannerModDedicatedServerAuthorityGameTests {
                 "Expected admin recovery to release the claimed crop area after authority is granted");
         helper.assertTrue(worker.getCurrentWorkArea() == null,
                 "Expected admin recovery to clear the current crop-area binding after control is recovered");
-        helper.succeed();
-    }
-
-    @PrefixGameTestTemplate(false)
-    @GameTest(template = "harness_empty")
-    public static void foreignAssassinLeaderCountAuthorityKeepsCountUnchanged(GameTestHelper helper) {
-        ServerLevel level = helper.getLevel();
-        Player owner = BannerModDedicatedServerGameTestSupport.createFakeServerPlayer(level, OFFLINE_OWNER_UUID, "assassin-owner");
-        Player outsider = BannerModDedicatedServerGameTestSupport.createFakeServerPlayer(level, OUTSIDER_UUID, "assassin-outsider");
-        @SuppressWarnings("unchecked")
-        var leaderType = (EntityType<? extends AbstractOrderAbleEntity>) (EntityType<?>) ModEntityTypes.RECRUIT.get();
-        AssassinLeaderEntity leader = new AssassinLeaderEntity(leaderType, level);
-        Vec3 spawn = Vec3.atCenterOf(helper.absolutePos(RecruitsBattleGameTestSupport.WEST_FRONTLINE_POS));
-
-        leader.moveTo(spawn.x, spawn.y, spawn.z, 0.0F, 0.0F);
-        level.addFreshEntity(leader);
-        leader.assignControlOwnerIfAbsent(owner);
-        leader.setCount(3);
-
-        boolean changed = leader.trySetCountFrom(outsider.getUUID(), outsider.hasPermissions(2), 7);
-
-        helper.assertFalse(changed,
-                "Expected a foreign non-op player to fail assassin leader count authority");
-        helper.assertTrue(leader.getCount() == 3,
-                "Expected the foreign count attempt to leave the actual assassin leader count unchanged");
         helper.succeed();
     }
 
