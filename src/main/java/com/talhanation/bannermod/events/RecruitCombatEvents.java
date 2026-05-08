@@ -1,6 +1,6 @@
 package com.talhanation.bannermod.events;
 
-import com.talhanation.bannermod.events.runtime.RecruitCombatRuntime;
+import com.talhanation.bannermod.combat.runtime.RecruitCombatRuntime;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
 import net.neoforged.neoforge.event.entity.ProjectileImpactEvent;

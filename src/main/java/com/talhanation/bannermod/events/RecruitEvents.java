@@ -2,6 +2,7 @@ package com.talhanation.bannermod.events;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 
 import com.talhanation.bannermod.governance.BannerModGovernorPolicy;
+import com.talhanation.bannermod.governance.runtime.RecruitGovernorWorkflow;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.entity.military.ICompanion;
 import com.talhanation.bannermod.registry.military.ModEntityTypes;
@@ -9,8 +10,8 @@ import com.talhanation.bannermod.inventory.military.PromoteContainer;
 import com.talhanation.bannermod.network.messages.military.MessageOpenPromoteScreen;
 import com.talhanation.bannermod.persistence.military.*;
 import com.talhanation.bannermod.events.RecruitEvent;
-import com.talhanation.bannermod.events.runtime.RecruitCombatRuntime;
-import com.talhanation.bannermod.events.runtime.RecruitWorldLifecycleService;
+import com.talhanation.bannermod.combat.runtime.RecruitCombatRuntime;
+import com.talhanation.bannermod.entity.military.runtime.RecruitWorldLifecycleService;
 import net.neoforged.neoforge.common.NeoForge;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;

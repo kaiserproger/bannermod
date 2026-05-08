@@ -1,4 +1,4 @@
-package com.talhanation.bannermod.events;
+package com.talhanation.bannermod.war.runtime;
 
 import com.talhanation.bannermod.compat.MedievalSiegeMachinesCompat;
 import net.minecraft.core.BlockPos;
@@ -30,7 +30,7 @@ public final class SiegeExplosionTuning {
         return isSiegeExplosionSource(entityTypeId(sourceEntity));
     }
 
-    static boolean isSiegeExplosionSource(@Nullable ResourceLocation entityId) {
+    public static boolean isSiegeExplosionSource(@Nullable ResourceLocation entityId) {
         if (entityId == null) {
             return false;
         }

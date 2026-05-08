@@ -2,6 +2,7 @@ package com.talhanation.bannermod.events;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 
 import com.talhanation.bannermod.ai.military.CombatStance;
+import com.talhanation.bannermod.army.command.runtime.RecruitCommandActionService;
 import com.talhanation.bannermod.army.command.runtime.MovementFormationCommandService;
 import com.talhanation.bannermod.army.command.RecruitSelectionRegistry;
 import com.talhanation.bannermod.client.military.ClientManager;

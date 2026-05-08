@@ -1,4 +1,4 @@
-package com.talhanation.bannermod.events.runtime;
+package com.talhanation.bannermod.entity.military.runtime;
 
 import com.talhanation.bannermod.config.RecruitsServerConfig;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;

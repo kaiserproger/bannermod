@@ -1,4 +1,4 @@
-package com.talhanation.bannermod.events.runtime;
+package com.talhanation.bannermod.combat.runtime;
 
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.entity.military.RecruitPoliticalContext;
@@ -18,7 +18,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.UUID;
 
-final class RecruitTargetAuthority {
+public final class RecruitTargetAuthority {
     private RecruitTargetAuthority() {
     }
 
@@ -41,10 +41,10 @@ final class RecruitTargetAuthority {
         return claimAuthorityAllowsTarget(attackerPoliticalEntityId, claimOwnerPoliticalEntityId, occupiesClaim, atWarWithClaimOwner);
     }
 
-    static boolean claimAuthorityAllowsTarget(@Nullable UUID attackerPoliticalEntityId,
-                                              @Nullable UUID claimOwnerPoliticalEntityId,
-                                              boolean occupiesClaim,
-                                              boolean atWarWithClaimOwner) {
+    public static boolean claimAuthorityAllowsTarget(@Nullable UUID attackerPoliticalEntityId,
+                                                     @Nullable UUID claimOwnerPoliticalEntityId,
+                                                     boolean occupiesClaim,
+                                                     boolean atWarWithClaimOwner) {
         if (claimOwnerPoliticalEntityId == null) {
             return true;
         }

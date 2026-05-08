@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * a {@code routEndTick} (the game-tick at which the rout window closes). An entry is created
  * lazily on the first evaluation and left in place — recruits removed from the world have
  * their entries reaped by {@link #invalidate(UUID)}, called from the existing entity-leave
- * hook in {@link com.talhanation.bannermod.events.runtime.RecruitCombatRuntime}.</p>
+ * hook in {@link com.talhanation.bannermod.combat.runtime.RecruitCombatRuntime}.</p>
  *
  * <p>Transitions into {@link MoraleState#ROUTED} fire two side effects:
  * <ol>

@@ -3,7 +3,7 @@ package com.talhanation.bannermod.events;
 import com.talhanation.bannermod.config.RecruitsServerConfig;
 import com.talhanation.bannermod.entity.military.*;
 import com.talhanation.bannermod.ai.military.villager.VillagerBecomeNobleGoal;
-import com.talhanation.bannermod.events.runtime.VillageGuardSpawnService;
+import com.talhanation.bannermod.entity.military.runtime.VillageGuardSpawnService;
 import com.talhanation.bannermod.events.runtime.VillagerConversionService;
 import com.talhanation.bannermod.events.runtime.VillagerProfessionTradeRegistrationService;
 import com.talhanation.bannermod.registry.military.ModEntityTypes;

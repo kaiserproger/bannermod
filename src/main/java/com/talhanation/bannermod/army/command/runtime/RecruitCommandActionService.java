@@ -1,4 +1,4 @@
-package com.talhanation.bannermod.events;
+package com.talhanation.bannermod.army.command.runtime;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.config.RecruitsServerConfig;
@@ -26,12 +26,12 @@ import net.minecraft.world.item.SwordItem;
 import java.util.Optional;
 import java.util.UUID;
 
-final class RecruitCommandActionService {
+public final class RecruitCommandActionService {
 
     private RecruitCommandActionService() {
     }
 
-    static boolean handleRecruiting(Player player, RecruitsGroup group, AbstractRecruitEntity recruit, boolean message) {
+    public static boolean handleRecruiting(Player player, RecruitsGroup group, AbstractRecruitEntity recruit, boolean message) {
         String name = recruit.getName().getString() + ": ";
         int sollPrice = recruit.getCost();
         boolean playerCanPay = BannerModCurrencyHelper.canAfford(player, sollPrice);
@@ -50,7 +50,7 @@ final class RecruitCommandActionService {
         return false;
     }
 
-    static void onMountButton(UUID playerUuid, AbstractRecruitEntity recruit, UUID mountUuid, UUID group) {
+    public static void onMountButton(UUID playerUuid, AbstractRecruitEntity recruit, UUID mountUuid, UUID group) {
         if (recruit.isEffectedByCommand(playerUuid, group)) {
             if (mountUuid != null) {
                 recruit.shouldMount(true, mountUuid);
@@ -61,7 +61,7 @@ final class RecruitCommandActionService {
         }
     }
 
-    static void onDismountButton(UUID playerUuid, AbstractRecruitEntity recruit, UUID group) {
+    public static void onDismountButton(UUID playerUuid, AbstractRecruitEntity recruit, UUID group) {
         if (recruit.isEffectedByCommand(playerUuid, group)) {
             recruit.shouldMount(false, null);
             if (recruit.isPassenger()) {
@@ -71,13 +71,13 @@ final class RecruitCommandActionService {
         }
     }
 
-    static void onProtectButton(UUID playerUuid, AbstractRecruitEntity recruit, UUID protectUuid, UUID group) {
+    public static void onProtectButton(UUID playerUuid, AbstractRecruitEntity recruit, UUID protectUuid, UUID group) {
         if (recruit.isEffectedByCommand(playerUuid, group)) {
             recruit.shouldProtect(true, protectUuid);
         }
     }
 
-    static void onClearTargetButton(UUID playerUuid, AbstractRecruitEntity recruit, UUID group) {
+    public static void onClearTargetButton(UUID playerUuid, AbstractRecruitEntity recruit, UUID group) {
         if (recruit.isEffectedByCommand(playerUuid, group)) {
             recruit.setTarget(null);
             recruit.setLastHurtByPlayer(null);
@@ -86,14 +86,14 @@ final class RecruitCommandActionService {
         }
     }
 
-    static void onClearUpkeepButton(UUID playerUuid, AbstractRecruitEntity recruit, UUID group) {
+    public static void onClearUpkeepButton(UUID playerUuid, AbstractRecruitEntity recruit, UUID group) {
         if (recruit.isEffectedByCommand(playerUuid, group)) {
             recruit.clearUpkeepEntity();
             recruit.clearUpkeepPos();
         }
     }
 
-    static void onUpkeepCommand(UUID playerUuid, AbstractRecruitEntity recruit, UUID group, boolean isEntity, UUID entityUuid, BlockPos blockPos) {
+    public static void onUpkeepCommand(UUID playerUuid, AbstractRecruitEntity recruit, UUID group, boolean isEntity, UUID entityUuid, BlockPos blockPos) {
         if (recruit.isEffectedByCommand(playerUuid, group)) {
             if (isEntity) {
                 recruit.setUpkeepUUID(Optional.of(entityUuid));
@@ -108,13 +108,13 @@ final class RecruitCommandActionService {
         }
     }
 
-    static void onShieldsCommand(Player player, UUID playerUuid, AbstractRecruitEntity recruit, UUID group, boolean shields) {
+    public static void onShieldsCommand(Player player, UUID playerUuid, AbstractRecruitEntity recruit, UUID group, boolean shields) {
         if (recruit.isEffectedByCommand(playerUuid, group)) {
             recruit.setShouldBlock(shields);
         }
     }
 
-    static void onRangedFireCommand(ServerPlayer serverPlayer, UUID playerUuid, AbstractRecruitEntity recruit, UUID group, boolean should) {
+    public static void onRangedFireCommand(ServerPlayer serverPlayer, UUID playerUuid, AbstractRecruitEntity recruit, UUID group, boolean should) {
         if (recruit.isEffectedByCommand(playerUuid, group)) {
             recruit.setShouldRanged(should);
 
@@ -131,7 +131,7 @@ final class RecruitCommandActionService {
         }
     }
 
-    static void onRestCommand(ServerPlayer serverPlayer, UUID playerUuid, AbstractRecruitEntity recruit, UUID group, boolean should) {
+    public static void onRestCommand(ServerPlayer serverPlayer, UUID playerUuid, AbstractRecruitEntity recruit, UUID group, boolean should) {
         if (recruit.isEffectedByCommand(playerUuid, group)) {
             onClearTargetButton(playerUuid, recruit, group);
             recruit.setShouldRest(should);

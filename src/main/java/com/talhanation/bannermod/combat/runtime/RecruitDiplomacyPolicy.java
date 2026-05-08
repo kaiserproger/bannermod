@@ -1,4 +1,4 @@
-package com.talhanation.bannermod.events.runtime;
+package com.talhanation.bannermod.combat.runtime;
 
 import com.talhanation.bannermod.entity.military.RecruitPoliticalContext;
 import com.talhanation.bannermod.war.WarRuntimeContext;
