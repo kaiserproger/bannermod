@@ -10,6 +10,7 @@ import com.talhanation.bannermod.entity.civilian.workarea.MiningArea;
 import com.talhanation.bannermod.entity.civilian.workarea.StorageArea;
 import com.talhanation.bannermod.entity.civilian.workarea.WorkAreaIndex;
 import com.talhanation.bannermod.settlement.runtime.SettlementClaimBindingService;
+import com.talhanation.bannermod.settlement.runtime.SettlementSeaTradeAnalyzer;
 import com.talhanation.bannermod.governance.BannerModGovernorManager;
 import com.talhanation.bannermod.governance.BannerModGovernorSnapshot;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
@@ -40,7 +41,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -777,11 +777,8 @@ public final class BannerModSettlementService {
         }
         addDesiredGoodDriver(desiredGoods, "market_goods", marketState.marketCount());
         addDesiredGoodDriver(desiredGoods, "trade_stock", marketState.openMarketCount());
-        for (Map.Entry<ResourceLocation, Integer> entry : seaTradeSummary.importableByItem().entrySet()) {
-            addDesiredGoodDriver(desiredGoods, "sea_import:" + entry.getKey(), entry.getValue());
-        }
-        for (Map.Entry<ResourceLocation, Integer> entry : seaTradeSummary.exportableByItem().entrySet()) {
-            addDesiredGoodDriver(desiredGoods, "sea_export:" + entry.getKey(), entry.getValue());
+        for (BannerModSettlementDesiredGoodSeed seaTradeDesiredGood : SettlementSeaTradeAnalyzer.desiredGoods(seaTradeSummary)) {
+            addDesiredGoodDriver(desiredGoods, seaTradeDesiredGood.desiredGoodId(), seaTradeDesiredGood.driverCount());
         }
 
         List<BannerModSettlementDesiredGoodSeed> desiredGoodSeeds = new ArrayList<>(desiredGoods.size());
@@ -821,7 +818,7 @@ public final class BannerModSettlementService {
                 reservationSignalSeed.reservedUnitCount(),
                 desiredGoodsSeed.desiredGoods(),
                 marketState.sellerDispatches(),
-                seaTradeStatusLines(seaTradeSummary, seaTradeExecutionRecords)
+                SettlementSeaTradeAnalyzer.statusLines(seaTradeSummary, seaTradeExecutionRecords)
         );
     }
 
@@ -874,7 +871,21 @@ public final class BannerModSettlementService {
         int shortageUnitCount = 0;
         int reservationHintUnitCount = 0;
         for (BannerModSettlementDesiredGoodSeed desiredGood : desiredGoodsSeed.desiredGoods()) {
-            int coverageUnits = resolveSupplyCoverageUnits(desiredGood.desiredGoodId(), stockpileSummary, marketState, serviceCoverageByGood, seaTradeSummary);
+            int coverageUnits = serviceCoverageByGood.getOrDefault(desiredGood.desiredGoodId(), 0);
+            String desiredGoodId = desiredGood.desiredGoodId();
+            if (desiredGoodId != null && !desiredGoodId.isBlank()) {
+                coverageUnits = SettlementSeaTradeAnalyzer.addCoverageUnits(desiredGoodId, coverageUnits, seaTradeSummary);
+                if (desiredGoodId.startsWith("storage_type:")) {
+                    String storageTypeId = desiredGoodId.substring("storage_type:".length());
+                    if (stockpileSummary.authoredStorageTypeIds().contains(storageTypeId)) {
+                        coverageUnits++;
+                    }
+                } else if ("market_goods".equals(desiredGoodId)) {
+                    coverageUnits += marketState.readySellerDispatchCount();
+                } else if ("trade_stock".equals(desiredGoodId)) {
+                    coverageUnits += marketState.openMarketCount() + stockpileSummary.portEntrypointCount();
+                }
+            }
             int shortageUnits = Math.max(0, desiredGood.driverCount() - coverageUnits);
             int reservationHintUnits = reservationSignalSeed.reservationHintUnitsByGood().getOrDefault(desiredGood.desiredGoodId(), 0);
             if (shortageUnits > 0) {
@@ -1157,115 +1168,6 @@ public final class BannerModSettlementService {
             return;
         }
         desiredGoods.merge(desiredGoodId, driverCount, Integer::sum);
-    }
-
-    private static int resolveSupplyCoverageUnits(String goodId,
-                                                   BannerModSettlementStockpileSummary stockpileSummary,
-                                                   BannerModSettlementMarketState marketState,
-                                                   Map<String, Integer> serviceCoverageByGood) {
-        return resolveSupplyCoverageUnits(goodId, stockpileSummary, marketState, serviceCoverageByGood, BannerModSeaTradeSummary.summarise(List.of()));
-    }
-
-    private static int resolveSupplyCoverageUnits(String goodId,
-                                                   BannerModSettlementStockpileSummary stockpileSummary,
-                                                   BannerModSettlementMarketState marketState,
-                                                   Map<String, Integer> serviceCoverageByGood,
-                                                   BannerModSeaTradeSummary.Summary seaTradeSummary) {
-        int coverageUnits = serviceCoverageByGood.getOrDefault(goodId, 0);
-        if (goodId == null || goodId.isBlank()) {
-            return coverageUnits;
-        }
-        if (goodId.startsWith("sea_import:")) {
-            ResourceLocation itemId = ResourceLocation.tryParse(goodId.substring("sea_import:".length()));
-            return coverageUnits + BannerModSeaTradeSummary.totalImportableCount(seaTradeSummary, itemId);
-        }
-        if (goodId.startsWith("sea_export:")) {
-            ResourceLocation itemId = ResourceLocation.tryParse(goodId.substring("sea_export:".length()));
-            return coverageUnits + BannerModSeaTradeSummary.totalExportableCount(seaTradeSummary, itemId);
-        }
-        if (goodId.startsWith("storage_type:")) {
-            String storageTypeId = goodId.substring("storage_type:".length());
-            if (stockpileSummary.authoredStorageTypeIds().contains(storageTypeId)) {
-                coverageUnits++;
-            }
-            return coverageUnits;
-        }
-        return switch (goodId) {
-            case "market_goods" -> coverageUnits + marketState.readySellerDispatchCount();
-            case "trade_stock" -> coverageUnits + marketState.openMarketCount() + stockpileSummary.portEntrypointCount();
-            default -> coverageUnits;
-        };
-    }
-
-    static List<String> seaTradeStatusLines(BannerModSeaTradeSummary.Summary seaTradeSummary,
-                                            List<BannerModSeaTradeExecutionRecord> executionRecords) {
-        List<String> lines = new ArrayList<>();
-        for (BannerModSeaTradeExecutionRecord record : executionRecords) {
-            lines.add(seaTradeExecutionStatusLine(record));
-        }
-        for (Map.Entry<ResourceLocation, Integer> entry : seaTradeSummary.importableByItem().entrySet()) {
-            lines.add("Sea import benefit: " + entry.getKey() + " x" + entry.getValue());
-        }
-        for (Map.Entry<ResourceLocation, Integer> entry : seaTradeSummary.exportableByItem().entrySet()) {
-            lines.add("Sea export benefit: " + entry.getKey() + " x" + entry.getValue());
-        }
-        for (String bottleneck : seaTradeSummary.bottlenecks()) {
-            lines.add("Sea trade bottleneck: " + bottleneck.toLowerCase(Locale.ROOT));
-        }
-        return lines;
-    }
-
-    private static List<String> seaTradeStatusLines(BannerModSeaTradeSummary.Summary seaTradeSummary) {
-        return seaTradeStatusLines(seaTradeSummary, List.of());
-    }
-
-    private static String seaTradeExecutionStatusLine(BannerModSeaTradeExecutionRecord record) {
-        String statusKey = switch (record.state()) {
-            case LOADING -> "loading";
-            case TRAVELLING -> "travelling";
-            case UNLOADING -> "unloading";
-            case COMPLETE -> "completed";
-            case FAILED -> BannerModSeaTradeExecutionRecord.FAILURE_NO_CARRIER.equals(record.failureReason())
-                    ? "missing_ship"
-                    : "blocked_cargo";
-        };
-        return "gui.bannermod.governor.logistics.sea_trade." + statusKey + " "
-                + shortRouteId(record.routeId()) + " "
-                + carrierLabel(record.boundCarrierId()) + " "
-                + failureReasonKey(record.failureReason()) + " "
-                + seaTradeFilterLabel(record) + " "
-                + record.cargoCount() + " "
-                + record.requestedCount();
-    }
-
-    private static String carrierLabel(@Nullable UUID carrierId) {
-        return carrierId == null ? "unassigned" : shortRouteId(carrierId);
-    }
-
-    private static String failureReasonKey(String failureReason) {
-        if (failureReason == null || failureReason.isBlank()) {
-            return "gui.bannermod.governor.logistics.sea_trade.reason.none";
-        }
-        return switch (failureReason) {
-            case BannerModSeaTradeExecutionRecord.FAILURE_NO_CARRIER -> "gui.bannermod.governor.logistics.sea_trade.reason.no_carrier";
-            case BannerModSeaTradeExecutionRecord.FAILURE_NO_CARGO_LOADED -> "gui.bannermod.governor.logistics.sea_trade.reason.no_cargo_loaded";
-            case BannerModSeaTradeExecutionRecord.FAILURE_SOURCE_SHORTAGE -> "gui.bannermod.governor.logistics.sea_trade.reason.source_shortage";
-            case BannerModSeaTradeExecutionRecord.FAILURE_DESTINATION_FULL -> "gui.bannermod.governor.logistics.sea_trade.reason.destination_full";
-            default -> "gui.bannermod.governor.logistics.sea_trade.reason.carrier_failed";
-        };
-    }
-
-    private static String shortRouteId(UUID routeId) {
-        String value = routeId.toString().replace("-", "");
-        return value.substring(Math.max(0, value.length() - 4));
-    }
-
-    private static String seaTradeFilterLabel(BannerModSeaTradeExecutionRecord record) {
-        return record.filter().itemIds().stream()
-                .sorted(Comparator.comparing(ResourceLocation::toString))
-                .map(ResourceLocation::toString)
-                .findFirst()
-                .orElse("any");
     }
 
     private static String desiredGoodIdForProfile(BannerModSettlementBuildingProfileSeed profileSeed) {
