@@ -8475,8 +8475,8 @@
     {
       "id": "EVENTSPKG-005",
       "title": "Move remaining non-event services out of events/ and finalize package contract",
-      "status": "open",
-      "updated": "2026-05-05",
+      "status": "in_progress",
+      "updated": "2026-05-08",
       "why": "EVENTSPKG-001 final phase: any service still in events/ after the prior moves must be relocated. Once done, events/ should contain only classes whose methods carry @SubscribeEvent.",
       "scope": [
         "Inventory events/ — for each class, decide: (a) it is a @SubscribeEvent host (stay) or (b) it is a service (move to the matching subsystem runtime/ folder).",
@@ -8491,11 +8491,17 @@
         "tools/backlog validate passes."
       ],
       "dependencies": [
-        "EVENTSPKG-002",
-        "EVENTSPKG-003",
-        "EVENTSPKG-004"
+        "EVENTSPKG-005A",
+        "EVENTSPKG-005B",
+        "EVENTSPKG-005C",
+        "EVENTSPKG-005D"
       ],
-      "progress": [],
+      "progress": [
+        {
+          "date": "2026-05-08",
+          "text": "parallel wave produced an 80+ file package-move diff in /home/user/bannermod-task-worktrees/EVENTSPKG-005; not merged because it is too broad for safe review as one task and the required runGameTestServer gate is currently blocked by unrelated baseline failures fiverecruitformationholdsacrossdimensionteleport, starterbootstrapseedsrealworkerassignmentsandwaitingreasons, and friendlyclaimbindingallowsplacementandsettlementoperation; moved remaining scope into area-based child tasks EVENTSPKG-005A/B/C plus final guard/gate EVENTSPKG-005D"
+        }
+      ],
       "verification": [],
       "evidence": []
     },
@@ -8757,8 +8763,8 @@
     {
       "id": "PACKETAUTH-012",
       "title": "Verify leader ownership in MessagePatrolLeaderSetEnemyAction",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "MessagePatrolLeaderSetEnemyAction resolves an AbstractLeaderEntity by UUID and only verifies a range AABB / distance before calling leader.setEnemyAction(...). No ownership check; any client in range can mutate a foreign player's leader entity (waypoints, cycle, speed, info mode, etc.).",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessagePatrolLeaderSetEnemyAction.java executeServerSide; add canDirectlyControl(sender, leader) (or equivalent owner-equality check via leader.getOwnerUUID()) before the mutation."
@@ -8768,14 +8774,20 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Handler now requires RecruitCommandAuthority.canDirectlyControl(player, leader) before leader.setEnemyAction(this.action); 2) focused PatrolLeaderWaypointAuthorityTest passed and asserts a foreign non-op sender has CommandRole.NONE and the authority gate precedes the only enemy-action mutation; 3) ./gradlew compileJava test --tests PatrolLeaderWaypointAuthorityTest --tests MessagePatrolLeaderSetInfoModeAuthorityTest passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-013",
       "title": "Verify leader ownership in MessagePatrolLeaderSetInfoMode",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "MessagePatrolLeaderSetInfoMode resolves an AbstractLeaderEntity by UUID and only verifies a range AABB / distance before calling leader.setInfoMode(...). No ownership check; any client in range can mutate a foreign player's leader entity (waypoints, cycle, speed, info mode, etc.).",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessagePatrolLeaderSetInfoMode.java executeServerSide; add canDirectlyControl(sender, leader) (or equivalent owner-equality check via leader.getOwnerUUID()) before the mutation."
@@ -8785,14 +8797,20 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Handler now requires RecruitCommandAuthority.canDirectlyControl(player, leader) before leader.setInfoMode(state); 2) focused MessagePatrolLeaderSetInfoModeAuthorityTest passed and asserts a foreign non-op sender has CommandRole.NONE and the authority gate precedes the only info-mode mutation; 3) ./gradlew compileJava test --tests PatrolLeaderWaypointAuthorityTest --tests MessagePatrolLeaderSetInfoModeAuthorityTest passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-014",
       "title": "Verify leader ownership in MessagePatrolLeaderSetPatrollingSpeed",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "MessagePatrolLeaderSetPatrollingSpeed resolves an AbstractLeaderEntity by UUID and only verifies a range AABB / distance before calling leader.setPatrolSpeed(...). No ownership check; any client in range can mutate a foreign player's leader entity (waypoints, cycle, speed, info mode, etc.).",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessagePatrolLeaderSetPatrollingSpeed.java executeServerSide; add canDirectlyControl(sender, leader) (or equivalent owner-equality check via leader.getOwnerUUID()) before the mutation."
@@ -8802,14 +8820,20 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Handler now requires RecruitCommandAuthority.canDirectlyControl(player, leader) before leader.setPatrolSpeed(this.speed); 2) focused PatrolLeaderWaypointAuthorityTest passed and asserts a foreign non-op sender has CommandRole.NONE and the authority gate precedes the only patrol-speed mutation; 3) ./gradlew compileJava test --tests PatrolLeaderWaypointAuthorityTest --tests MessagePatrolLeaderSetInfoModeAuthorityTest passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-015",
       "title": "Verify leader ownership in MessagePatrolLeaderSetWaitTime",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "MessagePatrolLeaderSetWaitTime resolves an AbstractLeaderEntity by UUID and only verifies a range AABB / distance before calling leader.setWaitTimeInMin(...). No ownership check; any client in range can mutate a foreign player's leader entity (waypoints, cycle, speed, info mode, etc.).",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessagePatrolLeaderSetWaitTime.java executeServerSide; add canDirectlyControl(sender, leader) (or equivalent owner-equality check via leader.getOwnerUUID()) before the mutation."
@@ -8819,14 +8843,20 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Handler now requires RecruitCommandAuthority.canDirectlyControl(player, leader) before leader.setWaitTimeInMin(this.time); 2) focused PatrolLeaderWaypointAuthorityTest passed and asserts a foreign non-op sender has CommandRole.NONE and the authority gate precedes the only wait-time mutation; 3) ./gradlew compileJava test with packet-authority focused tests passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-016",
       "title": "Verify leader ownership in MessageRemoveAssignedGroupFromCompanion",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "MessageRemoveAssignedGroupFromCompanion resolves an AbstractLeaderEntity by UUID and only checks a 100-block AABB before nulling its leader binding, resetting its army's listen/follow/hold-pos state, and broadcasting a leader-screen update. There is no sender-equality / canDirectlyControl gate; any client in range can detach a foreign player's companion's group.",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessageRemoveAssignedGroupFromCompanion.java executeServerSide; require canDirectlyControl(sender, leader) (or owner-equality via leader.getOwnerUUID()) before mutating leaderUUID, army state, or broadcasting screen updates."
@@ -8836,14 +8866,20 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Handler now requires RecruitCommandAuthority.canDirectlyControl(serverPlayer, companionEntity) before group leader binding, army reset, companion army detach, or screen broadcast mutations; 2) focused MessageRemoveAssignedGroupFromCompanionAuthorityTest passed and asserts a foreign non-op sender has CommandRole.NONE and the authority gate precedes those mutations; 3) ./gradlew compileJava test with packet-authority focused tests passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-017",
       "title": "Verify messenger ownership in MessageSendMessenger",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "MessageSendMessenger resolves a MessengerEntity by UUID with only a 16-block AABB check, then mutates messenger.setMessage / setTargetPlayerInfo and starts the delivery. There is no sender-equality check against messenger.getOwnerUUID(); any client in range can hijack a foreign messenger to deliver an arbitrary message and target.",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessageSendMessenger.java executeServerSide; require sender.getUUID().equals(messenger.getOwnerUUID()) (or sender.hasPermissions(2)) before mutating message/target/start."
@@ -8853,14 +8889,20 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Handler now returns unless sender owns the messenger or has op permission before message, target, treaty-state, or start mutations; 2) focused MessageSendMessengerAuthorityTest passed and asserts the owner/op gate precedes all messenger delivery mutations; 3) ./gradlew compileJava test with packet-authority focused tests passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-018",
       "title": "Verify recruit ownership in MessagePromoteRecruit",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "MessagePromoteRecruit resolves any recruit within 16 blocks by UUID and calls RecruitEvents.promoteRecruit, which discards the original entity and spawns a companion with setOwnerName(sender.getName()). There is no ownership / canDirectlyControl gate; a non-owner can effectively steal a foreign recruit by promoting it.",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessagePromoteRecruit.java executeServerSide and/or RecruitEvents.promoteRecruit; require canDirectlyControl(sender, recruit) before invoking promoteRecruit."
@@ -8870,14 +8912,20 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Handler now requires RecruitCommandAuthority.canDirectlyControl(sender, recruit) before RecruitEvents.promoteRecruit, so foreign nearby senders bail before promotion/discard/spawn; 2) focused MessagePromoteRecruitAuthorityTest passed and asserts the authority gate precedes the promotion call; 3) ./gradlew compileJava test with packet-authority focused tests passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-019",
       "title": "Reject foreign-group target in MessageHire",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "MessageHire accepts any groupUUID from the wire and feeds it directly into RecruitsGroupsManager.getGroup + RecruitLifecycleService.hire. The hired recruit is added to that group's members list and (via RecruitLifecycleService.updateGroup) is later reassigned to the foreign group's owner. A sender can therefore pay to inject recruits into another player's group and bypass MessageAssignGroupToPlayer's audited transfer path.",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessageHire.java executeServerSide; require RecruitCommandAuthority.ownedGroup(sender, groupUUID) (or null when not owned, falling back to no group) before passing the group into handleRecruiting."
@@ -8887,14 +8935,20 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Handler now resolves requested groupUUID through RecruitCommandAuthority.ownedGroup(player, groupUUID), so foreign-group UUIDs become null before hire handling; 2) focused MessageHireAuthorityTest passed and asserts the unsafe direct group lookup is absent and the ownership gate precedes CommandEvents.handleRecruiting; 3) ./gradlew compileJava test with packet-authority focused tests passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "WORKERUNBIND-001",
       "title": "Auto-unbind worker when its work-area entity is removed",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "When a worker's bound AbstractWorkAreaEntity is killed/discarded, the worker keeps boundWorkAreaUUID set to the dead entity's id. AbstractWorkerEntity.getCurrentWorkArea() returns null (filters isRemoved/missing entity), but boundWorkAreaUUID never goes back to null and AI goals (e.g. FarmerWorkGoal SELECT_WORK_AREA) cannot reliably tell the area is gone. The symmetric ClaimRemovalFanout exists for full-claim deletion, but not for a single area entity disappearing while its parent claim survives.",
       "scope": [
         "Add an EntityLeaveLevelEvent (or AbstractWorkAreaEntity.remove(...) override) handler that, when an AbstractWorkAreaEntity leaves the level via discard/kill/death, finds workers whose CitizenCore.boundWorkAreaUUID equals the removed entity's UUID and calls setCurrentWorkArea(null) on them within at most ~20 ticks",
@@ -8907,8 +8961,14 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) WorkAreaIndexEvents now handles destructive AbstractWorkAreaEntity leave events and calls setCurrentWorkArea(null) for loaded workers whose boundWorkAreaUUID matches the removed area; 2) BannerModWorkerUnbindOnAreaRemovalGameTests#workerAutoUnbindsWithinTwentyTicksAfterCropAreaRemoval has @GameTest enabled and asserts boundWorkAreaUUID and getCurrentWorkArea() become null after crop-area discard; 3) ./gradlew compileJava passed; ./gradlew runGameTestServer completed 163 tests and the worker-unbind test was not among failures, but the overall task failed on unrelated fiverecruitformationholdsacrossdimensionteleport, starterbootstrapseedsrealworkerassignmentsandwaitingreasons, and friendlyclaimbindingallowsplacementandsettlementoperation."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "FUZZHARDEN-001",
@@ -8935,8 +8995,8 @@
     {
       "id": "SETTREFACTOR-003A",
       "title": "Extract settlement treasury heartbeat derivation service",
-      "status": "open",
-      "updated": "2026-05-07",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "SETTREFACTOR-003 targeted treasury-hook methods in BannerModSettlementService, but current code no longer has treasury references there. The live treasury integration now sits in SettlementHeartbeatService's governor heartbeat path, so the extraction must target the actual runtime seam.",
       "scope": [
         "Create SettlementTreasuryDerivationService under settlement/runtime/ for the live governor-heartbeat treasury integration currently embedded in SettlementHeartbeatService.",
@@ -8952,13 +9012,19 @@
         "SETTREFACTOR-002"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) SettlementTreasuryDerivationService exists under settlement/runtime and owns BannerModTreasuryManager.get(level) for governor heartbeat batches plus heartbeat accounting derivation; 2) SettlementHeartbeatService no longer imports or directly calls BannerModTreasuryManager while the heartbeat batch counters/stage path are unchanged; 3) SettlementTreasuryDerivationServiceTest, BannerModGovernorHeartbeatTest, ./gradlew compileJava, and ./gradlew test passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-008A",
       "title": "Define server-authoritative AssassinLeader ownership",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "PACKETAUTH-008 needs an ownership check, but AssassinLeaderEntity currently has no persisted server-authoritative owner source. Adding a packet-side owner gate without defining how leaders become owned would either block legitimate count edits or let clients claim authority indirectly.",
       "scope": [
@@ -8973,13 +9039,19 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) AssassinLeaderEntity now has a server-side controlOwnerUUID assigned on the server GUI-open path before the menu can send count updates and persisted through ControlOwner NBT; 2) MessageAssassinCount only mutates count when leader.isControlledBy(player) passes and does not assign control from packet data; 3) AssassinLeaderControlAuthorityTest, ./gradlew compileJava, and ./gradlew test passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-008B",
       "title": "Gate MessageAssassinCount by AssassinLeader authority",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "After PACKETAUTH-008A defines trustworthy AssassinLeader authority, MessageAssassinCount can safely reject foreign sender mutations without breaking legitimate users.",
       "scope": [
@@ -8994,6 +9066,118 @@
       ],
       "dependencies": [
         "PACKETAUTH-008A"
+      ],
+      "progress": [],
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) MessageAssassinCount now gates count mutation with leader.isControlledBy(player) || player.hasPermissions(2) while preserving the existing 16-block AABB check; 2) AssassinLeaderControlAuthorityTest passed and asserts foreign non-op rejection plus owner/op allow-path source gates before the only setCount mutation; 3) ./gradlew compileJava, compileGameTestJava, and ./gradlew test passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
+    },
+    {
+      "id": "EVENTSPKG-005A",
+      "title": "Move claim and settlement services out of events package",
+      "status": "done",
+      "updated": "2026-05-08",
+      "why": "EVENTSPKG-005 is too large to review safely as one 80+ file package move; claim and settlement service classes can be moved and verified independently.",
+      "scope": [
+        "Move claim and settlement service classes currently under events/ or events/civilian/ into settlement/runtime/ or the nearest existing settlement runtime package: ClaimAccessQueries, ClaimInteractionTargetResolver, ClaimProtectionEventService, ClaimProtectionFeedback, ClaimProtectionPolicy, ClaimQueueTickService, and SettlementContainerHookPolicy.",
+        "Update all main, test, and gametest imports for those moved classes without changing runtime behavior.",
+        "Keep only actual NeoForge event subscriber hosts in the events package for this area."
+      ],
+      "acceptance": [
+        "The listed claim/settlement service classes no longer live under src/main/java/com/talhanation/bannermod/events/**.",
+        "All imports are updated and no old package references remain for the moved classes.",
+        "./gradlew compileJava and focused affected unit tests pass; tools/backlog validate passes."
+      ],
+      "dependencies": [],
+      "progress": [],
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) ClaimAccessQueries, ClaimInteractionTargetResolver, ClaimProtectionEventService, ClaimProtectionFeedback, ClaimProtectionPolicy, ClaimQueueTickService, and SettlementContainerHookPolicy moved from events/** to settlement/runtime; 2) ctx search for the old claim/settlement event-service FQNs returned 0 matches; 3) ./gradlew compileJava, compileGameTestJava, focused ClaimProtectionFeedbackTest and SettlementContainerHookPolicyTest, full ./gradlew test, and tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
+    },
+    {
+      "id": "EVENTSPKG-005B",
+      "title": "Move recruit combat and military runtime services out of events package",
+      "status": "done",
+      "updated": "2026-05-08",
+      "why": "EVENTSPKG-005 mixes several military and combat service moves; separating them keeps review and verification bounded.",
+      "scope": [
+        "Move recruit, command, governor-workflow, debug, combat-policy, world-lifecycle, target-authority, type-conversion, and siege tuning service classes out of events/ and events/runtime/ into combat/runtime/, entity/military/runtime/, war/runtime/, or the nearest existing subsystem package.",
+        "Update all main, test, and gametest imports for those moved classes without changing runtime behavior.",
+        "Remove only empty/dead event stubs in this area when no references remain."
+      ],
+      "acceptance": [
+        "Military/combat runtime service classes moved by this task no longer live under src/main/java/com/talhanation/bannermod/events/**.",
+        "Actual @SubscribeEvent host classes remain in events/ and still register normally.",
+        "./gradlew compileJava and focused affected unit tests pass; tools/backlog validate passes."
+      ],
+      "dependencies": [],
+      "progress": [],
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Recruit/combat/military runtime services moved out of events/** into army.command.runtime, combat.runtime, entity.military.runtime, governance.runtime, and war.runtime while event subscriber hosts stayed in events; 2) ctx search for old moved military event-service FQNs returned 0 matches; 3) ./gradlew compileJava, compileGameTestJava, focused RecruitGovernorWorkflowTest/SiegeExplosionTuningTest/RecruitTargetAuthorityTest, full ./gradlew test, and tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
+    },
+    {
+      "id": "EVENTSPKG-005C",
+      "title": "Move citizen worker and villager services out of events package",
+      "status": "done",
+      "updated": "2026-05-08",
+      "why": "Citizen, worker, and villager service moves are a separate reviewable slice of EVENTSPKG-005.",
+      "scope": [
+        "Move citizen lifecycle, villager conversion, guard spawn/factory, worker animal/market/settlement/trade service classes out of events/ and events/runtime/ into citizen/runtime/, settlement/civilian/runtime/, or the nearest existing subsystem package.",
+        "Update all main, test, and gametest imports for those moved classes without changing runtime behavior.",
+        "Remove only empty/dead event stubs in this area when no references remain."
+      ],
+      "acceptance": [
+        "Citizen, worker, and villager runtime service classes moved by this task no longer live under src/main/java/com/talhanation/bannermod/events/**.",
+        "Actual @SubscribeEvent host classes remain in events/ and still register normally.",
+        "./gradlew compileJava and focused affected unit tests pass; tools/backlog validate passes."
+      ],
+      "dependencies": [],
+      "progress": [],
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) WorkerAnimalGoalInjector, WorkerMarketAreaAccess, WorkerSettlementClaimPolicy, WorkerSettlementEventService, WorkerSettlementSpawnRuntime, WorkerTradeBootstrap, CitizenWorldLifecycleService, VillagerConversionService, and VillagerProfessionTradeRegistrationService moved out of events/** into ai.civilian.animals, citizen.runtime, entity.military.runtime, and settlement.civilian.runtime; 2) ctx search for old citizen/worker/villager event-service FQNs returned 0 matches; 3) ./gradlew compileJava compileGameTestJava test and tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
+    },
+    {
+      "id": "EVENTSPKG-005D",
+      "title": "Add final events package contract guard and full gate",
+      "status": "open",
+      "updated": "2026-05-08",
+      "why": "EVENTSPKG-005 needs a final inventory and regression guard after the area moves land, plus the full verification gate required by the parent task.",
+      "scope": [
+        "Inventory src/main/java/com/talhanation/bannermod/events/** after EVENTSPKG-005A/B/C and move any remaining non-event service or payload class that does not satisfy the final package contract.",
+        "Add a guard test under src/test that fails when a class is added under events/ without @SubscribeEvent event-host behavior, or document the same rule only if a code guard is impossible.",
+        "Run the full EVENTSPKG-005 verification gates and address any package-move regressions."
+      ],
+      "acceptance": [
+        "events/ contains only classes satisfying the final event-package contract; no service classes remain there.",
+        "A guard test or explicit CONTRIBUTING.md contract prevents future non-event services from being added to events/.",
+        "./gradlew compileJava, ./gradlew test, ./gradlew runGameTestServer, and tools/backlog validate pass before EVENTSPKG-005 is closed."
+      ],
+      "dependencies": [
+        "EVENTSPKG-005A",
+        "EVENTSPKG-005B",
+        "EVENTSPKG-005C"
       ],
       "progress": [],
       "verification": [],

@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.network.messages.military;
 
+import com.talhanation.bannermod.army.command.RecruitCommandAuthority;
 import com.talhanation.bannermod.entity.military.AbstractLeaderEntity;
 import com.talhanation.bannermod.network.payload.BannerModMessage;
 import net.minecraft.network.protocol.PacketFlow;
@@ -33,6 +34,7 @@ public class MessagePatrolLeaderSetWaitTime implements BannerModMessage<MessageP
             ServerPlayer player = Objects.requireNonNull(context.getSender());
             Entity entity = player.serverLevel().getEntity(this.recruit);
             if (entity instanceof AbstractLeaderEntity leader
+                    && RecruitCommandAuthority.canDirectlyControl(player, leader)
                     && player.getBoundingBox().inflate(100.0D).intersects(leader.getBoundingBox())) {
                 leader.setWaitTimeInMin(this.time);
             }

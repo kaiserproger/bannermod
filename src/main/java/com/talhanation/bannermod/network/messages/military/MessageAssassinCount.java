@@ -33,6 +33,7 @@ public class MessageAssassinCount implements BannerModMessage<MessageAssassinCou
             ServerPlayer player = Objects.requireNonNull(context.getSender());
             Entity entity = player.serverLevel().getEntity(this.uuid);
             if (entity instanceof AssassinLeaderEntity leader
+                    && (leader.isControlledBy(player) || player.hasPermissions(2))
                     && player.getBoundingBox().inflate(16.0D).intersects(leader.getBoundingBox())) {
                 leader.setCount(this.count);
             }

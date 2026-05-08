@@ -3,7 +3,6 @@ package com.talhanation.bannermod.settlement.runtime;
 import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.governance.BannerModGovernorHeartbeat;
 import com.talhanation.bannermod.governance.BannerModGovernorManager;
-import com.talhanation.bannermod.governance.BannerModTreasuryManager;
 import com.talhanation.bannermod.settlement.BannerModSettlementManager;
 import com.talhanation.bannermod.settlement.BannerModSettlementOrchestrator;
 import com.talhanation.bannermod.settlement.BannerModSettlementService;
@@ -51,11 +50,10 @@ public final class SettlementHeartbeatService {
 
         if (governorMaintenanceStage == GOVERNOR_STAGE_HEARTBEAT) {
             long startNanos = System.nanoTime();
-            BannerModGovernorHeartbeat.BatchResult result = BannerModGovernorHeartbeat.runGovernedClaimHeartbeatBatch(
+            BannerModGovernorHeartbeat.BatchResult result = SettlementTreasuryDerivationService.runGovernorHeartbeatBatch(
                     level,
                     ClaimEvents.claimManager(),
                     governorManager,
-                    BannerModTreasuryManager.get(level),
                     governorMaintenanceCursor,
                     GOVERNOR_HEARTBEAT_BATCH_SIZE
             );

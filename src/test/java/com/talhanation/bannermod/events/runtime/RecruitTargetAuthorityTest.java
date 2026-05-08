@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.events.runtime;
 
+import com.talhanation.bannermod.combat.runtime.RecruitTargetAuthority;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;

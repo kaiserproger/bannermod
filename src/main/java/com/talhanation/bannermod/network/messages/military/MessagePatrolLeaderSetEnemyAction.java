@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.network.messages.military;
 
+import com.talhanation.bannermod.army.command.RecruitCommandAuthority;
 import com.talhanation.bannermod.entity.military.AbstractLeaderEntity;
 import com.talhanation.bannermod.network.payload.BannerModMessage;
 import net.minecraft.network.protocol.PacketFlow;
@@ -31,7 +32,10 @@ public class MessagePatrolLeaderSetEnemyAction implements BannerModMessage<Messa
         context.enqueueWork(() -> {
             ServerPlayer player = Objects.requireNonNull(context.getSender());
             Entity entity = player.serverLevel().getEntity(this.recruit);
-            if (entity instanceof AbstractLeaderEntity leader && leader.isAlive() && leader.distanceToSqr(player) <= 100.0D * 100.0D) {
+            if (entity instanceof AbstractLeaderEntity leader
+                    && leader.isAlive()
+                    && RecruitCommandAuthority.canDirectlyControl(player, leader)
+                    && leader.distanceToSqr(player) <= 100.0D * 100.0D) {
                 leader.setEnemyAction(this.action);
             }
         });

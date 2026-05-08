@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.ai.military.villager;
 
 import com.talhanation.bannermod.entity.military.VillagerNobleEntity;
-import com.talhanation.bannermod.events.runtime.VillagerConversionService;
+import com.talhanation.bannermod.entity.military.runtime.VillagerConversionService;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.npc.Villager;

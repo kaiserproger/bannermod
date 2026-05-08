@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.network.messages.military;
 
+import com.talhanation.bannermod.army.command.RecruitCommandAuthority;
 import com.talhanation.bannermod.events.CommandEvents;
-import com.talhanation.bannermod.events.RecruitEvents;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.persistence.military.RecruitsGroup;
 import com.talhanation.bannermod.network.payload.BannerModMessage;
@@ -35,7 +35,7 @@ public class MessageHire implements BannerModMessage<MessageHire> {
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
             ServerPlayer player = Objects.requireNonNull(context.getSender());
-            RecruitsGroup group = RecruitEvents.groupsManager().getGroup(groupUUID);
+            RecruitsGroup group = RecruitCommandAuthority.ownedGroup(player, groupUUID);
             AbstractRecruitEntity recruit = RecruitMessageEntityResolver.resolveRecruitWithinDistance(player, this.recruit, 16.0D * 16.0D);
             if (recruit != null) {
                 CommandEvents.handleRecruiting(player, group, recruit, true);
