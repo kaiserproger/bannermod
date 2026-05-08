@@ -239,6 +239,8 @@ public class BannerModPathfindHomeGoalGameTests {
         helper.assertTrue(first.canUse(), "Pre-reload goal must trigger");
         first.start();
         first.tick();
+        // Clear the pre-reload route so arrival proves the rebuilt goal moved the recruit.
+        recruit.getNavigation().stop();
 
         // Simulate a reload: drop the goal instance and rebuild against the same
         // entity. The entity's homePos survives because it lives on the entity's
