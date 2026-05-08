@@ -7510,8 +7510,8 @@
     {
       "id": "ADMINCMDS-001",
       "title": "Admin recovery command suite",
-      "status": "open",
-      "updated": "2026-05-04",
+      "status": "in_progress",
+      "updated": "2026-05-08",
       "why": "Ops have no in-game commands to fix orphaned settlement / treasury / stuck worker / stuck war state. Source: review Part A 10.2 / Top-20 #20 / VERIFIED.",
       "scope": [
         "Add commands: /bannermod settlement prune <claimUuid>, /bannermod treasury set <claimUuid> <amount>, /bannermod treasury show <claimUuid>",
@@ -7524,8 +7524,18 @@
       "acceptance": [
         "Each command listed above exists, requires op, validates inputs, executes server-side, has at least one gametest covering happy path"
       ],
-      "dependencies": [],
-      "progress": [],
+      "dependencies": [
+        "ADMINCMDS-001A",
+        "ADMINCMDS-001B",
+        "ADMINCMDS-001C",
+        "ADMINCMDS-001D"
+      ],
+      "progress": [
+        {
+          "date": "2026-05-08",
+          "text": "Split oversized admin recovery suite into focused command-domain children: claim/treasury/trust, worker recovery, war wipe, and debug diagnostics. No implementation landed in ADMINCMDS-001; parent remains blocked on child completion."
+        }
+      ],
       "verification": [],
       "evidence": []
     },
@@ -9179,6 +9189,85 @@
         "EVENTSPKG-005B",
         "EVENTSPKG-005C"
       ],
+      "progress": [],
+      "verification": [],
+      "evidence": []
+    },
+    {
+      "id": "ADMINCMDS-001A",
+      "title": "Admin claim settlement and treasury recovery commands",
+      "status": "open",
+      "updated": "2026-05-08",
+      "why": "Ops need focused recovery commands for orphaned claims and incorrect treasury state without mixing unrelated worker, war, and debug command work.",
+      "scope": [
+        "Add /bannermod settlement prune <claimUuid>",
+        "Add /bannermod treasury set <claimUuid> <amount>",
+        "Add /bannermod treasury show <claimUuid>",
+        "Add /bannermod claim trust prune-dead-uuids"
+      ],
+      "acceptance": [
+        "Each listed command exists under /bannermod, requires op permission level 2, validates UUID and amount inputs, and executes only server-side.",
+        "Each listed command has at least one GameTest covering a happy path."
+      ],
+      "dependencies": [],
+      "progress": [],
+      "verification": [],
+      "evidence": []
+    },
+    {
+      "id": "ADMINCMDS-001B",
+      "title": "Admin worker recovery commands",
+      "status": "open",
+      "updated": "2026-05-08",
+      "why": "Ops need safe commands to repair stuck or incorrectly bound workers independently from claim, war, and debug diagnostics.",
+      "scope": [
+        "Add /bannermod worker unbind <entityId>",
+        "Add /bannermod worker rehome <chunkX> <chunkZ>"
+      ],
+      "acceptance": [
+        "Each listed command exists under /bannermod, requires op permission level 2, validates entity/chunk inputs, and executes only server-side.",
+        "Each listed command has at least one GameTest covering a happy path."
+      ],
+      "dependencies": [],
+      "progress": [],
+      "verification": [],
+      "evidence": []
+    },
+    {
+      "id": "ADMINCMDS-001C",
+      "title": "Admin war wipe recovery command",
+      "status": "open",
+      "updated": "2026-05-08",
+      "why": "Ops need a bounded server-side command to clear stuck war state without coupling it to other admin command domains.",
+      "scope": [
+        "Add /bannermod war wipe <warId>"
+      ],
+      "acceptance": [
+        "The command exists under /bannermod, requires op permission level 2, validates warId input, and executes only server-side.",
+        "The command has at least one GameTest covering a happy path."
+      ],
+      "dependencies": [],
+      "progress": [],
+      "verification": [],
+      "evidence": []
+    },
+    {
+      "id": "ADMINCMDS-001D",
+      "title": "Admin debug diagnostic commands",
+      "status": "open",
+      "updated": "2026-05-08",
+      "why": "Ops need read-only or low-risk diagnostic commands for indexes, pathfinding, counters, and save versions as a separate verifiable slice.",
+      "scope": [
+        "Add /bannermod debug index recruits|workers|workareas <chunk>",
+        "Add /bannermod debug pathfinding stats",
+        "Add /bannermod debug counters dump",
+        "Add /bannermod debug save-versions"
+      ],
+      "acceptance": [
+        "Each listed command exists under /bannermod, requires op permission level 2, validates enum/chunk inputs where applicable, and executes only server-side.",
+        "Each listed command has at least one GameTest covering a happy path."
+      ],
+      "dependencies": [],
       "progress": [],
       "verification": [],
       "evidence": []
