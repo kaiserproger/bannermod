@@ -99,7 +99,11 @@ public class BannerModStarterWorkerReadinessGameTests {
     private static void assertIdleReason(GameTestHelper helper, AbstractWorkerEntity worker, String expectedReason) {
         WorkerControlStatus status = worker.controlAccess().workStatus();
         helper.assertTrue(status.kind() == WorkerControlStatus.Kind.IDLE,
-                "Expected idle work status for " + worker.getName().getString() + ".");
+                "Expected idle work status for " + worker.getClass().getSimpleName() + " " + worker.getName().getString()
+                        + ", got kind=" + status.kind() + ", reason=" + status.reasonToken()
+                        + ", shouldWork=" + worker.shouldWork()
+                        + ", needsSleep=" + worker.needsToSleep()
+                        + ", currentWorkArea=" + worker.getCurrentWorkArea() + ".");
         helper.assertTrue(expectedReason.equals(status.reasonToken()),
                 "Expected idle reason " + expectedReason + " for " + worker.getName().getString() + ", got " + status.reasonToken() + ".");
     }
