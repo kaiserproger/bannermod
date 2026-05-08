@@ -4,6 +4,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.core.HolderLookup;
+import net.neoforged.neoforge.common.util.INBTSerializable;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -26,7 +28,7 @@ import java.util.Set;
  *       touched.</li>
  * </ul>
  */
-public final class PerkProgress {
+public final class PerkProgress implements INBTSerializable<CompoundTag> {
     private static final String NBT_POINTS = "AvailablePoints";
     private static final String NBT_OWNED = "OwnedPerks";
 
@@ -103,6 +105,11 @@ public final class PerkProgress {
         return tag;
     }
 
+    @Override
+    public CompoundTag serializeNBT(HolderLookup.Provider provider) {
+        return toNbt();
+    }
+
     public void fromNbt(CompoundTag tag) {
         owned.clear();
         availablePoints = 0;
@@ -119,5 +126,10 @@ public final class PerkProgress {
                 // update must not corrupt the actor's save.
             }
         }
+    }
+
+    @Override
+    public void deserializeNBT(HolderLookup.Provider provider, CompoundTag nbt) {
+        fromNbt(nbt);
     }
 }
