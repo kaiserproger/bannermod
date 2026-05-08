@@ -1,6 +1,8 @@
-package com.talhanation.bannermod.events;
+package com.talhanation.bannermod.settlement.runtime;
 
 import com.talhanation.bannermod.config.RecruitsServerConfig;
+import com.talhanation.bannermod.events.ClaimEvents;
+import com.talhanation.bannermod.events.SiegeExplosionTuning;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.settlement.validation.BuildingInvalidationReason;
 import com.talhanation.bannermod.settlement.validation.BuildingInvalidationRuntime;
@@ -17,8 +19,8 @@ import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
 
-final class ClaimProtectionEventService {
-    void onBlockBreakEvent(BlockEvent.BreakEvent event) {
+public final class ClaimProtectionEventService {
+    public void onBlockBreakEvent(BlockEvent.BreakEvent event) {
         if(event.getLevel().isClientSide()) return;
         if(claimProtectionPolicy().shouldDenyBlockBreak(event.getLevel(), event.getPos(), event.getPlayer())) {
             event.setCanceled(true);
@@ -30,7 +32,7 @@ final class ClaimProtectionEventService {
         }
     }
 
-    void onBlockPlaceEvent(BlockEvent.EntityPlaceEvent event) {
+    public void onBlockPlaceEvent(BlockEvent.EntityPlaceEvent event) {
         if(event.getLevel().isClientSide()) return;
         if(claimProtectionPolicy().shouldDenyBlockPlacement(event.getLevel(), event.getPos(), event.getEntity())) {
             event.setCanceled(true);
@@ -44,7 +46,7 @@ final class ClaimProtectionEventService {
         }
     }
 
-    void onFluidPlaceBlockEvent(BlockEvent.FluidPlaceBlockEvent event) {
+    public void onFluidPlaceBlockEvent(BlockEvent.FluidPlaceBlockEvent event) {
         LevelAccessor level = event.getLevel();
         if(level.isClientSide()) return;
         if(claimProtectionPolicy().shouldDenyFluidPlacement(level, event.getPos(), event.getLiquidPos())) {
@@ -56,7 +58,7 @@ final class ClaimProtectionEventService {
         }
     }
 
-    void onExplosion(ExplosionEvent.Start event) {
+    public void onExplosion(ExplosionEvent.Start event) {
         if(event.getLevel().isClientSide()) return;
         Vec3 vec = event.getExplosion().center();
         BlockPos pos = new BlockPos((int) vec.x, (int) vec.y, (int) vec.z);
@@ -88,7 +90,7 @@ final class ClaimProtectionEventService {
         }
     }
 
-    void onExplosionDetonate(ExplosionEvent.Detonate event) {
+    public void onExplosionDetonate(ExplosionEvent.Detonate event) {
         if (event.getLevel().isClientSide()) return;
         if (!SiegeExplosionTuning.shouldLimitTerrainDamage(event.getExplosion().getDirectSourceEntity())) {
             return;
@@ -96,7 +98,7 @@ final class ClaimProtectionEventService {
         SiegeExplosionTuning.limitAffectedBlocks(event.getExplosion().center(), event.getAffectedBlocks());
     }
 
-    void onBlockInteract(PlayerInteractEvent.RightClickBlock event) {
+    public void onBlockInteract(PlayerInteractEvent.RightClickBlock event) {
         if(event.getLevel().isClientSide()) return;
         Player player = event.getEntity();
         if(claimProtectionPolicy().shouldDenyBlockInteraction(event.getLevel(), event.getPos(), player, event.getHand())){
@@ -106,7 +108,7 @@ final class ClaimProtectionEventService {
         }
     }
 
-    void onItemInteract(PlayerInteractEvent.RightClickItem event) {
+    public void onItemInteract(PlayerInteractEvent.RightClickItem event) {
         if(event.getLevel().isClientSide()) return;
         BlockPos targetPos = ClaimInteractionTargetResolver.resolveItemInteractionTarget(event.getEntity(), event.getHand());
         if(targetPos == null) return;
@@ -117,7 +119,7 @@ final class ClaimProtectionEventService {
         }
     }
 
-    void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
+    public void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
         if(event.getLevel().isClientSide()) return;
         if(claimProtectionPolicy().shouldDenyEntityInteraction(event.getEntity(), event.getTarget())){
             event.setCanceled(true);
@@ -126,7 +128,7 @@ final class ClaimProtectionEventService {
         }
     }
 
-    void onEntityInteractSpecific(PlayerInteractEvent.EntityInteractSpecific event) {
+    public void onEntityInteractSpecific(PlayerInteractEvent.EntityInteractSpecific event) {
         if(event.getLevel().isClientSide()) return;
         if(claimProtectionPolicy().shouldDenyEntityInteraction(event.getEntity(), event.getTarget())){
             event.setCanceled(true);
@@ -135,7 +137,7 @@ final class ClaimProtectionEventService {
         }
     }
 
-    void onAttackEntity(AttackEntityEvent event) {
+    public void onAttackEntity(AttackEntityEvent event) {
         Player player = event.getEntity();
         if(player.level().isClientSide()) return;
         if(claimProtectionPolicy().shouldDenyEntityAttack(player, event.getTarget())){

@@ -1,4 +1,4 @@
-package com.talhanation.bannermod.events;
+package com.talhanation.bannermod.settlement.runtime;
 
 import com.talhanation.bannermod.config.RecruitsServerConfig;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;

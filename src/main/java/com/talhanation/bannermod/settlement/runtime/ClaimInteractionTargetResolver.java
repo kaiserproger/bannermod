@@ -1,4 +1,4 @@
-package com.talhanation.bannermod.events;
+package com.talhanation.bannermod.settlement.runtime;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
