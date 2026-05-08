@@ -8206,8 +8206,8 @@
     {
       "id": "BLDGVALIDATOR-003",
       "title": "Migrate every BuildingType branch into a per-type BuildingTypeValidator",
-      "status": "open",
-      "updated": "2026-05-05",
+      "status": "in_progress",
+      "updated": "2026-05-08",
       "why": "Phase 2 of the BLDGVALIDATOR-001 split: with the dispatcher in place, move each inline branch out of DefaultBuildingValidator into its own validator class so the strategy seam actually replaces the giant switch.",
       "scope": [
         "Per BuildingType branch in DefaultBuildingValidator (FarmValidator, MineValidator, BarracksValidator, ...), extract the branch logic into a BuildingTypeValidator implementation under settlement/validation/types/.",
@@ -8222,9 +8222,15 @@
         "./gradlew compileJava + ./gradlew test + ./gradlew runGameTestServer green; tools/backlog validate passes."
       ],
       "dependencies": [
-        "BLDGVALIDATOR-002"
+        "BLDGVALIDATOR-002",
+        "GAMETESTBASE-001"
       ],
-      "progress": [],
+      "progress": [
+        {
+          "date": "2026-05-08",
+          "text": "Implementation branch feature/bldgvalidator-003 extracted validators and deleted DefaultBuildingValidator; compileJava, ./gradlew test, and tools/backlog validate passed after naming baseline fix. Closure is blocked because integration runGameTestServer currently fails GAMETESTBASE-001 before this task can satisfy its full-gate acceptance."
+        }
+      ],
       "verification": [],
       "evidence": []
     },
@@ -8255,8 +8261,8 @@
     {
       "id": "WORKGOAL-002",
       "title": "Migrate FarmerEntity from FarmerWorkGoal to SettlementOrderWorkGoal",
-      "status": "open",
-      "updated": "2026-05-05",
+      "status": "in_progress",
+      "updated": "2026-05-08",
       "why": "WORKGOAL-001 phase: per-job goals coexist with the unified SettlementOrderWorkGoal, risking divergent fixes. Migrate one job at a time, starting with the farmer.",
       "scope": [
         "Verify behavior parity: a focused gametest exercises FarmerWorkGoal and SettlementOrderWorkGoal on the same crop scenario and asserts identical work assignment + harvest tick output.",
@@ -8270,16 +8276,23 @@
         "Parity test demonstrates identical output for the migrated path.",
         "./gradlew compileJava + ./gradlew test green; tools/backlog validate passes."
       ],
-      "dependencies": [],
-      "progress": [],
+      "dependencies": [
+        "GAMETESTBASE-001"
+      ],
+      "progress": [
+        {
+          "date": "2026-05-08",
+          "text": "Implementation branch feature/workgoal-002 migrates FarmerEntity off FarmerWorkGoal, deletes FarmerWorkGoal, and adds FarmerSettlementOrderParityTest. compileJava, focused parity test, full ./gradlew test, compileGametestJava, and tools/backlog validate passed. Closure is blocked on GAMETESTBASE-001 because existing farmer-related GameTests cannot be claimed green while integration runGameTestServer is failing."
+        }
+      ],
       "verification": [],
       "evidence": []
     },
     {
       "id": "WORKGOAL-003",
       "title": "Migrate MinerEntity from MinerWorkGoal to SettlementOrderWorkGoal",
-      "status": "open",
-      "updated": "2026-05-05",
+      "status": "in_progress",
+      "updated": "2026-05-08",
       "why": "WORKGOAL-001 phase 2: same per-job migration pattern for the miner.",
       "scope": [
         "Parity test: MinerWorkGoal vs SettlementOrderWorkGoal on a fixed mine-block scenario yields identical assignment and tick output.",
@@ -8293,8 +8306,15 @@
         "Parity test demonstrates identical output.",
         "./gradlew compileJava + ./gradlew test green; tools/backlog validate passes."
       ],
-      "dependencies": [],
-      "progress": [],
+      "dependencies": [
+        "GAMETESTBASE-001"
+      ],
+      "progress": [
+        {
+          "date": "2026-05-08",
+          "text": "Implementation branch feature/workgoal-003 migrates MinerEntity off MinerWorkGoal, deletes MinerWorkGoal, preserves no-area idle status without duplicate SettlementOrderWorkGoal registration, and adds MinerWorkGoalMigrationContractTest. compileJava, focused contract test, full ./gradlew test, and tools/backlog validate passed. Closure is blocked on GAMETESTBASE-001 because runGameTestServer is failing on the integration baseline."
+        }
+      ],
       "verification": [],
       "evidence": []
     },
@@ -8302,7 +8322,7 @@
       "id": "WORKGOAL-004",
       "title": "Migrate BuilderEntity from BuilderWorkGoal to SettlementOrderWorkGoal",
       "status": "open",
-      "updated": "2026-05-05",
+      "updated": "2026-05-08",
       "why": "WORKGOAL-001 phase: builder migration.",
       "scope": [
         "Parity test on a fixed build-order scenario.",
@@ -8316,7 +8336,9 @@
         "Parity test demonstrates identical output.",
         "./gradlew compileJava + ./gradlew test green; tools/backlog validate passes."
       ],
-      "dependencies": [],
+      "dependencies": [
+        "GAMETESTBASE-001"
+      ],
       "progress": [],
       "verification": [],
       "evidence": []
@@ -8325,7 +8347,7 @@
       "id": "WORKGOAL-005",
       "title": "Migrate LumberjackEntity from LumberjackWorkGoal to SettlementOrderWorkGoal",
       "status": "open",
-      "updated": "2026-05-05",
+      "updated": "2026-05-08",
       "why": "WORKGOAL-001 phase: lumberjack migration.",
       "scope": [
         "Parity test on a fixed wood-harvest scenario.",
@@ -8339,7 +8361,9 @@
         "Parity test demonstrates identical output.",
         "./gradlew compileJava + ./gradlew test green; tools/backlog validate passes."
       ],
-      "dependencies": [],
+      "dependencies": [
+        "GAMETESTBASE-001"
+      ],
       "progress": [],
       "verification": [],
       "evidence": []
@@ -8348,7 +8372,7 @@
       "id": "WORKGOAL-006",
       "title": "Migrate MerchantEntity from MerchantWorkGoal to SettlementOrderWorkGoal",
       "status": "open",
-      "updated": "2026-05-05",
+      "updated": "2026-05-08",
       "why": "WORKGOAL-001 phase: merchant migration.",
       "scope": [
         "Parity test on a fixed trade scenario.",
@@ -8362,7 +8386,9 @@
         "Parity test demonstrates identical output.",
         "./gradlew compileJava + ./gradlew test green; tools/backlog validate passes."
       ],
-      "dependencies": [],
+      "dependencies": [
+        "GAMETESTBASE-001"
+      ],
       "progress": [],
       "verification": [],
       "evidence": []
@@ -8371,7 +8397,7 @@
       "id": "WORKGOAL-007",
       "title": "Migrate FishermanEntity from FishermanWorkGoal to SettlementOrderWorkGoal",
       "status": "open",
-      "updated": "2026-05-05",
+      "updated": "2026-05-08",
       "why": "WORKGOAL-001 phase: fisherman migration.",
       "scope": [
         "Parity test on a fixed fishing scenario.",
@@ -8385,7 +8411,9 @@
         "Parity test demonstrates identical output.",
         "./gradlew compileJava + ./gradlew test green; tools/backlog validate passes."
       ],
-      "dependencies": [],
+      "dependencies": [
+        "GAMETESTBASE-001"
+      ],
       "progress": [],
       "verification": [],
       "evidence": []
@@ -8394,7 +8422,7 @@
       "id": "WORKGOAL-008",
       "title": "Migrate AnimalFarmerEntity from AnimalFarmerWorkGoal to SettlementOrderWorkGoal",
       "status": "open",
-      "updated": "2026-05-05",
+      "updated": "2026-05-08",
       "why": "WORKGOAL-001 phase: animal-farmer migration.",
       "scope": [
         "Parity test on a fixed animal-husbandry scenario.",
@@ -8408,7 +8436,9 @@
         "Parity test demonstrates identical output.",
         "./gradlew compileJava + ./gradlew test green; tools/backlog validate passes."
       ],
-      "dependencies": [],
+      "dependencies": [
+        "GAMETESTBASE-001"
+      ],
       "progress": [],
       "verification": [],
       "evidence": []
@@ -9200,7 +9230,8 @@
       "dependencies": [
         "EVENTSPKG-005A",
         "EVENTSPKG-005B",
-        "EVENTSPKG-005C"
+        "EVENTSPKG-005C",
+        "GAMETESTBASE-001"
       ],
       "progress": [],
       "verification": [],
@@ -9352,6 +9383,26 @@
       "dependencies": [
         "HOMEASSIGN-004B"
       ],
+      "progress": [],
+      "verification": [],
+      "evidence": []
+    },
+    {
+      "id": "GAMETESTBASE-001",
+      "title": "Restore required GameTest baseline",
+      "status": "open",
+      "updated": "2026-05-08",
+      "why": "Second-batch verification is blocked because runGameTestServer fails on the integration branch before task merges.",
+      "scope": [
+        "Investigate and fix fiverecruitformationholdsacrossdimensionteleport failing recruit hold delta.",
+        "Investigate and fix starterbootstrapseedsrealworkerassignmentsandwaitingreasons failing idle work status for Berengar Briar.",
+        "Investigate and fix friendlyclaimbindingallowsplacementandsettlementoperation failing friendly crop-area placement seam."
+      ],
+      "acceptance": [
+        "./gradlew runGameTestServer passes on the integration branch with all required BannerMod GameTests green.",
+        "docs/STATUS.md is updated if any failure is intentionally deferred as a known open area."
+      ],
+      "dependencies": [],
       "progress": [],
       "verification": [],
       "evidence": []
