@@ -2,7 +2,6 @@ package com.talhanation.bannermod.settlement.runtime;
 
 import com.talhanation.bannermod.config.RecruitsServerConfig;
 import com.talhanation.bannermod.events.ClaimEvents;
-import com.talhanation.bannermod.events.SiegeExplosionTuning;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.settlement.validation.BuildingInvalidationReason;
 import com.talhanation.bannermod.settlement.validation.BuildingInvalidationRuntime;
