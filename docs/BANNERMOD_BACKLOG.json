@@ -8451,7 +8451,7 @@
     {
       "id": "WORKGOAL-008",
       "title": "Migrate AnimalFarmerEntity from AnimalFarmerWorkGoal to SettlementOrderWorkGoal",
-      "status": "open",
+      "status": "in_progress",
       "updated": "2026-05-08",
       "why": "WORKGOAL-001 phase: animal-farmer migration.",
       "scope": [
@@ -8467,9 +8467,15 @@
         "./gradlew compileJava + ./gradlew test green; tools/backlog validate passes."
       ],
       "dependencies": [
-        "GAMETESTBASE-001"
+        "WORKGOAL-008A",
+        "WORKGOAL-008B"
       ],
-      "progress": [],
+      "progress": [
+        {
+          "date": "2026-05-08",
+          "text": "Split after implementation review showed AnimalFarmerWorkGoal cannot be deleted safely: no unified settlement work-order publisher/executor currently covers breed, special-task, and slaughter behavior. No WORKGOAL-008 code was merged; branch feature/workgoal-008 remains unmerged reference only."
+        }
+      ],
       "verification": [],
       "evidence": []
     },
@@ -9462,6 +9468,50 @@
       ],
       "evidence": [],
       "doneDate": "2026-05-08"
+    },
+    {
+      "id": "WORKGOAL-008A",
+      "title": "Add animal husbandry settlement work orders",
+      "status": "open",
+      "updated": "2026-05-08",
+      "why": "AnimalFarmerWorkGoal cannot be removed safely until breed, special-task, and slaughter behavior has equivalent SettlementOrderWorkGoal coverage.",
+      "scope": [
+        "Add settlement work-order types, publisher, and executor coverage for animal-farmer breed, special-task, and slaughter actions.",
+        "Preserve AnimalFarmerWorkGoal observable ordering from AnimalFarmerLoopProgress while adding the unified order path.",
+        "Add focused tests proving animal-husbandry orders are published and executed through SettlementOrderWorkGoal."
+      ],
+      "acceptance": [
+        "Animal-farmer settlement orders cover breed, special-task, slaughter, and finished/no-op scenarios without requiring AnimalFarmerWorkGoal for those actions.",
+        "Focused tests demonstrate the unified order path emits the same observable action order as AnimalFarmerLoopProgress.",
+        "./gradlew compileJava, ./gradlew test, ./gradlew runGameTestServer, and tools/backlog validate pass."
+      ],
+      "dependencies": [],
+      "progress": [],
+      "verification": [],
+      "evidence": []
+    },
+    {
+      "id": "WORKGOAL-008B",
+      "title": "Migrate AnimalFarmerEntity off AnimalFarmerWorkGoal",
+      "status": "open",
+      "updated": "2026-05-08",
+      "why": "Once animal-husbandry orders exist, the final migration can delete the legacy specialist goal without dropping behavior.",
+      "scope": [
+        "Replace AnimalFarmerEntity's AnimalFarmerWorkGoal registration with the inherited SettlementOrderWorkGoal path.",
+        "Delete AnimalFarmerWorkGoal.java and any obsolete tests.",
+        "Add a migration contract or parity test proving the new path preserves the fixed animal-husbandry scenario."
+      ],
+      "acceptance": [
+        "AnimalFarmerWorkGoal class is deleted from src/main and src/main search for AnimalFarmerWorkGoal returns zero usages.",
+        "AnimalFarmerEntity does not duplicate-register SettlementOrderWorkGoal and uses the inherited worker goal path.",
+        "Existing animal-farmer GameTests plus the focused migration test pass; ./gradlew compileJava, ./gradlew test, ./gradlew runGameTestServer, and tools/backlog validate pass."
+      ],
+      "dependencies": [
+        "WORKGOAL-008A"
+      ],
+      "progress": [],
+      "verification": [],
+      "evidence": []
     }
   ]
 }
