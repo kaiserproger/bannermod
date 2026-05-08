@@ -8,6 +8,7 @@ import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.persistence.military.RecruitsClaimManager;
 import com.talhanation.bannermod.entity.civilian.AbstractWorkerEntity;
 import com.talhanation.bannermod.entity.civilian.WorkerIndex;
+import com.talhanation.bannermod.settlement.runtime.SettlementTreasuryDerivationService;
 import com.talhanation.bannermod.util.RuntimeProfilingCounters;
 import com.talhanation.bannermod.war.runtime.WarSiegeQueries;
 import net.minecraft.world.Container;
@@ -192,7 +193,7 @@ public final class BannerModGovernorHeartbeat {
                     snapshot
             ));
 
-            BannerModTreasuryLedgerSnapshot.FiscalRollup fiscalRollup = recordHeartbeatAccounting(
+            BannerModTreasuryLedgerSnapshot.FiscalRollup fiscalRollup = SettlementTreasuryDerivationService.deriveHeartbeatAccounting(
                     treasuryManager,
                     snapshot,
                     binding,
@@ -322,71 +323,6 @@ public final class BannerModGovernorHeartbeat {
                     RuntimeProfilingCounters.increment("recruit.index.fallback_scans");
                     return entitiesInClaim(level, claim, AbstractRecruitEntity.class);
                 });
-    }
-
-    static void depositTaxes(@Nullable BannerModTreasuryManager treasuryManager,
-                             BannerModGovernorSnapshot snapshot,
-                             BannerModSettlementBinding.Binding binding,
-                             HeartbeatReport report) {
-        if (treasuryManager == null || snapshot == null || binding == null || report == null || report.taxesCollected() <= 0) {
-            return;
-        }
-        treasuryManager.depositTaxes(
-                snapshot.claimUuid(),
-                snapshot.anchorChunk(),
-                binding.claimFactionId(),
-                report.taxesCollected(),
-                report.collectionTick()
-        );
-    }
-
-    static void recordArmyUpkeepDebit(@Nullable BannerModTreasuryManager treasuryManager,
-                                      BannerModGovernorSnapshot snapshot,
-                                      BannerModSettlementBinding.Binding binding,
-                                      HeartbeatReport report,
-                                      @Nullable BannerModSupplyStatus.RecruitSupplyStatus recruitSupplyStatus) {
-        if (treasuryManager == null || snapshot == null || binding == null || report == null || recruitSupplyStatus == null) {
-            return;
-        }
-        BannerModSupplyStatus.ArmyUpkeepStatus accounting = recruitSupplyStatus.accounting();
-        if (accounting == null || !accounting.unpaid()) {
-            return;
-        }
-        treasuryManager.recordArmyUpkeepDebit(
-                snapshot.claimUuid(),
-                snapshot.anchorChunk(),
-                binding.claimFactionId(),
-                accounting.unpaidLevel(),
-                report.heartbeatTick()
-        );
-    }
-
-    @Nullable
-    static BannerModTreasuryLedgerSnapshot.FiscalRollup recordHeartbeatAccounting(@Nullable BannerModTreasuryManager treasuryManager,
-                                                                                  BannerModGovernorSnapshot snapshot,
-                                                                                  BannerModSettlementBinding.Binding binding,
-                                                                                  HeartbeatReport report,
-                                                                                  @Nullable BannerModSupplyStatus.RecruitSupplyStatus recruitSupplyStatus) {
-        if (treasuryManager == null || snapshot == null || binding == null || report == null) {
-            return null;
-        }
-        int requestedArmyUpkeepDebit = resolveRequestedArmyUpkeepDebit(recruitSupplyStatus);
-        BannerModTreasuryLedgerSnapshot updated = treasuryManager.applyHeartbeatAccounting(
-                snapshot.claimUuid(),
-                snapshot.anchorChunk(),
-                binding.claimFactionId(),
-                report.taxesCollected(),
-                requestedArmyUpkeepDebit,
-                report.heartbeatTick()
-        );
-        return updated.projectFiscalRollup(report.taxesCollected(), requestedArmyUpkeepDebit, report.heartbeatTick());
-    }
-
-    private static int resolveRequestedArmyUpkeepDebit(@Nullable BannerModSupplyStatus.RecruitSupplyStatus recruitSupplyStatus) {
-        if (recruitSupplyStatus == null || recruitSupplyStatus.accounting() == null || !recruitSupplyStatus.accounting().unpaid()) {
-            return 0;
-        }
-        return recruitSupplyStatus.accounting().unpaidLevel();
     }
 
     public record HeartbeatInput(BannerModSettlementBinding.Status settlementStatus,
