@@ -5,9 +5,12 @@ import com.talhanation.bannermod.ai.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.bannermod.config.WorkersServerConfig;
 import com.talhanation.bannermod.ai.civilian.SettlementOrderWorkGoal;
 import com.talhanation.bannermod.entity.civilian.workarea.MiningArea;
+import com.talhanation.bannermod.settlement.BannerModSettlementOrchestrator;
+import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderRuntime;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.RandomSource;
@@ -40,6 +43,27 @@ public class MinerEntity extends AbstractWorkerEntity{
     protected void registerGoals() {
         super.registerGoals();
         this.goalSelector.addGoal(0, new SettlementOrderWorkGoal(this));
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        this.updateMiningIdleStatus();
+    }
+
+    private void updateMiningIdleStatus() {
+        if (!(this.getCommandSenderWorld() instanceof ServerLevel level)) {
+            return;
+        }
+        if (this.needsToSleep() || !this.shouldWork() || this.needsToGetToChest() || this.getCurrentMiningArea() != null) {
+            return;
+        }
+        SettlementWorkOrderRuntime runtime = BannerModSettlementOrchestrator.workOrderRuntime(level);
+        if (runtime != null && runtime.currentClaim(this.getUUID()).isPresent()) {
+            return;
+        }
+
+        this.reportIdleReason("miner_no_area", Component.literal(this.getName().getString() + ": Waiting for a mining area."));
     }
 
     public static AttributeSupplier.Builder setAttributes() {
