@@ -9051,7 +9051,7 @@
     {
       "id": "PACKETAUTH-008B",
       "title": "Gate MessageAssassinCount by AssassinLeader authority",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "After PACKETAUTH-008A defines trustworthy AssassinLeader authority, MessageAssassinCount can safely reject foreign sender mutations without breaking legitimate users.",
       "scope": [
@@ -9068,13 +9068,19 @@
         "PACKETAUTH-008A"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) MessageAssassinCount now gates count mutation with leader.isControlledBy(player) || player.hasPermissions(2) while preserving the existing 16-block AABB check; 2) AssassinLeaderControlAuthorityTest passed and asserts foreign non-op rejection plus owner/op allow-path source gates before the only setCount mutation; 3) ./gradlew compileJava, compileGameTestJava, and ./gradlew test passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "EVENTSPKG-005A",
       "title": "Move claim and settlement services out of events package",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "EVENTSPKG-005 is too large to review safely as one 80+ file package move; claim and settlement service classes can be moved and verified independently.",
       "scope": [
@@ -9089,13 +9095,19 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) ClaimAccessQueries, ClaimInteractionTargetResolver, ClaimProtectionEventService, ClaimProtectionFeedback, ClaimProtectionPolicy, ClaimQueueTickService, and SettlementContainerHookPolicy moved from events/** to settlement/runtime; 2) ctx search for the old claim/settlement event-service FQNs returned 0 matches; 3) ./gradlew compileJava, compileGameTestJava, focused ClaimProtectionFeedbackTest and SettlementContainerHookPolicyTest, full ./gradlew test, and tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "EVENTSPKG-005B",
       "title": "Move recruit combat and military runtime services out of events package",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "EVENTSPKG-005 mixes several military and combat service moves; separating them keeps review and verification bounded.",
       "scope": [
@@ -9110,8 +9122,14 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Recruit/combat/military runtime services moved out of events/** into army.command.runtime, combat.runtime, entity.military.runtime, governance.runtime, and war.runtime while event subscriber hosts stayed in events; 2) ctx search for old moved military event-service FQNs returned 0 matches; 3) ./gradlew compileJava, compileGameTestJava, focused RecruitGovernorWorkflowTest/SiegeExplosionTuningTest/RecruitTargetAuthorityTest, full ./gradlew test, and tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "EVENTSPKG-005C",
