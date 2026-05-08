@@ -9502,7 +9502,7 @@
     {
       "id": "WORKGOAL-008A",
       "title": "Add animal husbandry settlement work orders",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "AnimalFarmerWorkGoal cannot be removed safely until breed, special-task, and slaughter behavior has equivalent SettlementOrderWorkGoal coverage.",
       "scope": [
@@ -9517,8 +9517,14 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Animal-farmer settlement orders now include ANIMAL_BREED, ANIMAL_SPECIAL_TASK, and ANIMAL_SLAUGHTER; AnimalPenWorkOrderPublisher covers breed, special-task, slaughter, and finished/no-op emits no order as verified by AnimalFarmerSettlementOrderParityTest. 2) AnimalFarmerSettlementOrderParityTest proves SettlementWorkOrderRuntime claims the animal orders in the same PREPARE_BREED, PREPARE_SPECIAL_TASK, PREPARE_SLAUGHTER sequence produced by AnimalFarmerLoopProgress and that SettlementOrderWorkGoal owns executable branches for those types. 3) Passed: ./gradlew compileJava, ./gradlew test, ./gradlew runGameTestServer, and tools/backlog validate."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "WORKGOAL-008B",

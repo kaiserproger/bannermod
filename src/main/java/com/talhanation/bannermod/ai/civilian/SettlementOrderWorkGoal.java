@@ -1,8 +1,10 @@
 package com.talhanation.bannermod.ai.civilian;
 
 import com.talhanation.bannermod.entity.civilian.AbstractWorkerEntity;
+import com.talhanation.bannermod.entity.civilian.AnimalFarmerEntity;
 import com.talhanation.bannermod.entity.civilian.FishermanEntity;
 import com.talhanation.bannermod.entity.civilian.FishingBobberEntity;
+import com.talhanation.bannermod.entity.civilian.workarea.AnimalPenArea;
 import com.talhanation.bannermod.entity.civilian.workarea.BuildArea;
 import com.talhanation.bannermod.entity.civilian.workarea.StorageArea;
 import com.talhanation.bannermod.entity.civilian.workarea.WorkAreaIndex;
@@ -23,10 +25,16 @@ import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.world.entity.animal.Cow;
+import net.minecraft.world.entity.animal.Sheep;
+import net.minecraft.world.entity.projectile.ThrownEgg;
+import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.FishingRodItem;
 import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
@@ -36,6 +44,7 @@ import net.minecraft.world.level.block.SaplingBlock;
 import net.minecraft.world.level.block.StemBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.SpecialPlantable;
 
@@ -368,6 +377,9 @@ public final class SettlementOrderWorkGoal extends Goal {
             case PLANT_CROP -> executePlantCrop(level, target, runtime);
             case REPLANT_TREE -> executeReplantTree(level, target, runtime);
             case FISH -> executeFish(target, runtime, level);
+            case ANIMAL_BREED -> executeAnimalBreed(level, target, runtime);
+            case ANIMAL_SPECIAL_TASK -> executeAnimalSpecialTask(level, target, runtime);
+            case ANIMAL_SLAUGHTER -> executeAnimalSlaughter(level, target, runtime);
             case BUILD_BLOCK -> executeBuildBlock(level, target, runtime);
             default -> {
                 // Placement-style or specialist types are left to legacy profession goals.
@@ -419,6 +431,167 @@ public final class SettlementOrderWorkGoal extends Goal {
         this.activeOrder = null;
     }
 
+    private void executeAnimalBreed(ServerLevel level, BlockPos target, SettlementWorkOrderRuntime runtime) {
+        AnimalPenArea pen = activeAnimalPen(level, runtime);
+        if (pen == null) {
+            return;
+        }
+        if (!(worker instanceof AnimalFarmerEntity animalFarmer)) {
+            releaseActiveOrder(runtime);
+            return;
+        }
+        Animal animal = animalAt(level, pen, target);
+        if (animal == null) {
+            completeActiveOrder(runtime, level);
+            this.activeOrder = null;
+            return;
+        }
+
+        animalFarmer.switchMainHandItem(itemStack -> itemStack.is(pen.getAnimalType().getBreedItem()));
+        if (!animalFarmer.getMainHandItem().is(pen.getAnimalType().getBreedItem())) {
+            animalFarmer.requestRequiredItem(new NeededItem(stack -> stack.is(pen.getAnimalType().getBreedItem()), 1, true),
+                    "animal_farmer_missing_breed_item",
+                    Component.literal(animalFarmer.getName().getString() + ": I need breeding items to continue."));
+            releaseActiveOrder(runtime);
+            return;
+        }
+
+        animalFarmer.getLookControl().setLookAt(animal);
+        animalFarmer.swing(InteractionHand.MAIN_HAND);
+        animalFarmer.getMainHandItem().shrink(1);
+        animal.setAge(0);
+        animal.setInLove(null);
+        completeActiveOrder(runtime, level);
+        this.activeOrder = null;
+    }
+
+    private void executeAnimalSpecialTask(ServerLevel level, BlockPos target, SettlementWorkOrderRuntime runtime) {
+        AnimalPenArea pen = activeAnimalPen(level, runtime);
+        if (pen == null) {
+            return;
+        }
+        if (!(worker instanceof AnimalFarmerEntity animalFarmer)) {
+            releaseActiveOrder(runtime);
+            return;
+        }
+
+        if (pen.getAnimalType() == AnimalPenArea.AnimalTypes.CHICKEN) {
+            throwEggForPen(level, pen, animalFarmer, runtime);
+            return;
+        }
+
+        Animal animal = animalAt(level, pen, target);
+        if (animal == null) {
+            completeActiveOrder(runtime, level);
+            this.activeOrder = null;
+            return;
+        }
+
+        animalFarmer.switchMainHandItem(itemStack -> itemStack.is(pen.getAnimalType().getSpecialItem()));
+        if (!animalFarmer.getMainHandItem().is(pen.getAnimalType().getSpecialItem())) {
+            animalFarmer.requestRequiredItem(new NeededItem(stack -> stack.is(pen.getAnimalType().getSpecialItem()), 1, true),
+                    "animal_farmer_missing_special_item",
+                    Component.literal(animalFarmer.getName().getString() + ": I need the right tool or item to continue."));
+            releaseActiveOrder(runtime);
+            return;
+        }
+
+        animalFarmer.getLookControl().setLookAt(animal);
+        if (pen.getAnimalType() == AnimalPenArea.AnimalTypes.SHEEP && animal instanceof Sheep sheep) {
+            sheep.shear(SoundSource.PLAYERS);
+            sheep.setSheared(true);
+            animalFarmer.swing(InteractionHand.MAIN_HAND);
+            animalFarmer.damageMainHandItem();
+        } else if (pen.getAnimalType() == AnimalPenArea.AnimalTypes.COW && animal instanceof Cow) {
+            animalFarmer.getMainHandItem().shrink(1);
+            animalFarmer.getInventory().addItem(Items.MILK_BUCKET.getDefaultInstance());
+            animal.playSound(SoundEvents.COW_MILK, 1.0F, 1.0F);
+        }
+        completeActiveOrder(runtime, level);
+        this.activeOrder = null;
+    }
+
+    private void executeAnimalSlaughter(ServerLevel level, BlockPos target, SettlementWorkOrderRuntime runtime) {
+        AnimalPenArea pen = activeAnimalPen(level, runtime);
+        if (pen == null) {
+            return;
+        }
+        if (!(worker instanceof AnimalFarmerEntity animalFarmer)) {
+            releaseActiveOrder(runtime);
+            return;
+        }
+        Animal animal = animalAt(level, pen, target);
+        if (animal == null) {
+            completeActiveOrder(runtime, level);
+            this.activeOrder = null;
+            return;
+        }
+
+        animalFarmer.switchMainHandItem(itemStack -> itemStack.getItem() instanceof AxeItem);
+        if (!(animalFarmer.getMainHandItem().getItem() instanceof AxeItem)) {
+            animalFarmer.requestRequiredItem(new NeededItem(stack -> stack.getItem() instanceof AxeItem, 1, true),
+                    "animal_farmer_missing_axe",
+                    Component.literal(animalFarmer.getName().getString() + ": I need an axe to continue."));
+            releaseActiveOrder(runtime);
+            return;
+        }
+
+        animalFarmer.getLookControl().setLookAt(animal);
+        animalFarmer.playSound(SoundEvents.PLAYER_ATTACK_STRONG);
+        animalFarmer.swing(InteractionHand.MAIN_HAND);
+        animal.kill();
+        animalFarmer.damageMainHandItem();
+        completeActiveOrder(runtime, level);
+        this.activeOrder = null;
+    }
+
+    @Nullable
+    private AnimalPenArea activeAnimalPen(ServerLevel level, SettlementWorkOrderRuntime runtime) {
+        Entity entity = level.getEntity(activeOrder.buildingUuid());
+        if (entity instanceof AnimalPenArea pen && pen.isAlive()) {
+            return pen;
+        }
+        completeActiveOrder(runtime, level);
+        this.activeOrder = null;
+        return null;
+    }
+
+    @Nullable
+    private Animal animalAt(ServerLevel level, AnimalPenArea pen, BlockPos target) {
+        return level.getEntitiesOfClass(Animal.class, new AABB(target).inflate(1.0D), pen::isCorrectAnimal)
+                .stream()
+                .min(Comparator.comparingDouble(animal -> animal.distanceToSqr(target.getCenter())))
+                .orElse(null);
+    }
+
+    private void throwEggForPen(ServerLevel level, AnimalPenArea pen, AnimalFarmerEntity animalFarmer, SettlementWorkOrderRuntime runtime) {
+        animalFarmer.switchMainHandItem(itemStack -> itemStack.is(Items.EGG));
+        if (!animalFarmer.getMainHandItem().is(Items.EGG)) {
+            animalFarmer.requestRequiredItem(new NeededItem(stack -> stack.is(Items.EGG), 32, false),
+                    "animal_farmer_missing_special_item",
+                    Component.literal(animalFarmer.getName().getString() + ": I need the right tool or item to continue."));
+            releaseActiveOrder(runtime);
+            return;
+        }
+
+        Vec3 center = pen.getArea().getCenter();
+        level.playSound(null, animalFarmer.getX(), animalFarmer.getY(), animalFarmer.getZ(), SoundEvents.EGG_THROW, SoundSource.PLAYERS, 0.5F,
+                0.4F / (animalFarmer.getRandom().nextFloat() * 0.4F + 0.8F));
+        ThrownEgg thrownEgg = new ThrownEgg(level, animalFarmer);
+        thrownEgg.setItem(new ItemStack(Items.EGG));
+        thrownEgg.shoot(center.x() - animalFarmer.getX(), 0, center.z() - animalFarmer.getZ(), 0.1F, 0F);
+        if (level.addFreshEntity(thrownEgg)) {
+            animalFarmer.getMainHandItem().shrink(1);
+        }
+        completeActiveOrder(runtime, level);
+        this.activeOrder = null;
+    }
+
+    private void releaseActiveOrder(SettlementWorkOrderRuntime runtime) {
+        runtime.release(activeOrder.orderUuid());
+        this.activeOrder = null;
+    }
+
     private static boolean isExecutableOrder(SettlementWorkOrder order) {
         if (order == null) {
             return false;
@@ -435,6 +608,9 @@ public final class SettlementOrderWorkGoal extends Goal {
                  MINE_BLOCK,
                  FELL_TREE,
                  FISH,
+                 ANIMAL_BREED,
+                 ANIMAL_SPECIAL_TASK,
+                 ANIMAL_SLAUGHTER,
                  TILL_SOIL,
                  PLANT_CROP,
                  REPLANT_TREE,
