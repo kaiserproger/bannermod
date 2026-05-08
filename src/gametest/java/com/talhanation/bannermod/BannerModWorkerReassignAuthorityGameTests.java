@@ -28,8 +28,9 @@ public class BannerModWorkerReassignAuthorityGameTests {
     @GameTest(template = "harness_empty")
     public static void nonOwnerReassignDeniedAndWorkerStateUnchanged(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        ServerPlayer owner = createPlayer(level, OWNER_UUID, "workerui-001a-owner");
-        ServerPlayer outsider = createPlayer(level, OUTSIDER_UUID, "workerui-001a-outsider");
+        BlockPos workerAbsolutePos = helper.absolutePos(WORKER_POS);
+        ServerPlayer owner = createPlayer(level, OWNER_UUID, "workerui-001a-owner", workerAbsolutePos);
+        ServerPlayer outsider = createPlayer(level, OUTSIDER_UUID, "workerui-001a-outsider", workerAbsolutePos);
         FarmerEntity worker = BannerModGameTestSupport.spawnOwnedFarmer(helper, owner, WORKER_POS);
 
         UUID workerUuid = worker.getUUID();
@@ -59,7 +60,7 @@ public class BannerModWorkerReassignAuthorityGameTests {
                 "Expected denied reassignment to preserve follow state");
         helper.assertTrue(blockPos.equals(worker.blockPosition()),
                 "Expected denied reassignment to preserve worker position");
-        helper.assertTrue(workersNear(level, helper.absolutePos(WORKER_POS)).size() == 1,
+        helper.assertTrue(workersNear(level, workerAbsolutePos).size() == 1,
                 "Expected denied reassignment not to spawn a replacement worker");
         helper.succeed();
     }
@@ -68,7 +69,8 @@ public class BannerModWorkerReassignAuthorityGameTests {
     @GameTest(template = "harness_empty")
     public static void ownerReassignSmokeReplacesWorkerProfession(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        ServerPlayer owner = createPlayer(level, OWNER_UUID, "workerui-001a-owner-success");
+        BlockPos workerAbsolutePos = helper.absolutePos(WORKER_POS);
+        ServerPlayer owner = createPlayer(level, OWNER_UUID, "workerui-001a-owner-success", workerAbsolutePos);
         FarmerEntity worker = BannerModGameTestSupport.spawnOwnedFarmer(helper, owner, WORKER_POS);
         UUID oldWorkerUuid = worker.getUUID();
 
@@ -84,7 +86,7 @@ public class BannerModWorkerReassignAuthorityGameTests {
                 "Expected successful reassignment to remove the original worker");
         helper.assertTrue(level.getEntity(oldWorkerUuid) == null,
                 "Expected successful reassignment to unregister the original worker entity");
-        List<AbstractWorkerEntity> workers = workersNear(level, helper.absolutePos(WORKER_POS));
+        List<AbstractWorkerEntity> workers = workersNear(level, workerAbsolutePos);
         helper.assertTrue(workers.size() == 1,
                 "Expected successful reassignment to leave exactly one replacement worker");
         AbstractWorkerEntity replacement = workers.get(0);
@@ -97,8 +99,8 @@ public class BannerModWorkerReassignAuthorityGameTests {
         helper.succeed();
     }
 
-    private static ServerPlayer createPlayer(ServerLevel level, UUID playerId, String name) {
-        return (ServerPlayer) BannerModDedicatedServerGameTestSupport.createFakeServerPlayer(level, playerId, name);
+    private static ServerPlayer createPlayer(ServerLevel level, UUID playerId, String name, BlockPos pos) {
+        return (ServerPlayer) BannerModDedicatedServerGameTestSupport.createPositionedFakeServerPlayer(level, playerId, name, pos);
     }
 
     private static List<AbstractWorkerEntity> workersNear(ServerLevel level, BlockPos pos) {
