@@ -24,6 +24,8 @@ class PatrolLeaderWaypointAuthorityTest {
             "src/main/java/com/talhanation/bannermod/network/messages/military/MessagePatrolLeaderSetEnemyAction.java");
     private static final Path SET_PATROLLING_SPEED_MESSAGE = ROOT.resolve(
             "src/main/java/com/talhanation/bannermod/network/messages/military/MessagePatrolLeaderSetPatrollingSpeed.java");
+    private static final Path SET_WAIT_TIME_MESSAGE = ROOT.resolve(
+            "src/main/java/com/talhanation/bannermod/network/messages/military/MessagePatrolLeaderSetWaitTime.java");
 
     private static final UUID OWNER = UUID.fromString("00000000-0000-0000-0000-000000000911");
     private static final UUID FOREIGN_SENDER = UUID.fromString("00000000-0000-0000-0000-000000000912");
@@ -131,5 +133,26 @@ class PatrolLeaderWaypointAuthorityTest {
                 "Forged packet for a foreign leader must fail authority before speed state can change");
         assertEquals(mutationIndex, src.lastIndexOf(handlerMutation),
                 "The guarded handler path must be the only speed mutation entry point");
+    }
+
+    @Test
+    void forgedForeignLeaderWaitTimePacketCannotReachMutation() throws IOException {
+        assertEquals(CommandRole.NONE,
+                CommandHierarchy.roleFor(FOREIGN_SENDER, null, false, OWNER, null, true),
+                "Foreign non-op sender must not directly control another player's leader");
+
+        String src = Files.readString(SET_WAIT_TIME_MESSAGE);
+        String authorityGate = "RecruitCommandAuthority.canDirectlyControl(player, leader)";
+        String handlerMutation = "leader.setWaitTimeInMin(this.time)";
+
+        int gateIndex = src.indexOf(authorityGate);
+        int mutationIndex = src.indexOf(handlerMutation);
+
+        assertTrue(gateIndex >= 0, "Wait-time handler must use the canonical recruit authority gate");
+        assertTrue(mutationIndex >= 0, "Wait-time handler must still mutate wait time for authorized leaders");
+        assertTrue(gateIndex < mutationIndex,
+                "Forged packet for a foreign nearby leader must fail authority before wait-time state can change");
+        assertEquals(mutationIndex, src.lastIndexOf(handlerMutation),
+                "The guarded handler path must be the only wait-time mutation entry point");
     }
 }
