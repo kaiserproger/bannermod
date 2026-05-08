@@ -14,7 +14,6 @@ import net.minecraft.world.phys.AABB;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageStrategicFire implements BannerModMessage<MessageStrategicFire> {
@@ -38,7 +37,8 @@ public class MessageStrategicFire implements BannerModMessage<MessageStrategicFi
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer serverPlayer = Objects.requireNonNull(context.getSender());
+            ServerPlayer serverPlayer = context.getSender();
+            if (serverPlayer == null) return;
             AABB commandBox = serverPlayer.getBoundingBox().inflate(100);
             List<AbstractRecruitEntity> actors = RecruitIndex.instance().groupInRange(
                     serverPlayer.getCommandSenderWorld(),

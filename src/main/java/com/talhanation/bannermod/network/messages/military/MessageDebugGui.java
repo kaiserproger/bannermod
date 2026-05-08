@@ -12,7 +12,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageDebugGui implements BannerModMessage<MessageDebugGui> {
@@ -36,14 +35,15 @@ public class MessageDebugGui implements BannerModMessage<MessageDebugGui> {
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             AbstractRecruitEntity recruit = RecruitMessageEntityResolver.resolveRecruitInInflatedBox(player, this.uuid, 16.0D);
             if (recruit != null) {
                 if (!shouldHandleDebugMessage(id, player, recruit)) {
                     return;
                 }
 
-                DebugEvents.handleMessage(id, recruit, context.getSender());
+                DebugEvents.handleMessage(id, recruit, player);
                 recruit.setCustomName(Component.literal(name));
             }
         });

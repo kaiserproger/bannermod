@@ -40,7 +40,8 @@ public class MessageMountEntityGui implements BannerModMessage<MessageMountEntit
     @SuppressWarnings({"all"})
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
 
             AbstractRecruitEntity recruit = RecruitMessageEntityResolver.resolveRecruitWithinDistance(player, this.recruit, 32.0D * 32.0D);
             if (recruit != null) {

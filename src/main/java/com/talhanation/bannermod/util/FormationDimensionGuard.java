@@ -77,6 +77,10 @@ public final class FormationDimensionGuard {
      * — the counter increment is a useful signal either way.
      */
     public static boolean shouldHoldDueToDimensionMismatch(@Nullable Level recruitLevel, @Nullable LivingEntity leader) {
+        if (leader != null && leader.isRemoved()) {
+            RuntimeProfilingCounters.increment(COUNTER_KEY);
+            return true;
+        }
         Level leaderLevel = leader == null ? null : leader.level();
         if (leaderInDifferentDimension(recruitLevel, leaderLevel)) {
             RuntimeProfilingCounters.increment(COUNTER_KEY);

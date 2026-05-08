@@ -20,7 +20,6 @@ import net.neoforged.neoforge.common.Tags;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 import com.talhanation.bannermod.network.compat.BannerModPacketDistributor;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessagePatrolLeaderAddWayPoint implements BannerModMessage<MessagePatrolLeaderAddWayPoint> {
@@ -45,7 +44,8 @@ public class MessagePatrolLeaderAddWayPoint implements BannerModMessage<MessageP
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             Entity entity = player.serverLevel().getEntity(this.worker);
             if (entity instanceof AbstractLeaderEntity leader
                     && leader.isAlive()

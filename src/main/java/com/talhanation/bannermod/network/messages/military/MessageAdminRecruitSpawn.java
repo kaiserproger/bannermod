@@ -16,7 +16,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobSpawnType;
 
-import java.util.Objects;
 
 public class MessageAdminRecruitSpawn implements BannerModMessage<MessageAdminRecruitSpawn> {
     private String entityId;
@@ -39,7 +38,8 @@ public class MessageAdminRecruitSpawn implements BannerModMessage<MessageAdminRe
     @Override
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             if (!player.hasPermissions(2) || !player.isCreative()) {
                 return;
             }

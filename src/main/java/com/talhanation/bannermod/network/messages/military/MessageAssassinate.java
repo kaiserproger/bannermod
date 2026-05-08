@@ -11,7 +11,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
-import java.util.Objects;
 
 public class MessageAssassinate implements BannerModMessage<MessageAssassinate> {
 
@@ -36,7 +35,8 @@ public class MessageAssassinate implements BannerModMessage<MessageAssassinate> 
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             ServerLevel world = player.serverLevel();
             MinecraftServer server = world.getServer();
             PlayerList list = server.getPlayerList();

@@ -31,9 +31,10 @@ public class MessageUpdateGroup implements BannerModMessage<MessageUpdateGroup> 
 
     public void executeServerSide(BannerModNetworkContext context){
         context.enqueueWork(() -> {
-            RecruitsGroup updatedGroup = RecruitsGroup.fromNBT(this.groupNBT);
             ServerPlayer serverPLayer = context.getSender();
+            if (serverPLayer == null || this.groupNBT == null) return;
 
+            RecruitsGroup updatedGroup = RecruitsGroup.fromNBT(this.groupNBT);
             RecruitEvents.groupsManager().addOrUpdateGroup((ServerLevel) serverPLayer.getCommandSenderWorld(), serverPLayer, updatedGroup);
         });
     }

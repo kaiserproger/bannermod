@@ -9,7 +9,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageOpenPromoteScreen implements BannerModMessage<MessageOpenPromoteScreen> {
@@ -34,7 +33,8 @@ public class MessageOpenPromoteScreen implements BannerModMessage<MessageOpenPro
     @Override
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             if (!player.getUUID().equals(this.player)) {
                 return;
             }

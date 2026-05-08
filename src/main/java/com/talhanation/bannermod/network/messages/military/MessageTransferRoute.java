@@ -9,7 +9,6 @@ import net.minecraft.server.level.ServerPlayer;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 import com.talhanation.bannermod.network.compat.BannerModPacketDistributor;
 
-import java.util.Objects;
 import java.util.UUID;
 
 import static com.talhanation.bannermod.bootstrap.BannerModMain.SIMPLE_CHANNEL;
@@ -38,7 +37,8 @@ public class MessageTransferRoute implements BannerModMessage<MessageTransferRou
     @Override
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer sender = Objects.requireNonNull(context.getSender());
+            ServerPlayer sender = context.getSender();
+            if (sender == null) return;
             if (!isRouteTransferPayloadValid(targetPlayerUUID, routeNBT)) return;
 
             ServerPlayer target = sender.getServer().getPlayerList().getPlayer(targetPlayerUUID);

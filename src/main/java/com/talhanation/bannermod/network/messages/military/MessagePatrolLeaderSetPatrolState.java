@@ -12,7 +12,6 @@ import net.minecraft.world.entity.player.Player;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessagePatrolLeaderSetPatrolState implements BannerModMessage<MessagePatrolLeaderSetPatrolState> {
@@ -33,7 +32,8 @@ public class MessagePatrolLeaderSetPatrolState implements BannerModMessage<Messa
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             dispatchToServer(player, this.recruit, this.state);
         });
     }

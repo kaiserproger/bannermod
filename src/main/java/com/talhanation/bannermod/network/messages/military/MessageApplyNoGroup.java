@@ -31,7 +31,8 @@ public class MessageApplyNoGroup implements BannerModMessage<MessageApplyNoGroup
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             List<AbstractRecruitEntity> recruitList = new ArrayList<>();
 
             ServerLevel serverLevel = (ServerLevel) player.getCommandSenderWorld();

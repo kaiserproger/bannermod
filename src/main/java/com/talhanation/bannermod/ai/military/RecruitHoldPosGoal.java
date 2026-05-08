@@ -45,6 +45,12 @@ public class RecruitHoldPosGoal extends Goal {
     }
 
     public void tick() {
+        LivingEntity leader = this.recruit.getOwner();
+        if (FormationDimensionGuard.shouldHoldDueToDimensionMismatch(this.recruit, leader)) {
+            this.recruit.getNavigation().stop();
+            return;
+        }
+
         if (this.formationFallbackCooldown > 0) {
             this.formationFallbackCooldown--;
         }
@@ -86,10 +92,6 @@ public class RecruitHoldPosGoal extends Goal {
             return;
         }
         // FORMATIONDIM-001: do not migrate formation slots while leader is in another dimension.
-        LivingEntity leader = this.recruit.getOwner();
-        if (FormationDimensionGuard.shouldHoldDueToDimensionMismatch(this.recruit, leader)) {
-            return;
-        }
         CombatStance stance = this.recruit.getCombatStance();
         if (!FormationGapFillPolicy.stanceAllowsGapFill(stance)) {
             return;
