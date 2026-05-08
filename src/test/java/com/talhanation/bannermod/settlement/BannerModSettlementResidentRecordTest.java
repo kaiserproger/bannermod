@@ -16,10 +16,10 @@ class BannerModSettlementResidentRecordTest {
                 BannerModSettlementResidentRole.CONTROLLED_WORKER,
                 BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK,
                 BannerModSettlementResidentScheduleWindowSeed.LABOR_DAY,
-                BannerModSettlementResidentRuntimeRoleSeed.LOCAL_LABOR,
+                BannerModSettlementResidentRuntimeRoleState.LOCAL_LABOR,
                 new BannerModSettlementResidentServiceContract(BannerModSettlementServiceActorState.LOCAL_BUILDING_SERVICE, UUID.randomUUID(), "bannermod:crop_area"),
                 new BannerModSettlementResidentJobDefinition(BannerModSettlementJobHandlerSeed.LOCAL_BUILDING_LABOR, UUID.randomUUID(), "bannermod:crop_area", BannerModSettlementBuildingCategory.FOOD, BannerModSettlementBuildingProfileSeed.FOOD_PRODUCTION),
-                new BannerModSettlementResidentJobTargetSelectionSeed(BannerModSettlementJobTargetSelectionMode.SERVICE_BUILDING, null, null),
+                new BannerModSettlementResidentJobTargetSelectionState(BannerModSettlementJobTargetSelectionMode.SERVICE_BUILDING, null, null),
                 BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
                 UUID.randomUUID(),
                 "blueguild",
@@ -27,7 +27,7 @@ class BannerModSettlementResidentRecordTest {
                 BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING,
                 BannerModSettlementResidentRoleProfile.defaultFor(
                         BannerModSettlementResidentRole.CONTROLLED_WORKER,
-                        BannerModSettlementResidentRuntimeRoleSeed.LOCAL_LABOR,
+                        BannerModSettlementResidentRuntimeRoleState.LOCAL_LABOR,
                         BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
                         BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
                 )
@@ -52,7 +52,7 @@ class BannerModSettlementResidentRecordTest {
 
         assertEquals(BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK, worker.scheduleSeed());
         assertEquals(BannerModSettlementResidentScheduleWindowSeed.LABOR_DAY, worker.scheduleWindowSeed());
-        assertEquals(BannerModSettlementResidentRuntimeRoleSeed.LOCAL_LABOR, worker.runtimeRoleSeed());
+        assertEquals(BannerModSettlementResidentRuntimeRoleState.LOCAL_LABOR, worker.runtimeRoleState());
         assertEquals("projected_local_labor", worker.roleProfile().profileId());
         assertEquals("labor", worker.roleProfile().goalDomainId());
         assertEquals(true, worker.roleProfile().prefersLocalBuilding());
@@ -65,7 +65,7 @@ class BannerModSettlementResidentRecordTest {
         assertEquals(workAreaUuid, worker.serviceContract().serviceBuildingUuid());
         assertEquals(BannerModSettlementJobHandlerSeed.LOCAL_BUILDING_LABOR, worker.jobDefinition().handlerSeed());
         assertEquals(workAreaUuid, worker.jobDefinition().targetBuildingUuid());
-        assertEquals(BannerModSettlementJobTargetSelectionMode.SERVICE_BUILDING, worker.jobTargetSelectionSeed().selectionMode());
+        assertEquals(BannerModSettlementJobTargetSelectionMode.SERVICE_BUILDING, worker.jobTargetSelectionState().selectionMode());
         assertEquals(BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER, worker.residentMode());
         assertEquals(BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING, worker.assignmentState());
 
@@ -77,14 +77,14 @@ class BannerModSettlementResidentRecordTest {
 
         assertEquals(BannerModSettlementResidentScheduleSeed.GOVERNING, governor.scheduleSeed());
         assertEquals(BannerModSettlementResidentScheduleWindowSeed.CIVIC_DAY, governor.scheduleWindowSeed());
-        assertEquals(BannerModSettlementResidentRuntimeRoleSeed.GOVERNANCE, governor.runtimeRoleSeed());
+        assertEquals(BannerModSettlementResidentRuntimeRoleState.GOVERNANCE, governor.runtimeRoleState());
         assertEquals("governance", governor.roleProfile().profileId());
         assertEquals("governance", governor.roleProfile().goalDomainId());
         assertEquals(BannerModSettlementResidentSchedulePolicySeed.GOVERNANCE_CIVIC, governor.schedulePolicy().policySeed());
         assertEquals(BannerModSettlementResidentScheduleWindowSeed.CIVIC_DAY, governor.schedulePolicy().scheduleWindowSeed());
         assertEquals(BannerModSettlementServiceActorState.NOT_SERVICE_ACTOR, governor.serviceContract().actorState());
         assertEquals(BannerModSettlementJobHandlerSeed.GOVERNANCE, governor.jobDefinition().handlerSeed());
-        assertEquals(BannerModSettlementJobTargetSelectionMode.NONE, governor.jobTargetSelectionSeed().selectionMode());
+        assertEquals(BannerModSettlementJobTargetSelectionMode.NONE, governor.jobTargetSelectionState().selectionMode());
         assertEquals(BannerModSettlementResidentMode.SETTLEMENT_RESIDENT, governor.residentMode());
         assertEquals(BannerModSettlementResidentAssignmentState.NOT_APPLICABLE, governor.assignmentState());
 
@@ -95,14 +95,14 @@ class BannerModSettlementResidentRecordTest {
         BannerModSettlementResidentRecord unownedWorker = BannerModSettlementResidentRecord.fromTag(unownedWorkerTag);
 
         assertEquals(BannerModSettlementResidentScheduleWindowSeed.DAYLIGHT_FLEX, unownedWorker.scheduleWindowSeed());
-        assertEquals(BannerModSettlementResidentRuntimeRoleSeed.FLOATING_LABOR, unownedWorker.runtimeRoleSeed());
+        assertEquals(BannerModSettlementResidentRuntimeRoleState.FLOATING_LABOR, unownedWorker.runtimeRoleState());
         assertEquals("projected_floating_labor", unownedWorker.roleProfile().profileId());
         assertEquals("labor", unownedWorker.roleProfile().goalDomainId());
         assertEquals(BannerModSettlementResidentSchedulePolicySeed.FLOATING_LABOR_FLEX, unownedWorker.schedulePolicy().policySeed());
         assertEquals(BannerModSettlementResidentScheduleWindowSeed.DAYLIGHT_FLEX, unownedWorker.schedulePolicy().scheduleWindowSeed());
         assertEquals(BannerModSettlementServiceActorState.FLOATING_SERVICE, unownedWorker.serviceContract().actorState());
         assertEquals(BannerModSettlementJobHandlerSeed.FLOATING_LABOR_POOL, unownedWorker.jobDefinition().handlerSeed());
-        assertEquals(BannerModSettlementJobTargetSelectionMode.FLOATING_LABOR_POOL, unownedWorker.jobTargetSelectionSeed().selectionMode());
+        assertEquals(BannerModSettlementJobTargetSelectionMode.FLOATING_LABOR_POOL, unownedWorker.jobTargetSelectionState().selectionMode());
         assertEquals(BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER, unownedWorker.residentMode());
         assertEquals(BannerModSettlementResidentAssignmentState.UNASSIGNED, unownedWorker.assignmentState());
     }
@@ -113,7 +113,7 @@ class BannerModSettlementResidentRecordTest {
         residentTag.putUUID("ResidentUuid", UUID.randomUUID());
         residentTag.putString("Role", BannerModSettlementResidentRole.VILLAGER.name());
         residentTag.putString("ScheduleSeed", BannerModSettlementResidentScheduleSeed.SETTLEMENT_IDLE.name());
-        residentTag.putString("RuntimeRoleSeed", BannerModSettlementResidentRuntimeRoleSeed.VILLAGE_LIFE.name());
+        residentTag.putString("RuntimeRoleSeed", BannerModSettlementResidentRuntimeRoleState.VILLAGE_LIFE.name());
         residentTag.putString("ScheduleWindowSeed", "NOT_A_REAL_WINDOW");
 
         BannerModSettlementResidentRecord resident = BannerModSettlementResidentRecord.fromTag(residentTag);

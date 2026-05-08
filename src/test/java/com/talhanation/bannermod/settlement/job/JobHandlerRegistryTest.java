@@ -5,7 +5,7 @@ import com.talhanation.bannermod.settlement.BannerModSettlementResidentAssignmen
 import com.talhanation.bannermod.settlement.BannerModSettlementResidentMode;
 import com.talhanation.bannermod.settlement.BannerModSettlementResidentRecord;
 import com.talhanation.bannermod.settlement.BannerModSettlementResidentRole;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRuntimeRoleSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementResidentRuntimeRoleState;
 import com.talhanation.bannermod.settlement.BannerModSettlementResidentScheduleSeed;
 import com.talhanation.bannermod.settlement.BannerModSettlementResidentServiceContract;
 import com.talhanation.bannermod.settlement.BannerModSettlementServiceActorState;
@@ -231,7 +231,7 @@ class JobHandlerRegistryTest {
                 residentUuid,
                 BannerModSettlementResidentRole.CONTROLLED_WORKER,
                 BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK,
-                BannerModSettlementResidentRuntimeRoleSeed.LOCAL_LABOR,
+                BannerModSettlementResidentRuntimeRoleState.LOCAL_LABOR,
                 new BannerModSettlementResidentServiceContract(
                         BannerModSettlementServiceActorState.LOCAL_BUILDING_SERVICE,
                         buildingUuid,
@@ -251,7 +251,7 @@ class JobHandlerRegistryTest {
                 residentUuid,
                 BannerModSettlementResidentRole.VILLAGER,
                 BannerModSettlementResidentScheduleSeed.SETTLEMENT_IDLE,
-                BannerModSettlementResidentRuntimeRoleSeed.VILLAGE_LIFE,
+                BannerModSettlementResidentRuntimeRoleState.VILLAGE_LIFE,
                 BannerModSettlementResidentServiceContract.defaultFor(
                         BannerModSettlementResidentRole.VILLAGER,
                         BannerModSettlementResidentMode.SETTLEMENT_RESIDENT,

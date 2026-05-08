@@ -4,7 +4,7 @@ import com.talhanation.bannermod.settlement.BannerModSettlementResidentAssignmen
 import com.talhanation.bannermod.settlement.BannerModSettlementResidentMode;
 import com.talhanation.bannermod.settlement.BannerModSettlementResidentRecord;
 import com.talhanation.bannermod.settlement.BannerModSettlementResidentRole;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRuntimeRoleSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementResidentRuntimeRoleState;
 import com.talhanation.bannermod.settlement.BannerModSettlementResidentScheduleSeed;
 import com.talhanation.bannermod.settlement.BannerModSettlementResidentScheduleWindowSeed;
 import com.talhanation.bannermod.settlement.BannerModSettlementResidentServiceContract;
@@ -129,7 +129,7 @@ class HandlerClaimBehaviorTest {
                 RESIDENT,
                 BannerModSettlementResidentRole.CONTROLLED_WORKER,
                 BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK,
-                BannerModSettlementResidentRuntimeRoleSeed.LOCAL_LABOR,
+                BannerModSettlementResidentRuntimeRoleState.LOCAL_LABOR,
                 serviceContract,
                 BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
                 UUID.fromString("00000000-0000-0000-0000-0000000000d1"),

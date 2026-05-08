@@ -44,9 +44,9 @@ class BannerModSettlementSnapshotTest {
         assertEquals(0, snapshot.missingWorkAreaAssignmentCount());
         assertEquals(BannerModSettlementStockpileSummary.empty(), snapshot.stockpileSummary());
         assertEquals(BannerModSettlementMarketState.empty(), snapshot.marketState());
-        assertEquals(BannerModSettlementDesiredGoodsSeed.empty(), snapshot.desiredGoodsSeed());
-        assertEquals(BannerModSettlementProjectCandidateSeed.empty(), snapshot.projectCandidateSeed());
-        assertEquals(BannerModSettlementTradeRouteHandoffSeed.empty(), snapshot.tradeRouteHandoffSeed());
+        assertEquals(BannerModSettlementDesiredGoodsSnapshot.empty(), snapshot.desiredGoodsSnapshot());
+        assertEquals(BannerModSettlementProjectCandidateSnapshot.empty(), snapshot.projectCandidateSnapshot());
+        assertEquals(BannerModSettlementTradeRouteHandoffSnapshot.empty(), snapshot.tradeRouteHandoffSnapshot());
         assertEquals(BannerModSettlementSupplySignalState.empty(), snapshot.supplySignalState());
         assertTrue(snapshot.residents().isEmpty());
         assertTrue(snapshot.buildings().isEmpty());
@@ -81,9 +81,9 @@ class BannerModSettlementSnapshotTest {
         assertEquals(null, snapshot.settlementFactionId());
         assertEquals(BannerModSettlementStockpileSummary.empty(), snapshot.stockpileSummary());
         assertEquals(BannerModSettlementMarketState.empty(), snapshot.marketState());
-        assertEquals(BannerModSettlementDesiredGoodsSeed.empty(), snapshot.desiredGoodsSeed());
-        assertEquals(BannerModSettlementProjectCandidateSeed.empty(), snapshot.projectCandidateSeed());
-        assertEquals(BannerModSettlementTradeRouteHandoffSeed.empty(), snapshot.tradeRouteHandoffSeed());
+        assertEquals(BannerModSettlementDesiredGoodsSnapshot.empty(), snapshot.desiredGoodsSnapshot());
+        assertEquals(BannerModSettlementProjectCandidateSnapshot.empty(), snapshot.projectCandidateSnapshot());
+        assertEquals(BannerModSettlementTradeRouteHandoffSnapshot.empty(), snapshot.tradeRouteHandoffSnapshot());
         assertEquals(BannerModSettlementSupplySignalState.empty(), snapshot.supplySignalState());
         assertTrue(snapshot.residents().isEmpty());
         assertTrue(snapshot.buildings().isEmpty());
@@ -96,7 +96,7 @@ class BannerModSettlementSnapshotTest {
                 BannerModSettlementResidentRole.VILLAGER,
                 BannerModSettlementResidentScheduleSeed.SETTLEMENT_IDLE,
                 BannerModSettlementResidentScheduleWindowSeed.DAYLIGHT_FLEX,
-                BannerModSettlementResidentRuntimeRoleSeed.VILLAGE_LIFE,
+                BannerModSettlementResidentRuntimeRoleState.VILLAGE_LIFE,
                 BannerModSettlementResidentServiceContract.notServiceActor(),
                 BannerModSettlementResidentMode.SETTLEMENT_RESIDENT,
                 null,
@@ -136,9 +136,9 @@ class BannerModSettlementSnapshotTest {
                 0,
                 BannerModSettlementStockpileSummary.empty(),
                 BannerModSettlementMarketState.empty(),
-                BannerModSettlementDesiredGoodsSeed.empty(),
-                BannerModSettlementProjectCandidateSeed.empty(),
-                BannerModSettlementTradeRouteHandoffSeed.empty(),
+                BannerModSettlementDesiredGoodsSnapshot.empty(),
+                BannerModSettlementProjectCandidateSnapshot.empty(),
+                BannerModSettlementTradeRouteHandoffSnapshot.empty(),
                 BannerModSettlementSupplySignalState.empty(),
                 List.of(resident),
                 List.of(building)

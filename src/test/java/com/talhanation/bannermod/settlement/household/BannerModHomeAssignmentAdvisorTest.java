@@ -2,13 +2,13 @@ package com.talhanation.bannermod.settlement.household;
 
 import com.talhanation.bannermod.settlement.BannerModSettlementBuildingProfileSeed;
 import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodsSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodsSnapshot;
 import com.talhanation.bannermod.settlement.BannerModSettlementMarketState;
-import com.talhanation.bannermod.settlement.BannerModSettlementProjectCandidateSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementProjectCandidateSnapshot;
 import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
 import com.talhanation.bannermod.settlement.BannerModSettlementStockpileSummary;
 import com.talhanation.bannermod.settlement.BannerModSettlementSupplySignalState;
-import com.talhanation.bannermod.settlement.BannerModSettlementTradeRouteHandoffSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementTradeRouteHandoffSnapshot;
 import net.minecraft.core.BlockPos;
 import org.junit.jupiter.api.Test;
 
@@ -80,9 +80,9 @@ class BannerModHomeAssignmentAdvisorTest {
                 0,
                 BannerModSettlementStockpileSummary.empty(),
                 BannerModSettlementMarketState.empty(),
-                BannerModSettlementDesiredGoodsSeed.empty(),
-                BannerModSettlementProjectCandidateSeed.empty(),
-                BannerModSettlementTradeRouteHandoffSeed.empty(),
+                BannerModSettlementDesiredGoodsSnapshot.empty(),
+                BannerModSettlementProjectCandidateSnapshot.empty(),
+                BannerModSettlementTradeRouteHandoffSnapshot.empty(),
                 BannerModSettlementSupplySignalState.empty(),
                 List.of(),
                 buildings
