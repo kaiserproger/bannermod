@@ -8757,8 +8757,8 @@
     {
       "id": "PACKETAUTH-012",
       "title": "Verify leader ownership in MessagePatrolLeaderSetEnemyAction",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "MessagePatrolLeaderSetEnemyAction resolves an AbstractLeaderEntity by UUID and only verifies a range AABB / distance before calling leader.setEnemyAction(...). No ownership check; any client in range can mutate a foreign player's leader entity (waypoints, cycle, speed, info mode, etc.).",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessagePatrolLeaderSetEnemyAction.java executeServerSide; add canDirectlyControl(sender, leader) (or equivalent owner-equality check via leader.getOwnerUUID()) before the mutation."
@@ -8768,14 +8768,20 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Handler now requires RecruitCommandAuthority.canDirectlyControl(player, leader) before leader.setEnemyAction(this.action); 2) focused PatrolLeaderWaypointAuthorityTest passed and asserts a foreign non-op sender has CommandRole.NONE and the authority gate precedes the only enemy-action mutation; 3) ./gradlew compileJava test --tests PatrolLeaderWaypointAuthorityTest --tests MessagePatrolLeaderSetInfoModeAuthorityTest passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-013",
       "title": "Verify leader ownership in MessagePatrolLeaderSetInfoMode",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "MessagePatrolLeaderSetInfoMode resolves an AbstractLeaderEntity by UUID and only verifies a range AABB / distance before calling leader.setInfoMode(...). No ownership check; any client in range can mutate a foreign player's leader entity (waypoints, cycle, speed, info mode, etc.).",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessagePatrolLeaderSetInfoMode.java executeServerSide; add canDirectlyControl(sender, leader) (or equivalent owner-equality check via leader.getOwnerUUID()) before the mutation."
@@ -8785,14 +8791,20 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Handler now requires RecruitCommandAuthority.canDirectlyControl(player, leader) before leader.setInfoMode(state); 2) focused MessagePatrolLeaderSetInfoModeAuthorityTest passed and asserts a foreign non-op sender has CommandRole.NONE and the authority gate precedes the only info-mode mutation; 3) ./gradlew compileJava test --tests PatrolLeaderWaypointAuthorityTest --tests MessagePatrolLeaderSetInfoModeAuthorityTest passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-014",
       "title": "Verify leader ownership in MessagePatrolLeaderSetPatrollingSpeed",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "MessagePatrolLeaderSetPatrollingSpeed resolves an AbstractLeaderEntity by UUID and only verifies a range AABB / distance before calling leader.setPatrolSpeed(...). No ownership check; any client in range can mutate a foreign player's leader entity (waypoints, cycle, speed, info mode, etc.).",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessagePatrolLeaderSetPatrollingSpeed.java executeServerSide; add canDirectlyControl(sender, leader) (or equivalent owner-equality check via leader.getOwnerUUID()) before the mutation."
@@ -8802,8 +8814,14 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Handler now requires RecruitCommandAuthority.canDirectlyControl(player, leader) before leader.setPatrolSpeed(this.speed); 2) focused PatrolLeaderWaypointAuthorityTest passed and asserts a foreign non-op sender has CommandRole.NONE and the authority gate precedes the only patrol-speed mutation; 3) ./gradlew compileJava test --tests PatrolLeaderWaypointAuthorityTest --tests MessagePatrolLeaderSetInfoModeAuthorityTest passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-015",
