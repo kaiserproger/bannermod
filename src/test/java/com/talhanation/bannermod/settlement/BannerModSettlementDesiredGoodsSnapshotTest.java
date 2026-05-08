@@ -7,18 +7,18 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class BannerModSettlementDesiredGoodsSnapshotTest {
+class SettlementDesiredGoodsSnapshotTest {
 
     @Test
     void desiredGoodsSnapshotRoundTripsPersistedDrivers() {
-        BannerModSettlementDesiredGoodsSnapshot original = new BannerModSettlementDesiredGoodsSnapshot(List.of(
-                new BannerModSettlementDesiredGoodSnapshot("food", 2),
-                new BannerModSettlementDesiredGoodSnapshot("storage_type:merchants", 1),
-                new BannerModSettlementDesiredGoodSnapshot("market_goods", 3)
+        SettlementDesiredGoodsSnapshot original = new SettlementDesiredGoodsSnapshot(List.of(
+                new SettlementDesiredGoodSnapshot("food", 2),
+                new SettlementDesiredGoodSnapshot("storage_type:merchants", 1),
+                new SettlementDesiredGoodSnapshot("market_goods", 3)
         ));
 
         CompoundTag tag = original.toTag();
-        BannerModSettlementDesiredGoodsSnapshot restored = BannerModSettlementDesiredGoodsSnapshot.fromTag(tag);
+        SettlementDesiredGoodsSnapshot restored = SettlementDesiredGoodsSnapshot.fromTag(tag);
 
         assertEquals(original, restored);
     }

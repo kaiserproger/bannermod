@@ -4,8 +4,8 @@ import com.talhanation.bannermod.governance.BannerModGovernorManager;
 import com.talhanation.bannermod.governance.BannerModGovernorSnapshot;
 import com.talhanation.bannermod.governance.BannerModTreasuryLedgerSnapshot;
 import com.talhanation.bannermod.governance.BannerModTreasuryManager;
-import com.talhanation.bannermod.settlement.BannerModSettlementManager;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementManager;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
 import com.talhanation.bannermod.war.runtime.OccupationRuntime;
 import com.talhanation.bannermod.war.runtime.RevoltRuntime;
 import com.talhanation.bannermod.war.runtime.RevoltState;
@@ -36,9 +36,9 @@ class ClaimRemovalFanoutTest {
         treasury.depositTaxes(claimUuid, anchorChunk, "blueguild", 30, 100L);
         treasury.depositTaxes(otherClaimUuid, new ChunkPos(50, 50), "redguild", 12, 100L);
 
-        BannerModSettlementManager settlements = new BannerModSettlementManager();
-        settlements.putSnapshot(BannerModSettlementSnapshot.create(claimUuid, anchorChunk, "blueguild"));
-        settlements.putSnapshot(BannerModSettlementSnapshot.create(otherClaimUuid, new ChunkPos(50, 50), "redguild"));
+        SettlementManager settlements = new SettlementManager();
+        settlements.putSnapshot(SettlementSnapshot.create(claimUuid, anchorChunk, "blueguild"));
+        settlements.putSnapshot(SettlementSnapshot.create(otherClaimUuid, new ChunkPos(50, 50), "redguild"));
 
         BannerModGovernorManager governors = new BannerModGovernorManager();
         governors.putSnapshot(BannerModGovernorSnapshot.create(claimUuid, anchorChunk, "blueguild")
@@ -97,8 +97,8 @@ class ClaimRemovalFanoutTest {
         List<ChunkPos> chunks = List.of(chunk);
         BannerModTreasuryManager treasury = new BannerModTreasuryManager();
         treasury.depositTaxes(claimUuid, chunk, "blueguild", 5, 50L);
-        BannerModSettlementManager settlements = new BannerModSettlementManager();
-        settlements.putSnapshot(BannerModSettlementSnapshot.create(claimUuid, chunk, "blueguild"));
+        SettlementManager settlements = new SettlementManager();
+        settlements.putSnapshot(SettlementSnapshot.create(claimUuid, chunk, "blueguild"));
         BannerModGovernorManager governors = new BannerModGovernorManager();
         OccupationRuntime occupations = new OccupationRuntime();
         RevoltRuntime revolts = new RevoltRuntime();
@@ -121,7 +121,7 @@ class ClaimRemovalFanoutTest {
     void fanoutNoOpWhenClaimUuidIsNull() {
         ClaimRemovalFanout.FanoutResult result = ClaimRemovalFanout.apply(
                 null, List.of(new ChunkPos(0, 0)), new BannerModTreasuryManager(),
-                new BannerModSettlementManager(), new BannerModGovernorManager(),
+                new SettlementManager(), new BannerModGovernorManager(),
                 new OccupationRuntime(), new RevoltRuntime(), null);
         assertFalse(result.treasuryLedgerRemoved());
         assertFalse(result.settlementSnapshotRemoved());

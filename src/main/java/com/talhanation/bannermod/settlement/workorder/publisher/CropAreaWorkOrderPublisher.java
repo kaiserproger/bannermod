@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.settlement.workorder.publisher;
 
 import com.talhanation.bannermod.entity.civilian.workarea.CropArea;
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
+import com.talhanation.bannermod.settlement.SettlementBuildingRecord;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrder;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderPublishContext;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderPublisher;
@@ -26,7 +26,7 @@ public final class CropAreaWorkOrderPublisher implements SettlementWorkOrderPubl
     private static final int PRIORITY_PLANT = 50;
 
     @Override
-    public boolean matches(BannerModSettlementBuildingRecord building) {
+    public boolean matches(SettlementBuildingRecord building) {
         return SettlementWorkOrderPublisherRegistry.matchesBuildingType(building, "crop_area");
     }
 

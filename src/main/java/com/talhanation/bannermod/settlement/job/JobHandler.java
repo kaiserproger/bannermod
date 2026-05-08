@@ -1,11 +1,11 @@
 package com.talhanation.bannermod.settlement.job;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementJobHandlerSeed;
+import com.talhanation.bannermod.settlement.SettlementJobHandlerSeed;
 import net.minecraft.resources.ResourceLocation;
 
 /**
  * Executable side of a job task. Implementations are registered by
- * {@link JobHandlerRegistry} and selected via a {@link BannerModSettlementJobHandlerSeed}.
+ * {@link JobHandlerRegistry} and selected via a {@link SettlementJobHandlerSeed}.
  *
  * <p>Handlers are stateless singletons with respect to a given registry; per-resident state
  * lives on the resident record or later on scheduler data, not on the handler instance.</p>
@@ -15,7 +15,7 @@ public interface JobHandler {
     ResourceLocation id();
 
     /** Seed enum value this handler claims ownership of. */
-    BannerModSettlementJobHandlerSeed handles();
+    SettlementJobHandlerSeed handles();
 
     /** Fast precondition check used by the scheduler before calling {@link #runOneStep}. */
     boolean canHandle(JobExecutionContext ctx);

@@ -1,6 +1,6 @@
 package com.talhanation.bannermod.settlement.runtime;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodSnapshot;
+import com.talhanation.bannermod.settlement.SettlementDesiredGoodSnapshot;
 import com.talhanation.bannermod.shared.logistics.BannerModSeaTradeExecutionRecord;
 import com.talhanation.bannermod.shared.logistics.BannerModSeaTradeSummary;
 import net.minecraft.resources.ResourceLocation;
@@ -17,13 +17,13 @@ public final class SettlementSeaTradeAnalyzer {
     private SettlementSeaTradeAnalyzer() {
     }
 
-    public static List<BannerModSettlementDesiredGoodSnapshot> desiredGoods(BannerModSeaTradeSummary.Summary seaTradeSummary) {
-        List<BannerModSettlementDesiredGoodSnapshot> desiredGoods = new ArrayList<>();
+    public static List<SettlementDesiredGoodSnapshot> desiredGoods(BannerModSeaTradeSummary.Summary seaTradeSummary) {
+        List<SettlementDesiredGoodSnapshot> desiredGoods = new ArrayList<>();
         for (Map.Entry<ResourceLocation, Integer> entry : seaTradeSummary.importableByItem().entrySet()) {
-            desiredGoods.add(new BannerModSettlementDesiredGoodSnapshot("sea_import:" + entry.getKey(), entry.getValue()));
+            desiredGoods.add(new SettlementDesiredGoodSnapshot("sea_import:" + entry.getKey(), entry.getValue()));
         }
         for (Map.Entry<ResourceLocation, Integer> entry : seaTradeSummary.exportableByItem().entrySet()) {
-            desiredGoods.add(new BannerModSettlementDesiredGoodSnapshot("sea_export:" + entry.getKey(), entry.getValue()));
+            desiredGoods.add(new SettlementDesiredGoodSnapshot("sea_export:" + entry.getKey(), entry.getValue()));
         }
         return desiredGoods;
     }

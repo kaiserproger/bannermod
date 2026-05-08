@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.events.civilian;
 
 import com.talhanation.bannermod.entity.civilian.AbstractWorkerEntity;
-import com.talhanation.bannermod.settlement.BannerModSettlementOrchestrator;
+import com.talhanation.bannermod.settlement.SettlementOrchestrator;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrder;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderRuntime;
 import net.minecraft.server.level.ServerLevel;
@@ -50,7 +50,7 @@ public final class SettlementWorkOrderClaimReleaseEvents {
     }
 
     private static void releaseFor(ServerLevel serverLevel, UUID residentUuid) {
-        SettlementWorkOrderRuntime runtime = BannerModSettlementOrchestrator.workOrderRuntime(serverLevel);
+        SettlementWorkOrderRuntime runtime = SettlementOrchestrator.workOrderRuntime(serverLevel);
         if (runtime == null) return;
         List<SettlementWorkOrder> released = runtime.releaseClaimsForResident(residentUuid);
         if (!released.isEmpty()) {

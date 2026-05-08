@@ -9,45 +9,45 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class BannerModSettlementLogisticsDerivationServiceTest {
+class SettlementLogisticsDerivationServiceTest {
 
     @Test
     void logisticsDerivationServiceCombinesStockpileProjectAndSupplySeeds() {
         UUID storageUuid = UUID.randomUUID();
         UUID marketUuid = UUID.randomUUID();
-        BannerModSettlementBuildingRecord storage = new BannerModSettlementBuildingRecord(storageUuid, "bannermod:storage_area", new BlockPos(0, 64, 0), UUID.randomUUID(), "blueguild", 0, 1, 0, List.of(), true, 2, 54, true, true, List.of("merchants"));
-        BannerModSettlementBuildingRecord market = new BannerModSettlementBuildingRecord(marketUuid, "bannermod:market_area", new BlockPos(8, 64, 8), UUID.randomUUID(), "blueguild", 0, 1, 1, List.of(UUID.randomUUID()), false, 0, 0, false, false, List.of());
-        BannerModSettlementResidentRecord seller = new BannerModSettlementResidentRecord(
+        SettlementBuildingRecord storage = new SettlementBuildingRecord(storageUuid, "bannermod:storage_area", new BlockPos(0, 64, 0), UUID.randomUUID(), "blueguild", 0, 1, 0, List.of(), true, 2, 54, true, true, List.of("merchants"));
+        SettlementBuildingRecord market = new SettlementBuildingRecord(marketUuid, "bannermod:market_area", new BlockPos(8, 64, 8), UUID.randomUUID(), "blueguild", 0, 1, 1, List.of(UUID.randomUUID()), false, 0, 0, false, false, List.of());
+        SettlementResidentRecord seller = new SettlementResidentRecord(
                 UUID.randomUUID(),
-                BannerModSettlementResidentRole.CONTROLLED_WORKER,
-                BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK,
-                BannerModSettlementResidentScheduleWindowSeed.LABOR_DAY,
-                BannerModSettlementResidentRuntimeRoleState.LOCAL_LABOR,
-                BannerModSettlementResidentServiceContract.defaultFor(
-                        BannerModSettlementResidentRole.CONTROLLED_WORKER,
-                        BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
-                        BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING,
+                SettlementResidentRole.CONTROLLED_WORKER,
+                SettlementResidentScheduleSeed.ASSIGNED_WORK,
+                SettlementResidentScheduleWindowSeed.LABOR_DAY,
+                SettlementResidentRuntimeRoleState.LOCAL_LABOR,
+                SettlementResidentServiceContract.defaultFor(
+                        SettlementResidentRole.CONTROLLED_WORKER,
+                        SettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
+                        SettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING,
                         marketUuid,
                         "bannermod:market_area"
                 ),
-                BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
+                SettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
                 UUID.randomUUID(),
                 "blueguild",
                 marketUuid,
-                BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
+                SettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
         );
-        BannerModSettlementMarketState marketState = new BannerModSettlementMarketState(
+        SettlementMarketState marketState = new SettlementMarketState(
                 1,
                 1,
                 27,
                 9,
                 1,
                 1,
-                List.of(new BannerModSettlementMarketRecord(marketUuid, "Harbor Square", true, 27, 9)),
-                List.of(new BannerModSettlementSellerDispatchRecord(seller.residentUuid(), marketUuid, "Harbor Square", BannerModSettlementSellerDispatchState.READY))
+                List.of(new SettlementMarketRecord(marketUuid, "Harbor Square", true, 27, 9)),
+                List.of(new SettlementSellerDispatchRecord(seller.residentUuid(), marketUuid, "Harbor Square", SettlementSellerDispatchState.READY))
         );
 
-        BannerModSettlementLogisticsDerivationService.LogisticsResult logistics = BannerModSettlementLogisticsDerivationService.derive(
+        SettlementLogisticsDerivationService.LogisticsResult logistics = SettlementLogisticsDerivationService.derive(
                 List.of(storage, market),
                 List.of(seller),
                 marketState,
@@ -59,14 +59,14 @@ class BannerModSettlementLogisticsDerivationServiceTest {
                 true
         );
 
-        BannerModSettlementStockpileSummary expectedStockpile = BannerModSettlementSnapshotRuntime.summarizeStockpiles(List.of(storage, market), List.of());
-        BannerModSettlementDesiredGoodsSnapshot expectedDesiredGoods = BannerModSettlementSnapshotRuntime.summarizeDesiredGoods(
+        SettlementStockpileSummary expectedStockpile = SettlementSnapshotRuntime.summarizeStockpiles(List.of(storage, market), List.of());
+        SettlementDesiredGoodsSnapshot expectedDesiredGoods = SettlementSnapshotRuntime.summarizeDesiredGoods(
                 List.of(storage, market),
                 expectedStockpile,
                 marketState,
                 BannerModSeaTradeSummary.summarise(List.of())
         );
-        BannerModSettlementProjectCandidateSnapshot expectedProject = BannerModSettlementSnapshotRuntime.summarizeProjectCandidate(
+        SettlementProjectCandidateSnapshot expectedProject = SettlementSnapshotRuntime.summarizeProjectCandidate(
                 List.of(storage, market),
                 expectedStockpile,
                 expectedDesiredGoods,
@@ -74,21 +74,21 @@ class BannerModSettlementLogisticsDerivationServiceTest {
                 true,
                 true
         );
-        BannerModSettlementTradeRouteHandoffSnapshot expectedTradeRouteHandoff = BannerModSettlementSnapshotRuntime.summarizeTradeRouteHandoffSnapshot(
+        SettlementTradeRouteHandoffSnapshot expectedTradeRouteHandoff = SettlementSnapshotRuntime.summarizeTradeRouteHandoffSnapshot(
                 expectedStockpile,
                 marketState,
                 expectedDesiredGoods,
-                BannerModSettlementSnapshotRuntime.ReservationSignalSeed.empty(),
+                SettlementSnapshotRuntime.ReservationSignalSeed.empty(),
                 BannerModSeaTradeSummary.summarise(List.of()),
                 List.of()
         );
-        BannerModSettlementSupplySignalState expectedSupplySignals = BannerModSettlementSnapshotRuntime.summarizeSupplySignals(
+        SettlementSupplySignalState expectedSupplySignals = SettlementSnapshotRuntime.summarizeSupplySignals(
                 expectedDesiredGoods,
                 expectedStockpile,
                 marketState,
                 List.of(seller),
                 List.of(storage, market),
-                BannerModSettlementSnapshotRuntime.ReservationSignalSeed.empty(),
+                SettlementSnapshotRuntime.ReservationSignalSeed.empty(),
                 BannerModSeaTradeSummary.summarise(List.of())
         );
 

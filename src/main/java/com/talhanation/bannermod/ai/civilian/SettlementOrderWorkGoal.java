@@ -10,7 +10,7 @@ import com.talhanation.bannermod.entity.civilian.workarea.StorageArea;
 import com.talhanation.bannermod.entity.civilian.workarea.WorkAreaIndex;
 import com.talhanation.bannermod.persistence.civilian.BuildBlockParse;
 import com.talhanation.bannermod.persistence.civilian.NeededItem;
-import com.talhanation.bannermod.settlement.BannerModSettlementOrchestrator;
+import com.talhanation.bannermod.settlement.SettlementOrchestrator;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrder;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderRuntime;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderType;
@@ -105,7 +105,7 @@ public final class SettlementOrderWorkGoal extends Goal {
         if (!(worker.getCommandSenderWorld() instanceof ServerLevel level)) {
             return false;
         }
-        SettlementWorkOrderRuntime runtime = BannerModSettlementOrchestrator.workOrderRuntime(level);
+        SettlementWorkOrderRuntime runtime = SettlementOrchestrator.workOrderRuntime(level);
         if (runtime == null) {
             return false;
         }
@@ -121,7 +121,7 @@ public final class SettlementOrderWorkGoal extends Goal {
         if (!(worker.getCommandSenderWorld() instanceof ServerLevel level)) {
             return false;
         }
-        SettlementWorkOrderRuntime runtime = BannerModSettlementOrchestrator.workOrderRuntime(level);
+        SettlementWorkOrderRuntime runtime = SettlementOrchestrator.workOrderRuntime(level);
         if (runtime == null) {
             return false;
         }
@@ -134,7 +134,7 @@ public final class SettlementOrderWorkGoal extends Goal {
         if (!(worker.getCommandSenderWorld() instanceof ServerLevel level)) {
             return;
         }
-        SettlementWorkOrderRuntime runtime = BannerModSettlementOrchestrator.workOrderRuntime(level);
+        SettlementWorkOrderRuntime runtime = SettlementOrchestrator.workOrderRuntime(level);
         if (runtime == null) {
             return;
         }
@@ -169,7 +169,7 @@ public final class SettlementOrderWorkGoal extends Goal {
         if (!(worker.getCommandSenderWorld() instanceof ServerLevel level)) {
             return;
         }
-        SettlementWorkOrderRuntime runtime = BannerModSettlementOrchestrator.workOrderRuntime(level);
+        SettlementWorkOrderRuntime runtime = SettlementOrchestrator.workOrderRuntime(level);
         if (runtime == null) {
             return;
         }

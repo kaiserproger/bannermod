@@ -1,8 +1,8 @@
 package com.talhanation.bannermod.settlement.job;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementJobHandlerSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentMode;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRecord;
+import com.talhanation.bannermod.settlement.SettlementJobHandlerSeed;
+import com.talhanation.bannermod.settlement.SettlementResidentMode;
+import com.talhanation.bannermod.settlement.SettlementResidentRecord;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrder;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderRuntime;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderType;
@@ -14,7 +14,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Floating-labor work handler bound to {@link BannerModSettlementJobHandlerSeed#FLOATING_LABOR_POOL}.
+ * Floating-labor work handler bound to {@link SettlementJobHandlerSeed#FLOATING_LABOR_POOL}.
  *
  * <p>On each step the handler:</p>
  * <ol>
@@ -59,8 +59,8 @@ public final class HarvestJobHandler implements JobHandler {
     }
 
     @Override
-    public BannerModSettlementJobHandlerSeed handles() {
-        return BannerModSettlementJobHandlerSeed.FLOATING_LABOR_POOL;
+    public SettlementJobHandlerSeed handles() {
+        return SettlementJobHandlerSeed.FLOATING_LABOR_POOL;
     }
 
     @Override
@@ -68,12 +68,12 @@ public final class HarvestJobHandler implements JobHandler {
         if (ctx == null || ctx.resident() == null) {
             return false;
         }
-        return ctx.resident().residentMode() == BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER;
+        return ctx.resident().residentMode() == SettlementResidentMode.PROJECTED_CONTROLLED_WORKER;
     }
 
     @Override
     public JobExecutionResult runOneStep(JobExecutionContext ctx) {
-        BannerModSettlementResidentRecord resident = ctx.resident();
+        SettlementResidentRecord resident = ctx.resident();
         SettlementWorkOrderRuntime runtime = ctx.workOrderRuntime();
         if (runtime == null || resident.residentUuid() == null) {
             return JobExecutionResult.COMPLETED;

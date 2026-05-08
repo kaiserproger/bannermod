@@ -10,15 +10,15 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class BannerModSettlementStrategicSignalsTest {
+class SettlementStrategicSignalsTest {
     @Test
     void classifiesFoodAndStorageAsSurplusHubWithWarObjective() {
-        BannerModSettlementStrategicSignals signals = BannerModSettlementStrategicSignals.fromSnapshot(snapshot(
-                new BannerModSettlementStockpileSummary(1, 2, 54, 0, 0, List.of()),
-                BannerModSettlementMarketState.empty(),
+        SettlementStrategicSignals signals = SettlementStrategicSignals.fromSnapshot(snapshot(
+                new SettlementStockpileSummary(1, 2, 54, 0, 0, List.of()),
+                SettlementMarketState.empty(),
                 List.of(
-                        building("bannermod:crop_area", BannerModSettlementBuildingProfileSeed.FOOD_PRODUCTION),
-                        building("bannermod:storage_area", BannerModSettlementBuildingProfileSeed.STORAGE)
+                        building("bannermod:crop_area", SettlementBuildingProfileSeed.FOOD_PRODUCTION),
+                        building("bannermod:storage_area", SettlementBuildingProfileSeed.STORAGE)
                 )
         ));
 
@@ -31,10 +31,10 @@ class BannerModSettlementStrategicSignalsTest {
 
     @Test
     void waterAccessBecomesWaterGateAndCheapRoute() {
-        BannerModSettlementStrategicSignals signals = BannerModSettlementStrategicSignals.fromSnapshot(snapshot(
-                new BannerModSettlementStockpileSummary(1, 2, 54, 1, 1, List.of()),
-                new BannerModSettlementMarketState(1, 1, 27, 20, 0, 0, List.of(), List.of()),
-                List.of(building("bannermod:storage_area", BannerModSettlementBuildingProfileSeed.STORAGE))
+        SettlementStrategicSignals signals = SettlementStrategicSignals.fromSnapshot(snapshot(
+                new SettlementStockpileSummary(1, 2, 54, 1, 1, List.of()),
+                new SettlementMarketState(1, 1, 27, 20, 0, 0, List.of(), List.of()),
+                List.of(building("bannermod:storage_area", SettlementBuildingProfileSeed.STORAGE))
         ));
 
         assertEquals("water_gate", signals.roleId());
@@ -45,10 +45,10 @@ class BannerModSettlementStrategicSignalsTest {
 
     @Test
     void marketAndRouteStorageBecomeJunctionMarketWithSingleRoutePressure() {
-        BannerModSettlementStrategicSignals signals = BannerModSettlementStrategicSignals.fromSnapshot(snapshot(
-                new BannerModSettlementStockpileSummary(1, 1, 27, 1, 0, List.of()),
-                new BannerModSettlementMarketState(1, 1, 9, 4, 0, 0, List.of(), List.of()),
-                List.of(building("bannermod:storage_area", BannerModSettlementBuildingProfileSeed.STORAGE))
+        SettlementStrategicSignals signals = SettlementStrategicSignals.fromSnapshot(snapshot(
+                new SettlementStockpileSummary(1, 1, 27, 1, 0, List.of()),
+                new SettlementMarketState(1, 1, 9, 4, 0, 0, List.of(), List.of()),
+                List.of(building("bannermod:storage_area", SettlementBuildingProfileSeed.STORAGE))
         ));
 
         assertEquals("junction_market", signals.roleId());
@@ -59,12 +59,12 @@ class BannerModSettlementStrategicSignalsTest {
 
     @Test
     void fortifiedRouteStorageBecomesChokepointFort() {
-        BannerModSettlementStrategicSignals signals = BannerModSettlementStrategicSignals.fromSnapshot(snapshot(
-                new BannerModSettlementStockpileSummary(1, 1, 27, 1, 0, List.of()),
-                BannerModSettlementMarketState.empty(),
+        SettlementStrategicSignals signals = SettlementStrategicSignals.fromSnapshot(snapshot(
+                new SettlementStockpileSummary(1, 1, 27, 1, 0, List.of()),
+                SettlementMarketState.empty(),
                 List.of(
-                        building("bannermod:starter_fort", BannerModSettlementBuildingProfileSeed.GENERAL),
-                        building("bannermod:storage_area", BannerModSettlementBuildingProfileSeed.STORAGE)
+                        building("bannermod:starter_fort", SettlementBuildingProfileSeed.GENERAL),
+                        building("bannermod:storage_area", SettlementBuildingProfileSeed.STORAGE)
                 )
         ));
 
@@ -74,12 +74,12 @@ class BannerModSettlementStrategicSignalsTest {
 
     @Test
     void landlockedMaterialsBecomeWorkedGoodsSpecialization() {
-        BannerModSettlementStrategicSignals signals = BannerModSettlementStrategicSignals.fromSnapshot(snapshot(
-                new BannerModSettlementStockpileSummary(1, 1, 27, 0, 0, List.of()),
-                BannerModSettlementMarketState.empty(),
+        SettlementStrategicSignals signals = SettlementStrategicSignals.fromSnapshot(snapshot(
+                new SettlementStockpileSummary(1, 1, 27, 0, 0, List.of()),
+                SettlementMarketState.empty(),
                 List.of(
-                        building("bannermod:mining_area", BannerModSettlementBuildingProfileSeed.MATERIAL_PRODUCTION),
-                        building("bannermod:storage_area", BannerModSettlementBuildingProfileSeed.STORAGE)
+                        building("bannermod:mining_area", SettlementBuildingProfileSeed.MATERIAL_PRODUCTION),
+                        building("bannermod:storage_area", SettlementBuildingProfileSeed.STORAGE)
                 )
         ));
 
@@ -90,11 +90,11 @@ class BannerModSettlementStrategicSignalsTest {
 
     @Test
     void nullSnapshotAndSparseOutpostUseFallbackSignals() {
-        BannerModSettlementStrategicSignals emptySignals = BannerModSettlementStrategicSignals.fromSnapshot(null);
-        BannerModSettlementStrategicSignals outpostSignals = BannerModSettlementStrategicSignals.fromSnapshot(snapshot(
-                BannerModSettlementStockpileSummary.empty(),
-                BannerModSettlementMarketState.empty(),
-                List.of(building("bannermod:watchtower", BannerModSettlementBuildingProfileSeed.GENERAL))
+        SettlementStrategicSignals emptySignals = SettlementStrategicSignals.fromSnapshot(null);
+        SettlementStrategicSignals outpostSignals = SettlementStrategicSignals.fromSnapshot(snapshot(
+                SettlementStockpileSummary.empty(),
+                SettlementMarketState.empty(),
+                List.of(building("bannermod:watchtower", SettlementBuildingProfileSeed.GENERAL))
         ));
 
         assertEquals("outpost", emptySignals.roleId());
@@ -105,7 +105,7 @@ class BannerModSettlementStrategicSignalsTest {
 
     @Test
     void constructorNormalizesBlankSignalMetadataToStableFallbacks() {
-        BannerModSettlementStrategicSignals signals = new BannerModSettlementStrategicSignals(
+        SettlementStrategicSignals signals = new SettlementStrategicSignals(
                 " ",
                 "",
                 null,
@@ -126,11 +126,11 @@ class BannerModSettlementStrategicSignalsTest {
         assertTrue(signals.loyaltyPressureIds().isEmpty());
     }
 
-    private static BannerModSettlementSnapshot snapshot(BannerModSettlementStockpileSummary stockpileSummary,
-                                                         BannerModSettlementMarketState marketState,
-                                                         List<BannerModSettlementBuildingRecord> buildings) {
+    private static SettlementSnapshot snapshot(SettlementStockpileSummary stockpileSummary,
+                                                         SettlementMarketState marketState,
+                                                         List<SettlementBuildingRecord> buildings) {
         ChunkPos anchor = new ChunkPos(0, 0);
-        return new BannerModSettlementSnapshot(
+        return new SettlementSnapshot(
                 UUID.randomUUID(),
                 anchor.x,
                 anchor.z,
@@ -144,17 +144,17 @@ class BannerModSettlementStrategicSignalsTest {
                 0,
                 stockpileSummary,
                 marketState,
-                BannerModSettlementDesiredGoodsSnapshot.empty(),
-                BannerModSettlementProjectCandidateSnapshot.empty(),
-                BannerModSettlementTradeRouteHandoffSnapshot.empty(),
-                BannerModSettlementSupplySignalState.empty(),
+                SettlementDesiredGoodsSnapshot.empty(),
+                SettlementProjectCandidateSnapshot.empty(),
+                SettlementTradeRouteHandoffSnapshot.empty(),
+                SettlementSupplySignalState.empty(),
                 List.of(),
                 buildings
         );
     }
 
-    private static BannerModSettlementBuildingRecord building(String typeId, BannerModSettlementBuildingProfileSeed profileSeed) {
-        return new BannerModSettlementBuildingRecord(
+    private static SettlementBuildingRecord building(String typeId, SettlementBuildingProfileSeed profileSeed) {
+        return new SettlementBuildingRecord(
                 UUID.randomUUID(),
                 typeId,
                 BlockPos.ZERO,

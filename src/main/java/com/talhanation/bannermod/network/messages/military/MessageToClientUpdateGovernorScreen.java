@@ -8,7 +8,7 @@ import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnap
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.RefreshTrigger;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.SnapshotState;
 import com.talhanation.bannermod.governance.BannerModGovernorSnapshot;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.PacketFlow;
@@ -57,10 +57,10 @@ public class MessageToClientUpdateGovernorScreen implements BannerModMessage<Mes
         Payload payload = null;
         if (buf.readBoolean()) {
             UUID claimUuid = buf.readUUID();
-            BannerModSettlementSnapshot settlementSnapshot = null;
+            SettlementSnapshot settlementSnapshot = null;
             if (buf.readBoolean()) {
                 CompoundTag tag = buf.readNbt();
-                settlementSnapshot = tag == null ? null : BannerModSettlementSnapshot.fromTag(tag);
+                settlementSnapshot = tag == null ? null : SettlementSnapshot.fromTag(tag);
             }
             BannerModGovernorSnapshot governorSnapshot = null;
             if (buf.readBoolean()) {

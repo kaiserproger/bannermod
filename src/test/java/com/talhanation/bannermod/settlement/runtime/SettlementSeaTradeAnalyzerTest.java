@@ -1,6 +1,6 @@
 package com.talhanation.bannermod.settlement.runtime;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodSnapshot;
+import com.talhanation.bannermod.settlement.SettlementDesiredGoodSnapshot;
 import com.talhanation.bannermod.shared.logistics.BannerModLogisticsItemFilter;
 import com.talhanation.bannermod.shared.logistics.BannerModSeaTradeExecutionRecord;
 import com.talhanation.bannermod.shared.logistics.BannerModSeaTradeExecutionState;
@@ -67,8 +67,8 @@ class SettlementSeaTradeAnalyzerTest {
         );
 
         assertEquals(List.of(
-                new BannerModSettlementDesiredGoodSnapshot("sea_import:minecraft:iron_ingot", 2),
-                new BannerModSettlementDesiredGoodSnapshot("sea_export:minecraft:wheat", 4)
+                new SettlementDesiredGoodSnapshot("sea_import:minecraft:iron_ingot", 2),
+                new SettlementDesiredGoodSnapshot("sea_export:minecraft:wheat", 4)
         ), SettlementSeaTradeAnalyzer.desiredGoods(seaTradeSummary));
     }
 

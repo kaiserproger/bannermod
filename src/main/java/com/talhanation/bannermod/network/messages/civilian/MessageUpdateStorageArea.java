@@ -4,8 +4,8 @@ import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.governance.BannerModGovernorManager;
 import com.talhanation.bannermod.entity.civilian.workarea.StorageArea;
 import com.talhanation.bannermod.shared.logistics.BannerModLogisticsAuthoringState;
-import com.talhanation.bannermod.settlement.BannerModSettlementManager;
-import com.talhanation.bannermod.settlement.BannerModSettlementService;
+import com.talhanation.bannermod.settlement.SettlementManager;
+import com.talhanation.bannermod.settlement.SettlementService;
 import com.talhanation.bannermod.network.payload.BannerModMessage;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.FriendlyByteBuf;
@@ -71,10 +71,10 @@ public class MessageUpdateStorageArea implements BannerModMessage<MessageUpdateS
         }
 
         if (player.level() instanceof ServerLevel serverLevel && ClaimEvents.claimManager() != null) {
-            BannerModSettlementService.refreshClaimAt(
+            SettlementService.refreshClaimAt(
                     serverLevel,
                     ClaimEvents.claimManager(),
-                    BannerModSettlementManager.get(serverLevel),
+                    SettlementManager.get(serverLevel),
                     BannerModGovernorManager.get(serverLevel),
                     storageArea.blockPosition()
             );

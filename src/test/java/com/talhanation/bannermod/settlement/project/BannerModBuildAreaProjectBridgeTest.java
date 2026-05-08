@@ -17,7 +17,7 @@ class BannerModBuildAreaProjectBridgeTest {
 
     @Test
     void noopResolverRequeuesProjectAtFrontAndReturnsEmpty() {
-        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
+        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
         BannerModBuildAreaProjectBridge bridge = new BannerModBuildAreaProjectBridge();
         UUID claim = UUID.randomUUID();
 
@@ -40,7 +40,7 @@ class BannerModBuildAreaProjectBridgeTest {
 
     @Test
     void stubResolverWithLoadedTemplateProducesSearchingBuilderAssignment() {
-        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
+        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
         BannerModBuildAreaProjectBridge bridge = new BannerModBuildAreaProjectBridge();
         UUID claim = UUID.randomUUID();
         UUID buildArea = UUID.randomUUID();
@@ -68,7 +68,7 @@ class BannerModBuildAreaProjectBridgeTest {
 
     @Test
     void stubResolverWithUnloadedTemplateProducesMaterialsPendingPhase() {
-        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
+        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
         BannerModBuildAreaProjectBridge bridge = new BannerModBuildAreaProjectBridge();
         UUID claim = UUID.randomUUID();
         UUID buildArea = UUID.randomUUID();
@@ -113,7 +113,7 @@ class BannerModBuildAreaProjectBridgeTest {
 
     @Test
     void emptyQueueYieldsEmptyOptional() {
-        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
+        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
         BannerModBuildAreaProjectBridge bridge = new BannerModBuildAreaProjectBridge();
         UUID claim = UUID.randomUUID();
 
@@ -126,7 +126,7 @@ class BannerModBuildAreaProjectBridgeTest {
 
     @Test
     void resolverExceptionRequeuesAndPropagates() {
-        BannerModSettlementProjectScheduler scheduler = BannerModSettlementProjectScheduler.detached();
+        SettlementProjectScheduler scheduler = SettlementProjectScheduler.detached();
         BannerModBuildAreaProjectBridge bridge = new BannerModBuildAreaProjectBridge();
         UUID claim = UUID.randomUUID();
         PendingProject project = ProjectTestFactory.general(25, 2);
@@ -146,7 +146,7 @@ class BannerModBuildAreaProjectBridgeTest {
 
     @Test
     void runtimeTickClaimFeedsQueueAndReturnsAssignmentWithResolver() {
-        BannerModSettlementProjectRuntime runtime = BannerModSettlementProjectRuntime.detached();
+        SettlementProjectRuntime runtime = SettlementProjectRuntime.detached();
         UUID claim = UUID.randomUUID();
         UUID buildArea = UUID.randomUUID();
         PendingProject project = ProjectTestFactory.general(77, 4);

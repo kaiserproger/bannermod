@@ -1,6 +1,6 @@
 package com.talhanation.bannermod.settlement.job;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementJobHandlerSeed;
+import com.talhanation.bannermod.settlement.SettlementJobHandlerSeed;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Collections;
@@ -13,14 +13,14 @@ import java.util.Optional;
 
 /**
  * In-memory catalogue of {@link JobHandler}s, keyed by both
- * {@link BannerModSettlementJobHandlerSeed} and {@link ResourceLocation} id.
+ * {@link SettlementJobHandlerSeed} and {@link ResourceLocation} id.
  *
  * <p>Semantics:</p>
  * <ul>
  *   <li>The registry is not thread-safe. Callers (typically the server tick loop or bootstrap
  *       code) are expected to register handlers at construction time and then treat the
  *       registry as read-mostly.</li>
- *   <li>Registering a second handler for the same {@link BannerModSettlementJobHandlerSeed}
+ *   <li>Registering a second handler for the same {@link SettlementJobHandlerSeed}
  *       replaces the previous seed binding (<em>last registration wins</em>). Both handlers
  *       remain reachable by their unique {@link ResourceLocation} id, so the older handler is
  *       not evicted from the id lookup unless its id is re-used.</li>
@@ -30,8 +30,8 @@ import java.util.Optional;
 public final class JobHandlerRegistry {
 
     private final Map<ResourceLocation, JobHandler> byId = new LinkedHashMap<>();
-    private final Map<BannerModSettlementJobHandlerSeed, JobHandler> bySeed =
-            new EnumMap<>(BannerModSettlementJobHandlerSeed.class);
+    private final Map<SettlementJobHandlerSeed, JobHandler> bySeed =
+            new EnumMap<>(SettlementJobHandlerSeed.class);
 
     /** Build a registry pre-populated with the built-in handlers declared by this slice. */
     public static JobHandlerRegistry defaults() {
@@ -44,12 +44,12 @@ public final class JobHandlerRegistry {
     public void register(JobHandler handler) {
         Objects.requireNonNull(handler, "handler");
         ResourceLocation id = Objects.requireNonNull(handler.id(), "handler.id()");
-        BannerModSettlementJobHandlerSeed seed = Objects.requireNonNull(handler.handles(), "handler.handles()");
+        SettlementJobHandlerSeed seed = Objects.requireNonNull(handler.handles(), "handler.handles()");
         byId.put(id, handler);
         bySeed.put(seed, handler);
     }
 
-    public Optional<JobHandler> lookup(BannerModSettlementJobHandlerSeed seed) {
+    public Optional<JobHandler> lookup(SettlementJobHandlerSeed seed) {
         if (seed == null) {
             return Optional.empty();
         }
@@ -78,7 +78,7 @@ public final class JobHandlerRegistry {
     }
 
     /** Read-only view of the seed-to-handler bindings, primarily for diagnostics. */
-    public Map<BannerModSettlementJobHandlerSeed, JobHandler> seedBindings() {
+    public Map<SettlementJobHandlerSeed, JobHandler> seedBindings() {
         return Collections.unmodifiableMap(bySeed);
     }
 }

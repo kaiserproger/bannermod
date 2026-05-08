@@ -15,13 +15,13 @@ import com.talhanation.bannermod.governance.BannerModTreasuryManager;
 import com.talhanation.bannermod.persistence.military.RecruitPlayerUnitSaveData;
 import com.talhanation.bannermod.persistence.military.RecruitsClaimSaveData;
 import com.talhanation.bannermod.persistence.military.RecruitsGroupsSaveData;
-import com.talhanation.bannermod.settlement.BannerModSettlementManager;
+import com.talhanation.bannermod.settlement.SettlementManager;
 import com.talhanation.bannermod.settlement.bootstrap.SettlementRegistryData;
 import com.talhanation.bannermod.settlement.building.ValidatedBuildingRegistryData;
 import com.talhanation.bannermod.settlement.dispatch.BannerModSellerDispatchSavedData;
 import com.talhanation.bannermod.settlement.household.BannerModHomeAssignmentSavedData;
 import com.talhanation.bannermod.settlement.prefab.player.PlayerBuildingRegistrySavedData;
-import com.talhanation.bannermod.settlement.project.BannerModSettlementProjectSavedData;
+import com.talhanation.bannermod.settlement.project.SettlementProjectSavedData;
 import com.talhanation.bannermod.settlement.validation.BuildingInvalidationQueueData;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderSavedData;
 import com.talhanation.bannermod.shared.logistics.BannerModSeaTradeExecutionSavedData;
@@ -71,11 +71,11 @@ public final class AdminDebugCommands {
             BannerModSellerDispatchSavedData.class,
             SettlementWorkOrderSavedData.class,
             BannerModHomeAssignmentSavedData.class,
-            BannerModSettlementManager.class,
+            SettlementManager.class,
             SettlementRegistryData.class,
             BuildingInvalidationQueueData.class,
             ValidatedBuildingRegistryData.class,
-            BannerModSettlementProjectSavedData.class,
+            SettlementProjectSavedData.class,
             PlayerBuildingRegistrySavedData.class
     );
 

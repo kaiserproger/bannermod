@@ -1,14 +1,14 @@
 package com.talhanation.bannermod.settlement.household;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingProfileSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodsSnapshot;
-import com.talhanation.bannermod.settlement.BannerModSettlementMarketState;
-import com.talhanation.bannermod.settlement.BannerModSettlementProjectCandidateSnapshot;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
-import com.talhanation.bannermod.settlement.BannerModSettlementStockpileSummary;
-import com.talhanation.bannermod.settlement.BannerModSettlementSupplySignalState;
-import com.talhanation.bannermod.settlement.BannerModSettlementTradeRouteHandoffSnapshot;
+import com.talhanation.bannermod.settlement.SettlementBuildingProfileSeed;
+import com.talhanation.bannermod.settlement.SettlementBuildingRecord;
+import com.talhanation.bannermod.settlement.SettlementDesiredGoodsSnapshot;
+import com.talhanation.bannermod.settlement.SettlementMarketState;
+import com.talhanation.bannermod.settlement.SettlementProjectCandidateSnapshot;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementStockpileSummary;
+import com.talhanation.bannermod.settlement.SettlementSupplySignalState;
+import com.talhanation.bannermod.settlement.SettlementTradeRouteHandoffSnapshot;
 import net.minecraft.core.BlockPos;
 import org.junit.jupiter.api.Test;
 
@@ -30,11 +30,11 @@ class BannerModHomeAssignmentAdvisorTest {
         runtime.assign(residentUuid, currentHome, HomePreference.ASSIGNED, 0L);
         runtime.assign(UUID.randomUUID(), fullHome, HomePreference.ASSIGNED, 0L);
 
-        BannerModSettlementSnapshot snapshot = snapshot(List.of(
-                building(currentHome, BannerModSettlementBuildingProfileSeed.GENERAL, 2),
-                building(fullHome, BannerModSettlementBuildingProfileSeed.GENERAL, 1),
-                building(freeHome, BannerModSettlementBuildingProfileSeed.GENERAL, 2),
-                building(UUID.randomUUID(), BannerModSettlementBuildingProfileSeed.FOOD_PRODUCTION, 3)
+        SettlementSnapshot snapshot = snapshot(List.of(
+                building(currentHome, SettlementBuildingProfileSeed.GENERAL, 2),
+                building(fullHome, SettlementBuildingProfileSeed.GENERAL, 1),
+                building(freeHome, SettlementBuildingProfileSeed.GENERAL, 2),
+                building(UUID.randomUUID(), SettlementBuildingProfileSeed.FOOD_PRODUCTION, 3)
         ));
 
         assertEquals(freeHome, BannerModHomeAssignmentAdvisor.pickHomeBuilding(residentUuid, snapshot, runtime).orElseThrow());
@@ -48,9 +48,9 @@ class BannerModHomeAssignmentAdvisorTest {
         BannerModHomeAssignmentRuntime runtime = new BannerModHomeAssignmentRuntime();
         runtime.assign(UUID.randomUUID(), fullHome, HomePreference.ASSIGNED, 0L);
 
-        BannerModSettlementSnapshot snapshot = snapshot(List.of(
-                building(fullHome, BannerModSettlementBuildingProfileSeed.GENERAL, 1),
-                building(shelter, BannerModSettlementBuildingProfileSeed.FOOD_PRODUCTION, 1)
+        SettlementSnapshot snapshot = snapshot(List.of(
+                building(fullHome, SettlementBuildingProfileSeed.GENERAL, 1),
+                building(shelter, SettlementBuildingProfileSeed.FOOD_PRODUCTION, 1)
         ));
 
         assertEquals(shelter, BannerModHomeAssignmentAdvisor.pickHomeBuilding(residentUuid, snapshot, runtime).orElseThrow());
@@ -65,8 +65,8 @@ class BannerModHomeAssignmentAdvisorTest {
         assertTrue(BannerModHomeAssignmentAdvisor.pickHomeBuilding(UUID.randomUUID(), snapshot(List.of()), runtime).isEmpty());
     }
 
-    private static BannerModSettlementSnapshot snapshot(List<BannerModSettlementBuildingRecord> buildings) {
-        return new BannerModSettlementSnapshot(
+    private static SettlementSnapshot snapshot(List<SettlementBuildingRecord> buildings) {
+        return new SettlementSnapshot(
                 UUID.randomUUID(),
                 0,
                 0,
@@ -78,21 +78,21 @@ class BannerModHomeAssignmentAdvisorTest {
                 0,
                 0,
                 0,
-                BannerModSettlementStockpileSummary.empty(),
-                BannerModSettlementMarketState.empty(),
-                BannerModSettlementDesiredGoodsSnapshot.empty(),
-                BannerModSettlementProjectCandidateSnapshot.empty(),
-                BannerModSettlementTradeRouteHandoffSnapshot.empty(),
-                BannerModSettlementSupplySignalState.empty(),
+                SettlementStockpileSummary.empty(),
+                SettlementMarketState.empty(),
+                SettlementDesiredGoodsSnapshot.empty(),
+                SettlementProjectCandidateSnapshot.empty(),
+                SettlementTradeRouteHandoffSnapshot.empty(),
+                SettlementSupplySignalState.empty(),
                 List.of(),
                 buildings
         );
     }
 
-    private static BannerModSettlementBuildingRecord building(UUID buildingUuid,
-                                                              BannerModSettlementBuildingProfileSeed profileSeed,
+    private static SettlementBuildingRecord building(UUID buildingUuid,
+                                                              SettlementBuildingProfileSeed profileSeed,
                                                               int residentCapacity) {
-        return new BannerModSettlementBuildingRecord(
+        return new SettlementBuildingRecord(
                 buildingUuid,
                 "bannermod:test_" + profileSeed.name().toLowerCase(),
                 BlockPos.ZERO,

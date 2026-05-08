@@ -1,6 +1,6 @@
 package com.talhanation.bannermod.settlement.workorder;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
+import com.talhanation.bannermod.settlement.SettlementBuildingRecord;
 
 /**
  * Building-type-specific pass that converts building state into concrete
@@ -12,7 +12,7 @@ import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
  */
 public interface SettlementWorkOrderPublisher {
     /** Fast-check whether this publisher handles a building record. */
-    boolean matches(BannerModSettlementBuildingRecord building);
+    boolean matches(SettlementBuildingRecord building);
 
     /** Emit zero or more work orders for {@code ctx.building()} into {@code ctx.runtime()}. */
     void publish(SettlementWorkOrderPublishContext ctx);

@@ -2,7 +2,7 @@ package com.talhanation.bannermod.settlement.workorder.publisher;
 
 import com.talhanation.bannermod.entity.civilian.workarea.BuildArea;
 import com.talhanation.bannermod.persistence.civilian.BuildBlock;
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
+import com.talhanation.bannermod.settlement.SettlementBuildingRecord;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrder;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderPublishContext;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderPublisher;
@@ -28,7 +28,7 @@ public final class BuildAreaWorkOrderPublisher implements SettlementWorkOrderPub
     private static final int PRIORITY_BUILD = 65;
 
     @Override
-    public boolean matches(BannerModSettlementBuildingRecord building) {
+    public boolean matches(SettlementBuildingRecord building) {
         return SettlementWorkOrderPublisherRegistry.matchesBuildingType(building, "build_area");
     }
 

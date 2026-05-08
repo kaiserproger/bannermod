@@ -2,7 +2,7 @@ package com.talhanation.bannermod.settlement.project;
 
 /**
  * Reason a {@link com.talhanation.bannermod.settlement.growth.PendingProject} was removed
- * from a {@link BannerModSettlementProjectScheduler} queue. Slice C is concerned only with
+ * from a {@link SettlementProjectScheduler} queue. Slice C is concerned only with
  * queue bookkeeping; downstream slices may persist or broadcast these transitions.
  */
 public enum ProjectCancellationReason {

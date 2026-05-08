@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.settlement.household;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentScheduleWindowSeed;
+import com.talhanation.bannermod.settlement.SettlementResidentScheduleWindowSeed;
 import com.talhanation.bannermod.settlement.goal.ResidentGoal;
 import com.talhanation.bannermod.settlement.goal.ResidentGoalContext;
 import com.talhanation.bannermod.settlement.goal.ResidentTask;
@@ -74,7 +74,7 @@ public final class LeaveHomeResidentGoal implements ResidentGoal {
         if (!ctx.isActivePhase()) {
             return false;
         }
-        BannerModSettlementResidentScheduleWindowSeed window = ctx.window();
+        SettlementResidentScheduleWindowSeed window = ctx.window();
         int now = ctx.dayTime();
         int activeStart = window.activeStartTick();
         int cutoff = activeStart + EARLY_ACTIVE_WINDOW_TICKS;

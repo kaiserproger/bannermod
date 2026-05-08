@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.settlement.workorder;
 
 import com.talhanation.bannermod.ai.civilian.AnimalFarmerLoopProgress;
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
+import com.talhanation.bannermod.settlement.SettlementBuildingRecord;
 import net.minecraft.core.BlockPos;
 import org.junit.jupiter.api.Test;
 
@@ -62,7 +62,7 @@ class AnimalFarmerSettlementOrderParityTest {
 
     @Test
     void defaultPublisherRegistryCoversAnimalPenBuildings() {
-        BannerModSettlementBuildingRecord animalPen = new BannerModSettlementBuildingRecord(
+        SettlementBuildingRecord animalPen = new SettlementBuildingRecord(
                 BUILDING, "bannermod:animal_pen_area", BlockPos.ZERO, null, null, 0, 1, 0, List.of());
 
         SettlementWorkOrderPublisher publisher = SettlementWorkOrderPublisherRegistry.defaults().publishers().stream()
