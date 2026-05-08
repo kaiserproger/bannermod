@@ -16,6 +16,8 @@ public enum SettlementWorkOrderType {
 
     MINE_BLOCK,
 
+    FISH,
+
     BREAK_BLOCK,
     BUILD_BLOCK,
 

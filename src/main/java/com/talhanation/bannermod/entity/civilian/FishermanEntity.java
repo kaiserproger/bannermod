@@ -3,13 +3,15 @@ package com.talhanation.bannermod.entity.civilian;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.ai.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.bannermod.config.WorkersServerConfig;
-import com.talhanation.bannermod.ai.civilian.FishermanWorkGoal;
 import com.talhanation.bannermod.entity.civilian.workarea.FishingArea;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -19,8 +21,14 @@ import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.storage.loot.BuiltInLootTables;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForgeMod;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -32,12 +40,6 @@ import java.util.function.Predicate;
 public class FishermanEntity extends AbstractWorkerEntity{
     public FishermanEntity(EntityType<? extends AbstractWorkerEntity> entityType, Level world) {
         super(entityType, world);
-    }
-
-    @Override
-    protected void registerGoals() {
-        super.registerGoals();
-        this.goalSelector.addGoal(0, new FishermanWorkGoal(this));
     }
 
     public static AttributeSupplier.Builder setAttributes() {
@@ -135,5 +137,30 @@ public class FishermanEntity extends AbstractWorkerEntity{
         this.getCommandSenderWorld().addFreshEntity(fishingBobber);
 
         return fishingBobber;
+    }
+
+    public void spawnFishingLoot(FishingBobberEntity fishingBobber) {
+        if(fishingBobber == null ) return;
+
+        ServerLevel serverLevel = (ServerLevel)this.getCommandSenderWorld();
+        double luckFromTool = EnchantmentHelper.getFishingLuckBonus(serverLevel, this.getItemInHand(InteractionHand.MAIN_HAND), this);
+        double luckFromDepth = Math.min(25, fishingBobber.getWaterDepth())/10F;
+        double luck = 0.1D + luckFromTool + luckFromDepth;
+
+        LootParams lootparams = (new LootParams.Builder(serverLevel))
+                .withParameter(LootContextParams.ORIGIN, this.position())
+                .withParameter(LootContextParams.TOOL, getMainHandItem())
+                .withParameter(LootContextParams.ATTACKING_ENTITY, this)
+                .withLuck((float)(luck + luckFromTool))
+                .create(LootContextParamSets.FISHING);
+        LootTable loottable = this.getCommandSenderWorld().getServer().reloadableRegistries().getLootTable(BuiltInLootTables.FISHING);
+        List<ItemStack> list = loottable.getRandomItems(lootparams);
+
+        MinecraftServer server = getServer();
+        if (server == null) return;
+
+        for (ItemStack itemstack : list) {
+            getInventory().addItem(itemstack);
+        }
     }
 }
