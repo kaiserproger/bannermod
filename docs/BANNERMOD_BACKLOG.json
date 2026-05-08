@@ -8036,8 +8036,8 @@
     {
       "id": "HOMEASSIGN-004",
       "title": "Assign Home button + 30s target selector in citizen, recruit, worker screens",
-      "status": "open",
-      "updated": "2026-05-04",
+      "status": "in_progress",
+      "updated": "2026-05-08",
       "why": "HOMEASSIGN-001 phase 3: players need a UI affordance to set the home. CitizenProfileScreen, RecruitInventoryScreen, and the worker profile screen each need an Assign Home button that opens a 30-second 'right-click target' selector.",
       "scope": [
         "Add Assign Home button to CitizenProfileScreen, RecruitInventoryScreen, and the worker profile screen, applying the .agents/skills/minecraft-ui-design contract (no overlap with hotbar/chat/crosshair/boss bars/existing BannerMod overlays; minimal action density via progressive disclosure if the screen is dense).",
@@ -8055,9 +8055,16 @@
         "tools/backlog validate passes; ./gradlew compileJava and gametest both green."
       ],
       "dependencies": [
-        "HOMEASSIGN-003"
+        "HOMEASSIGN-004A",
+        "HOMEASSIGN-004B",
+        "HOMEASSIGN-004C"
       ],
-      "progress": [],
+      "progress": [
+        {
+          "date": "2026-05-08",
+          "text": "Split broad UI task after draft implementation failed full acceptance: compileJava passed in draft branch, but verifyGameTestStage failed and manual 1080p/1440p UI checks were not recorded. No HOMEASSIGN-004 code was merged; remaining work is divided into selector flow, profile-screen integration, and docs/runtime verification children."
+        }
+      ],
       "verification": [],
       "evidence": []
     },
@@ -9274,6 +9281,77 @@
         "Each listed command has at least one GameTest covering a happy path."
       ],
       "dependencies": [],
+      "progress": [],
+      "verification": [],
+      "evidence": []
+    },
+    {
+      "id": "HOMEASSIGN-004A",
+      "title": "Assign Home target-selector client flow",
+      "status": "open",
+      "updated": "2026-05-08",
+      "why": "Players need a bounded client-side selection mode before profile screens can safely expose Assign Home without relying on ad-hoc clicks.",
+      "scope": [
+        "Implement the 30-second client-side right-click block target selector for Assign Home.",
+        "Render a compact localized HUD prompt that does not overlap hotbar, chat, crosshair, boss bars, or existing BannerMod overlays.",
+        "Dispatch MessageAssignHome with the picked BlockPos, then exit selector mode.",
+        "Support ESC cancellation and 30-second expiry with localized status feedback.",
+        "Add required en_us and ru_ru localization keys for selector prompt, success, cancel, and expiry feedback."
+      ],
+      "acceptance": [
+        "Starting the selector shows the localized HUD prompt and a code/layout review records its non-overlap anchor against common BannerMod overlays.",
+        "Right-clicking a block within 30 seconds dispatches MessageAssignHome with that BlockPos and exits selector mode.",
+        "ESC and timeout cancel selector mode cleanly with localized feedback.",
+        "All selector/HUD/status keys exist in en_us and ru_ru; compileJava and tools/backlog validate pass."
+      ],
+      "dependencies": [],
+      "progress": [],
+      "verification": [],
+      "evidence": []
+    },
+    {
+      "id": "HOMEASSIGN-004B",
+      "title": "Assign Home buttons in profile screens",
+      "status": "open",
+      "updated": "2026-05-08",
+      "why": "Citizen, recruit, and worker profile screens need a consistent Minecraft-native affordance to launch the Assign Home selector.",
+      "scope": [
+        "Add Assign Home buttons to CitizenProfileScreen, RecruitInventoryScreen, and the worker profile screen using existing screen layout conventions.",
+        "Wire each button to the Assign Home selector from HOMEASSIGN-004A.",
+        "Keep button placement within design-system padding and avoid overlap at 1080p and 1440p GUI-scale checks.",
+        "Add required en_us and ru_ru button/tooltip localization keys."
+      ],
+      "acceptance": [
+        "All three profile screens show an Assign Home button at design-system padding without overlapping existing controls at 1080p and 1440p; verification records the check.",
+        "Each button starts the Assign Home selector for the profile entity and preserves vanilla escape/back behavior.",
+        "All button keys exist in en_us and ru_ru; compileJava and tools/backlog validate pass."
+      ],
+      "dependencies": [
+        "HOMEASSIGN-004A"
+      ],
+      "progress": [],
+      "verification": [],
+      "evidence": []
+    },
+    {
+      "id": "HOMEASSIGN-004C",
+      "title": "Assign Home docs and runtime verification",
+      "status": "open",
+      "updated": "2026-05-08",
+      "why": "The player-facing Assign Home workflow must be documented and proven against the server-authoritative home assignment path before the parent task can close.",
+      "scope": [
+        "Update MULTIPLAYER_GUIDE_RU.md, MULTIPLAYER_GUIDE_EN.md, and docs/BANNERMOD_ALMANAC.html with the Assign Home button and 30-second selector flow.",
+        "Add or update focused GameTest coverage proving a valid bed target updates the entity home through the Assign Home path.",
+        "Run full required verification for the Assign Home flow and investigate any GameTest failures before closing the parent."
+      ],
+      "acceptance": [
+        "Player guides and almanac describe the Assign Home affordance, selector timeout, and cancellation flow in the same slice.",
+        "A focused GameTest or equivalent runtime assertion proves selecting a valid bed within 30 seconds updates the entity homePos through MessageAssignHome/server handling.",
+        "No missing localization keys are reported; ./gradlew compileJava, ./gradlew verifyGameTestStage, and tools/backlog validate pass."
+      ],
+      "dependencies": [
+        "HOMEASSIGN-004B"
+      ],
       "progress": [],
       "verification": [],
       "evidence": []
