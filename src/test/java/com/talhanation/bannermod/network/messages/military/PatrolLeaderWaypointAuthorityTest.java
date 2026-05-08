@@ -20,6 +20,8 @@ class PatrolLeaderWaypointAuthorityTest {
             "src/main/java/com/talhanation/bannermod/network/messages/military/MessagePatrolLeaderRemoveWayPoint.java");
     private static final Path SET_CYCLE_MESSAGE = ROOT.resolve(
             "src/main/java/com/talhanation/bannermod/network/messages/military/MessagePatrolLeaderSetCycle.java");
+    private static final Path SET_ENEMY_ACTION_MESSAGE = ROOT.resolve(
+            "src/main/java/com/talhanation/bannermod/network/messages/military/MessagePatrolLeaderSetEnemyAction.java");
 
     private static final UUID OWNER = UUID.fromString("00000000-0000-0000-0000-000000000911");
     private static final UUID FOREIGN_SENDER = UUID.fromString("00000000-0000-0000-0000-000000000912");
@@ -85,5 +87,26 @@ class PatrolLeaderWaypointAuthorityTest {
                 "Forged packet for a foreign leader must fail authority before cycle state can change");
         assertEquals(mutationIndex, src.lastIndexOf(handlerMutation),
                 "The guarded handler path must be the only cycle mutation entry point");
+    }
+
+    @Test
+    void forgedForeignLeaderEnemyActionPacketCannotReachMutation() throws IOException {
+        assertEquals(CommandRole.NONE,
+                CommandHierarchy.roleFor(FOREIGN_SENDER, null, false, OWNER, null, true),
+                "Foreign non-op sender must not directly control another player's leader");
+
+        String src = Files.readString(SET_ENEMY_ACTION_MESSAGE);
+        String authorityGate = "RecruitCommandAuthority.canDirectlyControl(player, leader)";
+        String handlerMutation = "leader.setEnemyAction(this.action)";
+
+        int gateIndex = src.indexOf(authorityGate);
+        int mutationIndex = src.indexOf(handlerMutation);
+
+        assertTrue(gateIndex >= 0, "Enemy-action handler must use the canonical recruit authority gate");
+        assertTrue(mutationIndex >= 0, "Enemy-action handler must still mutate enemy action for authorized leaders");
+        assertTrue(gateIndex < mutationIndex,
+                "Forged packet for a foreign leader must fail authority before enemy-action state can change");
+        assertEquals(mutationIndex, src.lastIndexOf(handlerMutation),
+                "The guarded handler path must be the only enemy-action mutation entry point");
     }
 }
