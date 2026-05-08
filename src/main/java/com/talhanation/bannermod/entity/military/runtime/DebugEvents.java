@@ -3,7 +3,6 @@ package com.talhanation.bannermod.entity.military.runtime;
 import com.talhanation.bannermod.config.RecruitsServerConfig;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.entity.military.ICompanion;
-import com.talhanation.bannermod.events.RecruitEvents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 

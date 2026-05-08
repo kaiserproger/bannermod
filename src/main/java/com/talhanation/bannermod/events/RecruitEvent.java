@@ -110,7 +110,7 @@ public abstract class RecruitEvent extends Event {
      * Wird gefeuert, kurz bevor ein Recruit zu einem höheren Rang befördert wird.
      * <p>Cancelable: {@code setCanceled(true)} verhindert die Beförderung.</p>
      *
-     * @see RecruitEvents#promoteRecruit(AbstractRecruitEntity, int, String, net.minecraft.server.level.ServerPlayer)
+     * @see com.talhanation.bannermod.entity.military.runtime.RecruitEvents#promoteRecruit(AbstractRecruitEntity, int, String, net.minecraft.server.level.ServerPlayer)
      */
     public static class Promoted extends RecruitEvent implements ICancellableEvent {
         private final int newProfession;

@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.items.military;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;

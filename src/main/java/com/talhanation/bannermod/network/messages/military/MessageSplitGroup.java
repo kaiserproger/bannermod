@@ -1,6 +1,6 @@
 package com.talhanation.bannermod.network.messages.military;
 
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.persistence.military.RecruitsGroup;
 import com.talhanation.bannermod.network.payload.BannerModMessage;
 import net.minecraft.network.protocol.PacketFlow;

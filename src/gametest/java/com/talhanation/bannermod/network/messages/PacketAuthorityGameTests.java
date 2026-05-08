@@ -6,7 +6,7 @@ import com.talhanation.bannermod.BannerModGameTestSupport;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.entity.civilian.workarea.StorageArea;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.gametest.support.PacketGameTestSupport;
 import com.talhanation.bannermod.gametest.support.RecruitsBattleGameTestSupport;
 import com.talhanation.bannermod.network.messages.civilian.MessageUpdateOwner;

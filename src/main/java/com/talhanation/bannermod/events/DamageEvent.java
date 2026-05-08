@@ -1,6 +1,7 @@
 package com.talhanation.bannermod.events;
 
 import com.talhanation.bannermod.config.RecruitsServerConfig;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;

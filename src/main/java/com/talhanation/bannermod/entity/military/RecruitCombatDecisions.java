@@ -2,7 +2,7 @@ package com.talhanation.bannermod.entity.military;
 
 import com.talhanation.bannermod.ai.military.UnitTypeMatchup;
 import com.talhanation.bannermod.ai.military.WeaponReach;
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;

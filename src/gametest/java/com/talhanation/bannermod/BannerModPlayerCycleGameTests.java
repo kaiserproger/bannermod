@@ -2,7 +2,7 @@ package com.talhanation.bannermod;
 
 import com.talhanation.bannermod.shared.logistics.BannerModSupplyStatus;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.gametest.support.RecruitsBattleGameTestSupport;
 import com.talhanation.bannermod.entity.civilian.FarmerEntity;

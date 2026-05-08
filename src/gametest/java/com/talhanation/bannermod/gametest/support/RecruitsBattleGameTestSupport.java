@@ -1,6 +1,6 @@
 package com.talhanation.bannermod.gametest.support;
 
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.entity.military.BowmanEntity;
 import com.talhanation.bannermod.entity.military.CrossBowmanEntity;
