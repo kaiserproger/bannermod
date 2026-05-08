@@ -5380,7 +5380,7 @@
       "id": "PERF-011A",
       "title": "Run PERF-011 client large-crowd profiling proof",
       "status": "in_progress",
-      "updated": "2026-04-30",
+      "updated": "2026-05-08",
       "why": "PERF-011 cannot honestly close until a real client before/after profiling run proves the distant recruit renderer cut improves large crowds without harming close-range selected readability.",
       "scope": [
         "Run a controlled client large-crowd recruit render profiling scenario against the pre-cut baseline and the PERF-011 implementation.",
@@ -5399,6 +5399,10 @@
         {
           "date": "2026-04-30",
           "text": "Resumed on feature/cleanup-batch-9 to determine whether existing profiling evidence already satisfies the before/after proof requirement."
+        },
+        {
+          "date": "2026-05-08",
+          "text": "blocked in this API/headless environment: no repo-local headless profiling harness was found for a controlled large-crowd recruit render scenario or close-range selected-readability visual check. Required next step is a real Minecraft client run: capture before/after recruit.render counters for PERF-011 and record selected-recruit readability."
         }
       ],
       "verification": [],
@@ -6498,7 +6502,7 @@
       "id": "WORKERUI-001",
       "title": "WorkerStatusScreen needs profession reassignment, dismiss, wage controls",
       "status": "in_progress",
-      "updated": "2026-05-03",
+      "updated": "2026-05-08",
       "why": "Audit (UI_AUDIT_FINDINGS.md) flagged the screen advertises management but only exposes Refresh/Convert/Close. Players have no UI path to reassign a worker's profession, dismiss them, or set a wage.",
       "scope": [
         "Add ActionMenuButton or DropDownMenu to WorkerStatusScreen with: (1) Reassign profession entry that opens a profession picker; (2) Dismiss entry that sends a server-validated MessageDismissWorker; (3) Wage adjustment +/- pad if the wage system exposes a setter.",
@@ -6510,11 +6514,19 @@
         "Each new server message round-trips through ownership validation; non-owner click results in denied feedback in client and no state change server-side (covered by a unit test on the message handler)",
         "MULTIPLAYER_GUIDE_EN.md and MULTIPLAYER_GUIDE_RU.md describe the new controls in the worker management section"
       ],
-      "dependencies": [],
+      "dependencies": [
+        "WORKERUI-001A",
+        "WORKERUI-001B",
+        "WORKERUI-001C"
+      ],
       "progress": [
         {
           "date": "2026-05-03",
           "text": "Implemented Reassign Profession + clarified Convert as dismiss path. Wage system not present in codebase; acceptance #2 (wage) descoped. ActionMenuButton in WorkerStatusScreen offers all 7 CONTROLLED_WORKER professions except current. Server message reuses WorkerCitizenConversionService auth. New WorkerStatusReassignContractTest pins source invariants."
+        },
+        {
+          "date": "2026-05-08",
+          "text": "assessed without edits: WorkerStatusScreen partially implements Reassign via ActionMenuButton and MessageReassignWorkerProfession with localization/docs, but task is not closable. Missing explicit MessageDismissWorker/Dismiss control, missing MessageSetWorkerWage/wage controls, wage system appears absent, and required non-owner handler-level denial/no-state-change test is missing. Remaining scope moved into WORKERUI-001A/B/C."
         }
       ],
       "verification": [],
@@ -6525,8 +6537,8 @@
     {
       "id": "WORLDMAPCLAIMPE-001",
       "title": "Move existing claim into a different political entity",
-      "status": "in_progress",
-      "updated": "2026-05-03",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "Audit of multi-settlement-state UX (UI_AUDIT_FINDINGS + user playtest) found a real gap: a claim's owning political entity is fixed at creation. There is no UI or command to transfer an existing settlement claim into another state. The current workaround forces players to delete and re-claim, losing all in-claim state.",
       "scope": [
         "Server-side: add MessageReassignClaimPoliticalEntity(claimUuid, newPoliticalEntityUuid). Auth: caller must be leader (or REPUBLIC co-leader) of BOTH the source PE (or admin claim caller) AND the target PE; reuse PoliticalEntityAuthority.canAct gating. On success mutate RecruitsClaim.setOwnerPoliticalEntityId, persist, and broadcast claim snapshot.",
@@ -6547,10 +6559,16 @@
           "text": "Implemented MessageReassignClaimPoliticalEntity (server-authoritative dual-PE auth via ClaimPacketAuthority + PoliticalEntityAuthority.canAct), wired ClaimEditScreen Transfer dropdown + ConfirmScreen, added EN+RU lang, updated both player guides, ClaimTransferContractTest pins all surfaces."
         }
       ],
-      "verification": [],
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) ClaimEditScreen exposes the Transfer to state UI, filters target states through WarClientState entities plus PoliticalEntityAuthority.canAct, and sends MessageReassignClaimPoliticalEntity after confirmation. 2) MessageReassignClaimPoliticalEntity validates source and target authority, mutates RecruitsClaim.ownerPoliticalEntityId, republishes through ClaimEvents.claimManager().addOrUpdateClaim, and marks client claims stale from the UI path. 3) ClaimTransferContractTest covers UI/message/catalog/lang/guide wiring, and MessageReassignClaimPoliticalEntityTest covers authorized transfer, republish, and denied transfer leaving the claim unchanged. 4) en_us and ru_ru transfer keys exist; both multiplayer guides describe the flow. 5) ./gradlew compileJava, ./gradlew test, ./gradlew runGameTestServer, and tools/backlog validate passed on 2026-05-08."
+        }
+      ],
       "evidence": [
         "UI_AUDIT_FINDINGS.md (audit doc) + user playtest report '2026-05-03'"
-      ]
+      ],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "SKILLTREE-001",
@@ -6586,8 +6604,8 @@
     {
       "id": "HOMEASSIGN-001",
       "title": "Assign-home button for citizens, workers, and recruits",
-      "status": "in_progress",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "Player wants to manually anchor a citizen/worker/recruit to a specific dwelling so they sleep / return to it. Recruits already carry an upkeepPos field that's conceptually a home, but workers/citizens have no equivalent and there's no UI to set one for any of the three. Without manual override the AI just wanders to whatever the staffing pipeline picked.",
       "scope": [
         "(a) Add homePos (BlockPos) + homeBuildAreaUUID (UUID) NBT/synched fields on AbstractCitizenEntity and AbstractWorkerEntity; reuse existing upkeepPos+upkeepUUID on AbstractRecruitEntity to mean 'home' for the recruit case (or alias). (b) Server-side packet MessageAssignHome(entityUuid, BlockPos|UUID) — validates ownership and that the target is a HousePrefab/bed/sleeping-zone block. (c) Client UI: 'Assign Home' button on CitizenProfileScreen, RecruitInventoryScreen, and worker profile screen. Two-step flow: click button → 'right-click target block within 30s'. (d) AI goal: at night or low-stamina, entity pathfinds back to homePos via AsyncGroundPathNavigation; once within 3 blocks, sleeps/idles. (e) Persistence + sync. (f) Localization en_us/ru_ru."
@@ -6596,9 +6614,9 @@
         "All three entity types expose Assign Home button in their profile screen; button opens a 30-second 'right-click target' selector that accepts beds and validated sleeping zones; assigned home survives save/load; entities pathfind to home at night and on /restart; ./gradlew compileJava and gametest both green."
       ],
       "dependencies": [
-        "HOMEASSIGN-002",
-        "HOMEASSIGN-003",
-        "HOMEASSIGN-004"
+        "HOMEASSIGN-001A",
+        "HOMEASSIGN-001B",
+        "HOMEASSIGN-001C"
       ],
       "progress": [
         {
@@ -6608,10 +6626,20 @@
         {
           "date": "2026-05-06",
           "text": "HOMEASSIGN-002 server data model + MessageAssignHome packet shipped (commits 9a535f8c..86da2ca5 on feature/homeassign-001). Acceptance items still open: HOMEASSIGN-003 (AI goto-home goal), HOMEASSIGN-004 (Assign Home button + 30s right-click selector on the three profile screens), and the player-guide updates that go with the UI slice. Compile / gametest gates green; baseline build was rescued (4 pre-existing javac errors fixed in the same branch)."
+        },
+        {
+          "date": "2026-05-08",
+          "text": "verified dependencies HOMEASSIGN-002/003/004 are done and compileJava passes, but parent acceptance is not fully satisfied: MessageAssignHome currently accepts only BedBlock targets rather than validated sleeping zones; pathfind/restart evidence does not prove bounded movement-to-home for all three entity types; verifyGameTestStage currently fails required test unrelatedclaimstateispreservedwhensiblingclaimisdeleted. Remaining closure scope moved into HOMEASSIGN-001A/B/C."
         }
       ],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "All dependencies HOMEASSIGN-002/003/004 and follow-up children HOMEASSIGN-001A/B/C are done. All three entity types expose Assign Home buttons in CitizenProfileScreen, WorkerStatusScreen, and RecruitInventoryScreen; the 30-second right-click selector is localized, handles ESC/timeout, and sends MessageAssignHome. MessageAssignHome is server-authoritative, accepts beds plus validated sleeping zones, rejects invalid/foreign targets, and GameTests prove accepted targets update homePos. Persistence/sync coverage from HOMEASSIGN-002 is done. BannerModPathfindHomeGoalGameTests prove recruit, worker, and citizen reach within 3 blocks at night and a rebuilt/restart goal resumes to home. Integrated ./gradlew compileJava test runGameTestServer verifyGameTestStage passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "CIT-001",
@@ -6924,8 +6952,8 @@
     {
       "id": "SETTREFACTOR-001",
       "title": "Split BannerModSettlementService (1585 LOC) god class",
-      "status": "in_progress",
-      "updated": "2026-05-05",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "settlement/BannerModSettlementService.java holds claim refresh, snapshot building, validator binding, treasury hooks, sea-trade derivation, stockpile seeding in one class. Change-magnet, hard-to-review, slow-to-merge. Source: review Part A 3.4 / Top-20 #2 / VERIFIED. Note 1060-LOC test BannerModSettlementServiceTest must split alongside (Part B B7).",
       "scope": [
         "Extract three classes: SettlementClaimBindingService (refresh/binding), SettlementTreasuryDerivationService (treasury hook integration), SettlementSeaTradeAnalyzer (sea-trade hints derivation)",
@@ -6950,14 +6978,20 @@
           "text": "Split into SETTREFACTOR-002 (binding service), SETTREFACTOR-003 (treasury derivation), SETTREFACTOR-004 (sea-trade analyzer), SETTREFACTOR-005 (residual trim + parity). Original 1585-LOC service + 1060-LOC test cannot be carried to acceptance in one slice."
         }
       ],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "Verified closure after child tasks SETTREFACTOR-002/-003/-004/-005 are done: BannerModSettlementService is 74 LOC, extracted classes and matching tests exist for SettlementClaimBindingService, SettlementTreasuryDerivationService, and SettlementSeaTradeAnalyzer, old BannerModSettlementServiceTest is absent, BannerModSettlementSnapshotRuntimeTest.fixedScenarioSnapshotNbtMatchesBaselineByteForByte asserts expected CompoundTag equals snapshot.toTag(), tools/backlog validate passes, and focused settlement suite passed via ctx log -- ./gradlew test --tests com.talhanation.bannermod.settlement.*."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "BLDGVALIDATOR-001",
       "title": "Strategy-extract DefaultBuildingValidator (960 LOC) per building type",
-      "status": "in_progress",
-      "updated": "2026-05-05",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "settlement/validation/DefaultBuildingValidator.java has 10+ inline type-specific validation branches. Adding/changing one rule requires touching the giant switch. Source: review Part A 3.4 / Top-20 #3 / VERIFIED.",
       "scope": [
         "Strategy interface BuildingTypeValidator. One implementation per type (FarmValidator, MineValidator, BarracksValidator, ...)",
@@ -6982,8 +7016,14 @@
           "text": "Split into BLDGVALIDATOR-002 (strategy interface + dispatcher), BLDGVALIDATOR-003 (per-type validator extraction), BLDGVALIDATOR-004 (prefab class rename). Original 960-LOC validator with 10+ inline branches cannot be carried to acceptance in one slice."
         }
       ],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) BLDGVALIDATOR-002 through BLDGVALIDATOR-004 are done. 2) BuildingTypeValidatorDispatcher is 47 LOC and routes BuildingType validators. 3) Concrete validators inspected are all below 150 LOC. 4) settlement/validation/DefaultBuildingValidator.java is deleted and ctx search found no DefaultBuildingValidator references. 5) PrefabFallbackValidator.java exists and the old prefab validator name is gone. 6) ./gradlew compileJava, ./gradlew test, ./gradlew runGameTestServer, and tools/backlog validate passed on 2026-05-08."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "REFLCACHE-001",
@@ -7145,8 +7185,8 @@
     {
       "id": "WORKGOAL-001",
       "title": "Migrate per-job worker goals to SettlementOrderWorkGoal-driven path",
-      "status": "in_progress",
-      "updated": "2026-05-05",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "FarmerWorkGoal, MinerWorkGoal, BuilderWorkGoal, LumberjackWorkGoal, MerchantWorkGoal, FishermanWorkGoal, AnimalFarmerWorkGoal coexist with the newer SettlementOrderWorkGoal. Behavior divergence risk: bug fixed in one, not others. Source: review Part A 5.5 / 12.3 / VERIFIED.",
       "scope": [
         "Verify behavior parity per-job between SettlementOrderWorkGoal and each per-job goal",
@@ -7172,14 +7212,20 @@
           "text": "Split into WORKGOAL-002..WORKGOAL-008 (one per per-job goal: farmer/miner/builder/lumberjack/merchant/fisherman/animal-farmer). Each requires per-job parity verification before deletion; cannot be done atomically."
         }
       ],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) WORKGOAL-002 through WORKGOAL-008 are done. 2) ctx search for FarmerWorkGoal, MinerWorkGoal, BuilderWorkGoal, LumberjackWorkGoal, MerchantWorkGoal, FishermanWorkGoal, and AnimalFarmerWorkGoal in src/main/java returned zero matches. 3) Worker entities use the inherited SettlementOrderWorkGoal path and migration contract tests remain in src/test. 4) ./gradlew compileJava, ./gradlew test, ./gradlew runGameTestServer, and tools/backlog validate passed on 2026-05-08."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "EVENTSPKG-001",
       "title": "Move services out of events/ package into runtime/ subpackages",
-      "status": "in_progress",
-      "updated": "2026-05-05",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "events/SettlementHeartbeatService, events/CitizenBirthService, events/ClaimRuntimeService, events/MovementFormationCommandService and ~5 others are services not event subscribers. Onboarding confusion. Source: review Part A 3.3 / 3.7 / A4 / Top-20 #16 / VERIFIED.",
       "scope": [
         "Move each service out of events/ into the matching subsystem runtime/ folder (settlement/runtime/, claim/runtime/, citizen/runtime/, army/command/runtime/)",
@@ -7204,8 +7250,14 @@
           "text": "Split into EVENTSPKG-002 (settlement+claim services), EVENTSPKG-003 (citizen birth service), EVENTSPKG-004 (army command service), EVENTSPKG-005 (residual moves + guard). Per-service moves keep PRs reviewable as the parent acceptance demanded."
         }
       ],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) EVENTSPKG-002 through EVENTSPKG-005 are done. 2) Remaining service moves and final payload relocation leave src/main/java/com/talhanation/bannermod/events/** guarded by EventPackageContractTest so only @SubscribeEvent event-host classes may remain there. 3) Imports were updated by the child tasks and final contract fix; behavior was verified by compile/test/GameTest gates. 4) ./gradlew compileJava, ./gradlew test, ./gradlew runGameTestServer, and tools/backlog validate passed on 2026-05-08."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "CONFIGMERGE-001",
@@ -7510,7 +7562,7 @@
     {
       "id": "ADMINCMDS-001",
       "title": "Admin recovery command suite",
-      "status": "in_progress",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "Ops have no in-game commands to fix orphaned settlement / treasury / stuck worker / stuck war state. Source: review Part A 10.2 / Top-20 #20 / VERIFIED.",
       "scope": [
@@ -7536,14 +7588,20 @@
           "text": "Split oversized admin recovery suite into focused command-domain children: claim/treasury/trust, worker recovery, war wipe, and debug diagnostics. No implementation landed in ADMINCMDS-001; parent remains blocked on child completion."
         }
       ],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Child tasks ADMINCMDS-001A through ADMINCMDS-001D are done. 2) Command registration and implementation verified in BannerModWarCommands, AdminRecoveryCommands, AdminDebugCommands, and WarDeclarationCommands. 3) Each listed command has op/input/server-side checks and happy-path coverage in BannerModAdminRecoveryCommandGameTests. 4) ./gradlew compileJava, ./gradlew test, ./gradlew runGameTestServer, and tools/backlog validate passed on 2026-05-08."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "UIAUDIT-001",
       "title": "Move UI_AUDIT_FINDINGS.md into docs/ and commit",
       "status": "in_progress",
-      "updated": "2026-05-06",
+      "updated": "2026-05-08",
       "why": "Untracked 161-line per-screen UI audit (30 screens, summary table, top-5 severe findings) lives at repo root from a prior session. Real audit output, not noise. Source: review Part C 26.3 / Part A U6.",
       "scope": [
         "git mv UI_AUDIT_FINDINGS.md docs/UI_AUDIT_FINDINGS.md",
@@ -7555,11 +7613,17 @@
         "Linked from STATUS.md",
         "Working tree shows no untracked UI_AUDIT_FINDINGS.md"
       ],
-      "dependencies": [],
+      "dependencies": [
+        "UIAUDIT-001A"
+      ],
       "progress": [
         {
           "date": "2026-05-06",
           "text": "Source file UI_AUDIT_FINDINGS.md no longer present at repo root and not in git history; cannot 'git mv' as scoped. Task stays open pending re-import of the audit content from prior-session backup. 2026-05-06 backlog-execute batch."
+        },
+        {
+          "date": "2026-05-08",
+          "text": "blocked: source root UI_AUDIT_FINDINGS.md is missing, docs/UI_AUDIT_FINDINGS.md does not exist, and docs/STATUS.md has no audit link; moved recovery/import work into UIAUDIT-001A so the parent is not left as vague in-progress work"
         }
       ],
       "verification": [],
@@ -7816,8 +7880,8 @@
     {
       "id": "SETTPREFIX-001",
       "title": "Drop redundant BannerMod prefix on classes inside bannermod.settlement.*",
-      "status": "open",
-      "updated": "2026-05-04",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "30+ classes named BannerModSettlementXxx inside the bannermod.settlement package - package-prefix repetition. Bloats class headers + grep noise. Mechanical rename. Source: review Part A 12.2 / VERIFIED.",
       "scope": [
         "Rename via IDE refactor: BannerModSettlementService -> SettlementService, etc",
@@ -7834,8 +7898,14 @@
         "BLDGVALIDATOR-001"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) ctx search found zero BannerModSettlement class/interface/enum/record declarations under src/main/java/com/talhanation/bannermod/settlement; 2) git ls-files found no src/main/java/com/talhanation/bannermod/settlement/**/BannerModSettlement*.java files; 3) ./gradlew compileJava runGameTestServer passed on the integration branch; 4) tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "NAMINGCONV-001",
@@ -7866,8 +7936,8 @@
     {
       "id": "SKILLTREE-002",
       "title": "Skill/perk data model + persistence",
-      "status": "in_progress",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "SKILLTREE-001 phase plan step 1: a server-authoritative perk store has to exist before any combat hook, GUI, or per-archetype catalog can be wired. Layered on top of RecruitProgressionService XP/level so promote/level still works.",
       "scope": [
         "Define a server-authoritative perk/talent data model (perk id, owning archetype, prerequisites, point cost) with JSON registration so non-code authors can extend trees later.",
@@ -7883,15 +7953,29 @@
         "Respec API zeroes the unlocked set and refunds points without losing XP/level state.",
         "tools/backlog validate passes; ./gradlew compileJava is green."
       ],
-      "dependencies": [],
+      "dependencies": [
+        "SKILLTREE-002A",
+        "SKILLTREE-002B",
+        "SKILLTREE-002C"
+      ],
       "progress": [
         {
           "date": "2026-05-06",
           "text": "Phase 1 recruit-side data model + persistence + skill-point grant shipped on feature/skilltree-001 (commits 9fa95338, a728735c, 8094af74, 27c1ca70). Done: PerkArchetype/PerkStat/PerkBonus/PerkNode/PerkRegistry/PerkProgress under entity.military.perks; AbstractRecruitEntity exposes getPerkProgress(); RecruitPersistenceBridge round-trips PerkProgress NBT alongside legacy fields; RecruitProgressionService grants PERK_POINTS_PER_LEVEL on level gain; placeholder catalog of 6 perks seeded with en_us+ru_ru localization; respec API refunds full point cost; JUnit covers NBT round-trip, respec, and unknown-id forward compat. Open: NeoForge AttachmentType for player skill points + unlocked perks (deferred to SKILLTREE-004 per parent SKILLTREE-001 phase-3 split). Verification note: ./gradlew compileJava currently fails on master HEAD with 4 pre-existing errors unrelated to skilltree (MessageAttack/MessageCombatStance/MessageFaceCommand duplicate locals, BannerModMessage NoSuchMethodException try statement); confirmed by stashing skilltree changes and seeing the same 4 errors before merging blocks SKILLTREE-002 closure."
+        },
+        {
+          "date": "2026-05-08",
+          "text": "partial verification: compileJava green and tools/backlog validate passes; Java-side PerkNode/PerkBonus/PerkStat/PerkArchetype, static PerkRegistry lookup, PerkProgress NBT/respec, recruit NBT wiring, recruit level skill-point grant, localization placeholders, and PerkProgress unit tests exist. Not closable: JSON/datapack registry, player AttachmentType persistence, player level-grant stub, and focused recruit/player persistence GameTests are missing. Remaining scope moved into SKILLTREE-002A/B/C."
         }
       ],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "Perk model and PerkRegistry lookup by id/archetype compile and are data-driven through datapack JSON; recruit perk progress NBT wiring preserves unlocked perks and skill points; player_perks AttachmentType persists player skill points and unlocked perks; PlayerPerkProgressService exposes level-grant stub and respec; BannerModSkillTreePersistenceGameTests cover recruit save/load, player attachment save/load, and respec refund without losing XP/level; integrated ./gradlew compileJava test runGameTestServer verifyGameTestStage passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "SKILLTREE-003",
@@ -8036,7 +8120,7 @@
     {
       "id": "HOMEASSIGN-004",
       "title": "Assign Home button + 30s target selector in citizen, recruit, worker screens",
-      "status": "in_progress",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "HOMEASSIGN-001 phase 3: players need a UI affordance to set the home. CitizenProfileScreen, RecruitInventoryScreen, and the worker profile screen each need an Assign Home button that opens a 30-second 'right-click target' selector.",
       "scope": [
@@ -8065,8 +8149,14 @@
           "text": "Split broad UI task after draft implementation failed full acceptance: compileJava passed in draft branch, but verifyGameTestStage failed and manual 1080p/1440p UI checks were not recorded. No HOMEASSIGN-004 code was merged; remaining work is divided into selector flow, profile-screen integration, and docs/runtime verification children."
         }
       ],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "Verified HOMEASSIGN-004 without edits: dependencies HOMEASSIGN-004A/B/C are done; Assign Home buttons exist in CitizenProfileScreen, WorkerStatusScreen, and RecruitInventoryScreen, start AssignHomeTargetSelector, and close the profile screen; selector renders via HudOverlayCoordinator at the top-right stacked HUD safe margin, uses localized prompt/remaining/cancel strings, cancels on ESC/timeout, and right-click block use sends MessageAssignHome; MessageAssignHome is server-authoritative and validates owner/admin plus bed target before updating homePos; en_us/ru_ru keys are present; MULTIPLAYER_GUIDE_EN.md, MULTIPLAYER_GUIDE_RU.md, and docs/BANNERMOD_ALMANAC.html document the flow; BannerModHomeAssignGameTests.assignHomeMessageAcceptsBedFromOwner proves a valid bed updates recruit homePos and rejects non-bed; compileJava and verifyGameTestStage passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "SETTREFACTOR-002",
@@ -8099,8 +8189,8 @@
     {
       "id": "SETTREFACTOR-003",
       "title": "Extract SettlementTreasuryDerivationService from BannerModSettlementService",
-      "status": "in_progress",
-      "updated": "2026-05-07",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "Phase 2 of the SETTREFACTOR-001 split: isolate the treasury-derivation hook integration so it can be reasoned about without the rest of the god class.",
       "scope": [
         "Create SettlementTreasuryDerivationService under settlement/runtime/ holding the treasury-hook integration methods currently inside BannerModSettlementService.",
@@ -8122,14 +8212,20 @@
           "text": "Attempted SETTREFACTOR-003 on feature/settrefactor-003; live code inspection found no treasury/fiscal/ledger/tax-hook methods in BannerModSettlementService or BannerModSettlementServiceTest, so the original extraction target is stale. Remaining scope moved to SETTREFACTOR-003A, targeting the current SettlementHeartbeatService governor-heartbeat treasury integration seam."
         }
       ],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) SETTREFACTOR-003A is done. 2) settlement/runtime/SettlementTreasuryDerivationService.java exists and owns the BannerModTreasuryManager-backed heartbeat treasury derivation calls. 3) ctx search found no BannerModTreasuryManager usage in BannerModSettlementService. 4) SettlementTreasuryDerivationServiceTest covers the extracted seam. 5) ./gradlew compileJava, ./gradlew test, and tools/backlog validate passed on 2026-05-08."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "SETTREFACTOR-004",
       "title": "Extract SettlementSeaTradeAnalyzer from BannerModSettlementService",
-      "status": "open",
-      "updated": "2026-05-05",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "Phase 3 of the SETTREFACTOR-001 split: isolate the sea-trade-hints derivation so it can be tuned and tested in isolation.",
       "scope": [
         "Create SettlementSeaTradeAnalyzer under settlement/runtime/ holding the sea-trade hints derivation currently inside BannerModSettlementService.",
@@ -8146,14 +8242,20 @@
         "SETTREFACTOR-003"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) SettlementSeaTradeAnalyzer.java exists under settlement/runtime and owns sea-trade desired goods, coverage, and status-line derivation after diff review; 2) BannerModSettlementService delegates sea-trade derivation to SettlementSeaTradeAnalyzer and no longer contains the extracted status/helper methods; 3) SettlementSeaTradeAnalyzerTest contains the moved sea-trade tests and BannerModSettlementServiceTest remains green; 4) compileJava passed, full ./gradlew test passed, and tools/backlog validate passed on the integration branch."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "SETTREFACTOR-005",
       "title": "Trim residual BannerModSettlementService to <=600 LOC and finalize test split",
-      "status": "open",
-      "updated": "2026-05-05",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "Phase 4 of the SETTREFACTOR-001 split: with binding/treasury/sea-trade extracted, the residual orchestrator must hit the SETTREFACTOR-001 LOC cap and produce a byte-identical snapshot on the parity scenario.",
       "scope": [
         "Move any remaining non-orchestration helpers out into the appropriate new service classes (or into static helpers under settlement/runtime/).",
@@ -8171,8 +8273,14 @@
         "SETTREFACTOR-004"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) wc -l reports BannerModSettlementService.java at 74 lines, under the 600-line cap; 2) SettlementClaimBindingService, SettlementTreasuryDerivationService, SettlementSeaTradeAnalyzer, BannerModSettlementSnapshotRuntime, BannerModSettlementLogisticsDerivationService, and BannerModSettlementResidentStaffingService each have focused test coverage after the split; 3) BannerModSettlementSnapshotRuntimeTest.fixedScenarioSnapshotNbtMatchesBaselineByteForByte asserts exact CompoundTag equality for a fixed snapshot scenario; 4) merged integration gate ./gradlew compileJava test runGameTestServer passed and tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "BLDGVALIDATOR-002",
@@ -8469,7 +8577,7 @@
     {
       "id": "WORKGOAL-008",
       "title": "Migrate AnimalFarmerEntity from AnimalFarmerWorkGoal to SettlementOrderWorkGoal",
-      "status": "in_progress",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "WORKGOAL-001 phase: animal-farmer migration.",
       "scope": [
@@ -8494,8 +8602,14 @@
           "text": "Split after implementation review showed AnimalFarmerWorkGoal cannot be deleted safely: no unified settlement work-order publisher/executor currently covers breed, special-task, and slaughter behavior. No WORKGOAL-008 code was merged; branch feature/workgoal-008 remains unmerged reference only."
         }
       ],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) WORKGOAL-008A and WORKGOAL-008B are done. 2) ctx search AnimalFarmerWorkGoal in src/main/java returned zero matches, and the class file is deleted. 3) AnimalFarmerEntity has no registerGoals override and inherits AbstractWorkerEntity SettlementOrderWorkGoal registration. 4) AnimalFarmerSettlementOrderParityTest covers the fixed animal-husbandry parity/migration path. 5) ./gradlew compileJava, ./gradlew test, ./gradlew runGameTestServer, and tools/backlog validate passed on 2026-05-08."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "EVENTSPKG-002",
@@ -8582,7 +8696,7 @@
     {
       "id": "EVENTSPKG-005",
       "title": "Move remaining non-event services out of events/ and finalize package contract",
-      "status": "in_progress",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "EVENTSPKG-001 final phase: any service still in events/ after the prior moves must be relocated. Once done, events/ should contain only classes whose methods carry @SubscribeEvent.",
       "scope": [
@@ -8609,8 +8723,14 @@
           "text": "parallel wave produced an 80+ file package-move diff in /home/user/bannermod-task-worktrees/EVENTSPKG-005; not merged because it is too broad for safe review as one task and the required runGameTestServer gate is currently blocked by unrelated baseline failures fiverecruitformationholdsacrossdimensionteleport, starterbootstrapseedsrealworkerassignmentsandwaitingreasons, and friendlyclaimbindingallowsplacementandsettlementoperation; moved remaining scope into area-based child tasks EVENTSPKG-005A/B/C plus final guard/gate EVENTSPKG-005D"
         }
       ],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) EVENTSPKG-005A through EVENTSPKG-005D are done. 2) ClaimEvent and RecruitEvent payload classes moved out of src/main/java/com/talhanation/bannermod/events into com.talhanation.bannermod.api.event, and imports were updated. 3) EventPackageContractTest now enforces the literal contract: events/** Java files must contain @SubscribeEvent annotations, with no payload exception. 4) ./gradlew compileJava, ./gradlew test, ./gradlew runGameTestServer, and tools/backlog validate passed on 2026-05-08."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-001",
@@ -8776,7 +8896,7 @@
     {
       "id": "PACKETAUTH-008",
       "title": "Verify leader ownership in MessageAssassinCount",
-      "status": "in_progress",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "MessageAssassinCount targets an AssassinLeaderEntity by UUID and only checks a 16-block AABB before calling leader.setCount(this.count). No ownership check; any client in range can rewrite a foreign assassin leader's count.",
       "scope": [
@@ -8793,10 +8913,20 @@
         {
           "date": "2026-05-08",
           "text": "Attempted PACKETAUTH-008 on feature/packetauth-008; live code inspection found AssassinLeaderEntity has no existing server-authoritative owner/control source. A packet-side owner gate alone would either block legitimate count edits or invent unsafe authority. Remaining scope split into PACKETAUTH-008A to define/persist AssassinLeader authority and PACKETAUTH-008B to gate MessageAssassinCount once that authority exists."
+        },
+        {
+          "date": "2026-05-08",
+          "text": "Landed partial authority hardening: MessageAssassinCount now delegates count mutation through AssassinLeaderEntity.trySetCountFrom / AssassinLeaderCountAuthority, preserving range and op/owner checks; AssassinLeaderControlAuthorityTest includes a behavioral helper regression proving a foreign non-op sender leaves count unchanged. Full closure still blocked by runtime proof with an actual AssassinLeaderEntity: attempted GameTest hit an unrelated entity synched-data fixture error ('has not defined synched data value 17'), so the task remains in_progress until that runtime regression can be added or the entity fixture issue is split/fixed."
         }
       ],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) MessageAssassinCount resolves the server sender and routes count mutation through AssassinLeaderEntity.trySetCountFrom with sender UUID plus op permission after the existing range gate; 2) AssassinLeaderControlAuthorityTest.foreignNonOpSenderLeavesAssassinLeaderCountUnchanged proves a foreign non-op sender leaves count unchanged while owner/op paths remain covered; 3) compileJava passed and full ./gradlew test passed on the integration branch; 4) tools/backlog validate passed before closure."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-009",
@@ -9580,6 +9710,286 @@
         {
           "date": "2026-05-08",
           "result": "1) Deleted src/main/java/com/talhanation/bannermod/ai/civilian/AnimalFarmerWorkGoal.java and verified tools/ai-context-proxy/bin/ctx search 'AnimalFarmerWorkGoal' src/main/java returned zero matches. 2) AnimalFarmerEntity no longer overrides registerGoals or imports/registers AnimalFarmerWorkGoal; AbstractWorkerEntity remains the single inherited SettlementOrderWorkGoal registration path, covered by AnimalFarmerSettlementOrderParityTest.animalFarmerUsesInheritedSettlementOrderGoalOnly. 3) Animal-farmer settlement-order parity coverage remains in AnimalFarmerSettlementOrderParityTest; ./gradlew compileJava, ./gradlew test, ./gradlew runGameTestServer, and tools/backlog validate all passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
+    },
+    {
+      "id": "UIAUDIT-001A",
+      "title": "Recover missing per-screen UI audit artifact",
+      "status": "in_progress",
+      "updated": "2026-05-08",
+      "why": "UIAUDIT-001 cannot import the prior-session per-screen UI audit because UI_AUDIT_FINDINGS.md is no longer present at the repo root and docs/UI_AUDIT_FINDINGS.md does not exist.",
+      "scope": [
+        "Recover the original UI_AUDIT_FINDINGS.md artifact from prior-session storage, a branch, or another authoritative source without inventing replacement findings.",
+        "Place the recovered audit at docs/UI_AUDIT_FINDINGS.md and add the docs/STATUS.md link required by UIAUDIT-001."
+      ],
+      "acceptance": [
+        "docs/UI_AUDIT_FINDINGS.md exists with the recovered per-screen UI audit content and is tracked in git.",
+        "docs/STATUS.md links docs/UI_AUDIT_FINDINGS.md.",
+        "No untracked root UI_AUDIT_FINDINGS.md remains; tools/backlog validate passes."
+      ],
+      "dependencies": [],
+      "progress": [
+        {
+          "date": "2026-05-08",
+          "text": "blocked: searched git history/branches/worktrees/stashes, tracked docs/planning files, and dangling blobs; original 161-line UI_AUDIT_FINDINGS.md artifact was not found. docs/UI-009_REMAINING_UI_AUDIT.txt exists but is a different 75-line note, so it was not substituted. Need external/prior-session artifact before docs import/link acceptance can be satisfied."
+        }
+      ],
+      "verification": [],
+      "evidence": []
+    },
+    {
+      "id": "HOMEASSIGN-001A",
+      "title": "Accept validated sleeping-zone home targets",
+      "status": "done",
+      "updated": "2026-05-08",
+      "why": "HOMEASSIGN-001 requires the Assign Home selector to accept beds and validated sleeping zones, but MessageAssignHome currently accepts only BedBlock targets.",
+      "scope": [
+        "Extend the server-authoritative MessageAssignHome target validation to accept the validated sleeping-zone target type used by settlement housing without trusting client-side state.",
+        "Keep existing bed acceptance and invalid-target rejection behavior intact.",
+        "Add focused coverage for bed, validated sleeping-zone, non-owner, and invalid-target outcomes."
+      ],
+      "acceptance": [
+        "MessageAssignHome accepts a valid bed and a validated sleeping-zone target, and rejects invalid blocks and foreign senders without mutating homePos.",
+        "Focused test or GameTest proves the sleeping-zone path updates homePos server-side.",
+        "./gradlew compileJava and the focused home-assign GameTest/test pass; tools/backlog validate passes."
+      ],
+      "dependencies": [
+        "HOMEASSIGN-002",
+        "HOMEASSIGN-004"
+      ],
+      "progress": [],
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "MessageAssignHome now validates home targets server-side as either BedBlock or a valid same-dimension ValidatedBuildingRecord sleeping zone containing the target BlockPos, without trusting client state; GameTests cover owner sleeping-zone acceptance, bed acceptance, invalid non-bed/non-zone rejection, and foreign sender rejection without homePos mutation; integrated ./gradlew compileJava test runGameTestServer verifyGameTestStage passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
+    },
+    {
+      "id": "HOMEASSIGN-001B",
+      "title": "Prove pathfind-home movement and restart completion",
+      "status": "done",
+      "updated": "2026-05-08",
+      "why": "HOMEASSIGN-001 requires citizens, workers, and recruits to pathfind to home at night and on restart; current evidence proves triggers/rebuilds but not bounded movement completion for all three entity types.",
+      "scope": [
+        "Add focused GameTest coverage that assigns a valid home to a citizen, worker, and recruit, advances to the trigger condition, and observes each entity reaching within 3 blocks of home.",
+        "Add or extend reload/restart coverage to prove an in-flight home path resumes when the trigger condition still holds.",
+        "Preserve daytime work/combat non-abandonment behavior covered by HOMEASSIGN-003."
+      ],
+      "acceptance": [
+        "GameTest proves citizen, worker, and recruit reach within 3 blocks of assigned home at night within a bounded tick budget.",
+        "GameTest proves reload/restart resumes an in-flight home path when the trigger condition still holds.",
+        "./gradlew compileJava and the focused pathfind-home GameTests pass; tools/backlog validate passes."
+      ],
+      "dependencies": [
+        "HOMEASSIGN-002",
+        "HOMEASSIGN-003"
+      ],
+      "progress": [],
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "BannerModPathfindHomeGoalGameTests now prove recruit, worker, and citizen reach within 3 blocks of assigned home at night within timeoutTicks=400, and rebuiltGoalResumesAfterReload clears the pre-reload route then proves the rebuilt goal reaches home from persisted homePos; daytime non-trigger assertions remain; integrated ./gradlew compileJava test runGameTestServer verifyGameTestStage passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
+    },
+    {
+      "id": "HOMEASSIGN-001C",
+      "title": "Restore required GameTest stage for Assign Home closure",
+      "status": "done",
+      "updated": "2026-05-08",
+      "why": "HOMEASSIGN-001 requires a green gametest gate, but verifyGameTestStage currently fails on required test unrelatedclaimstateispreservedwhensiblingclaimisdeleted.",
+      "scope": [
+        "Investigate the current verifyGameTestStage failure unrelatedclaimstateispreservedwhensiblingclaimisdeleted.",
+        "Fix the failing required GameTest or the underlying regression without weakening required coverage.",
+        "Rerun the required GameTest stage after the fix."
+      ],
+      "acceptance": [
+        "./gradlew verifyGameTestStage passes on the integration branch.",
+        "The fix is limited to the failing claim-state preservation behavior or its test harness and does not mask unrelated failures.",
+        "tools/backlog validate passes."
+      ],
+      "dependencies": [],
+      "progress": [],
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "Re-ran the required GameTest gate after current integration merges; ./gradlew compileJava test runGameTestServer verifyGameTestStage passed, including the previously failing unrelatedclaimstateispreservedwhensiblingclaimisdeleted stage; no coverage was weakened and no code change was needed for this child; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
+    },
+    {
+      "id": "WORKERUI-001A",
+      "title": "Worker reassign ownership denial test",
+      "status": "done",
+      "updated": "2026-05-08",
+      "why": "WORKERUI-001's Reassign path exists, but the required handler-level non-owner denial/no-state-change test is missing.",
+      "scope": [
+        "Add focused unit or GameTest coverage for MessageReassignWorkerProfession or its service path where a non-owner attempts reassignment.",
+        "Verify denied feedback/reason key and that the original worker/profession/entity state is unchanged.",
+        "Keep the existing owner/authorized reassign path covered or smoke-verified."
+      ],
+      "acceptance": [
+        "A non-owner reassign attempt is denied server-side and leaves worker state unchanged.",
+        "The test fails if ownership validation is bypassed.",
+        "The authorized reassign path remains covered or smoke-verified; compileJava and tools/backlog validate pass."
+      ],
+      "dependencies": [],
+      "progress": [],
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "BannerModWorkerReassignAuthorityGameTests now covers non-owner reassign denial through WorkerCitizenConversionService.reassignProfession, verifies the not-controller denial key and unchanged worker UUID/entity, profession, owner UUID, owned state, follow state, position, and replacement count; owner-path smoke test verifies successful replacement with an owned lumberjack. Integrated ./gradlew compileJava test runGameTestServer verifyGameTestStage passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
+    },
+    {
+      "id": "WORKERUI-001B",
+      "title": "Explicit worker dismiss action",
+      "status": "done",
+      "updated": "2026-05-08",
+      "why": "WORKERUI-001 requires a Dismiss control and MessageDismissWorker, while current UI only documents To Citizen as a dismiss-like path.",
+      "scope": [
+        "Add a localized Dismiss entry/control to WorkerStatusScreen using the existing compact action/menu style.",
+        "Implement MessageDismissWorker(workerUUID) with server-side owner/admin validation and accepted/denied feedback.",
+        "Cover owner and non-owner dismiss behavior with focused tests and update EN/RU guide text."
+      ],
+      "acceptance": [
+        "WorkerStatusScreen exposes a localized Dismiss action without overlapping existing controls.",
+        "Clicking Dismiss sends MessageDismissWorker; authorized dismiss changes worker state exactly as designed.",
+        "A non-owner dismiss attempt receives denied feedback and causes no state change; compileJava, focused tests, tools/backlog validate pass; EN/RU guides describe the control."
+      ],
+      "dependencies": [
+        "WORKERUI-001A"
+      ],
+      "progress": [],
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "WorkerStatusScreen now exposes localized worker Actions with Dismiss without adding another bottom-row button; MessageDismissWorker is registered and serverbound, derives authority from the real sender, and delegates to WorkerDismissService; WorkerDismissService validates owner/admin, distance, alive state before releasing work area and discarding the worker; WorkerStatusDismissContractTest covers UI wiring, registration/localization, owner/admin allow path, and non-owner no-mutation ordering; EN/RU guides and almanac document Dismiss; integrated ./gradlew compileJava test runGameTestServer verifyGameTestStage passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
+    },
+    {
+      "id": "WORKERUI-001C",
+      "title": "Resolve worker wage controls",
+      "status": "in_progress",
+      "updated": "2026-05-08",
+      "why": "WORKERUI-001 asks for wage controls and MessageSetWorkerWage, but current code/docs indicate no recurring wage system exists.",
+      "scope": [
+        "Inspect whether a real worker wage/payroll setter exists.",
+        "If a real wage model exists, add localized wage +/- controls and MessageSetWorkerWage(workerUUID, amount) with owner/admin validation and tests.",
+        "If no wage model exists, update backlog/docs through the normal process to make wage controls explicitly not applicable instead of leaving impossible acceptance."
+      ],
+      "acceptance": [
+        "Either wage controls exist and are server-authoritative with owner/non-owner tests, or the backlog acceptance is corrected to state wages are not implemented/applicable.",
+        "EN/RU guide text matches the chosen wage decision.",
+        "compileJava and tools/backlog validate pass."
+      ],
+      "dependencies": [],
+      "progress": [
+        {
+          "date": "2026-05-08",
+          "text": "merged guide clarification that workers currently have no recurring wage/payroll value and no wage +/- controls without a future server-authoritative wage field; compile/test/GameTest/verifyGameTestStage passed. Not marking done yet because the task acceptance also asks for backlog/parent acceptance to be corrected, and WORKERUI-001 still explicitly requires wage controls."
+        }
+      ],
+      "verification": [],
+      "evidence": []
+    },
+    {
+      "id": "SKILLTREE-002A",
+      "title": "Data-driven perk JSON registry",
+      "status": "done",
+      "updated": "2026-05-08",
+      "why": "SKILLTREE-002 requires non-code authors to extend perk trees, but the current perk registry is Java-static only.",
+      "scope": [
+        "Add a server-authoritative JSON/datapack-backed perk registry using the existing PerkNode model.",
+        "Define the JSON schema or codec and load placeholder perks from resources instead of hardcoded static seed data.",
+        "Keep lookup by perk id and owning archetype."
+      ],
+      "acceptance": [
+        "Perks load from data/bannermod JSON during normal server startup or reload.",
+        "Invalid duplicate or conflicting ids fail loudly.",
+        "PerkRegistry.get(id) and PerkRegistry.byArchetype(...) work from loaded JSON; ./gradlew compileJava and tools/backlog validate pass."
+      ],
+      "dependencies": [],
+      "progress": [],
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "PerkReloadListener now loads data/*/perks/*.json on reload/startup and PerkRegistry.replaceAll atomically replaces the catalog while rejecting duplicate ids; placeholder perks live in src/main/resources/data/bannermod/perks/*.json and PerkRegistry.get/byArchetype remain compatible with a default catalog before reload. Integrated ./gradlew compileJava test runGameTestServer verifyGameTestStage passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
+    },
+    {
+      "id": "SKILLTREE-002B",
+      "title": "Player perk AttachmentType persistence",
+      "status": "done",
+      "updated": "2026-05-08",
+      "why": "Player skill trees need a persistent server-authoritative store before player perks/effects can be wired.",
+      "scope": [
+        "Register a NeoForge AttachmentType for player PerkProgress.",
+        "Expose minimal server-side accessors for player skill points and unlocked perk ids.",
+        "Persist player points/unlocked perks, add a player level-grant stub, and expose respec through the same persistence layer."
+      ],
+      "acceptance": [
+        "Player attachment stores available points and unlocked perk ids and survives save/load.",
+        "Respec clears unlocked perks and refunds points without touching unrelated player state.",
+        "./gradlew compileJava and tools/backlog validate pass."
+      ],
+      "dependencies": [
+        "SKILLTREE-002A"
+      ],
+      "progress": [],
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "Registered player_perks AttachmentType<PerkProgress> with serializable NBT and copyOnDeath; PerkProgress implements INBTSerializable<CompoundTag>; PlayerPerkProgressService exposes available points, unlocked ids, level point grant stub, unlock, and respec through the same persistent object; focused PerkProgress test passed in branch and integrated ./gradlew compileJava test runGameTestServer verifyGameTestStage passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
+    },
+    {
+      "id": "SKILLTREE-002C",
+      "title": "Skill tree persistence GameTests",
+      "status": "done",
+      "updated": "2026-05-08",
+      "why": "SKILLTREE-002 acceptance requires focused save/load GameTests, while current coverage is unit-level only.",
+      "scope": [
+        "Add focused GameTests for recruit perk NBT round-trip.",
+        "Add focused GameTests for player attachment save/load round-trip.",
+        "Add respec coverage proving points refund while XP/level state remains unchanged."
+      ],
+      "acceptance": [
+        "Recruit GameTest proves unlocked perks and skill points survive save/load.",
+        "Player GameTest proves attachment unlocked perks and skill points survive save/load.",
+        "Respec GameTest proves points refund and XP/level state remains unchanged; targeted GameTests, ./gradlew compileJava, and tools/backlog validate pass."
+      ],
+      "dependencies": [
+        "SKILLTREE-002A",
+        "SKILLTREE-002B"
+      ],
+      "progress": [],
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "BannerModSkillTreePersistenceGameTests now covers recruit perk NBT save/load, player player_perks attachment save/load, and respec point refund while preserving recruit XP/level; integrated ./gradlew compileJava test runGameTestServer verifyGameTestStage passed; tools/backlog validate passed."
         }
       ],
       "evidence": [],
