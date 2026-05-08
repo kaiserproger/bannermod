@@ -1,25 +1,13 @@
 package com.talhanation.bannermod.settlement;
 
-import com.talhanation.bannermod.settlement.bootstrap.SettlementRecord;
-import com.talhanation.bannermod.settlement.bootstrap.SettlementStatus;
-import com.talhanation.bannermod.settlement.building.BuildingType;
-import com.talhanation.bannermod.settlement.building.ValidatedBuildingRecord;
-import com.talhanation.bannermod.shared.logistics.BannerModSeaTradeSummary;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BannerModSettlementResidentStaffingServiceTest {
 

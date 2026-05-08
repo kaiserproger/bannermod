@@ -29,9 +29,12 @@ final class BannerModSettlementSnapshotBuilder {
                                                      @Nullable BannerModGovernorManager governorManager) {
         ChunkPos anchorChunk = BannerModSettlementSnapshotRuntime.resolveAnchorChunk(claim);
         BannerModGovernorSnapshot governorSnapshot = governorManager == null ? null : governorManager.getSnapshot(claim.getUUID());
-        String settlementFactionId = claim.getOwnerPoliticalEntityId() != null
-                ? claim.getOwnerPoliticalEntityId().toString()
-                : governorSnapshot == null ? null : governorSnapshot.settlementFactionId();
+        String settlementFactionId = null;
+        if (claim.getOwnerPoliticalEntityId() != null) {
+            settlementFactionId = claim.getOwnerPoliticalEntityId().toString();
+        } else if (governorSnapshot != null) {
+            settlementFactionId = governorSnapshot.settlementFactionId();
+        }
 
         List<AbstractWorkAreaEntity> workAreas = BannerModSettlementSnapshotRuntime.collectWorkAreas(level, claim, AbstractWorkAreaEntity.class);
         SettlementRecord settlementRecord = BannerModSettlementSnapshotRuntime.settlementRecordForClaim(level, claim);
