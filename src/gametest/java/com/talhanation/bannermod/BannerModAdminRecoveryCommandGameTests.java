@@ -11,6 +11,10 @@ import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.persistence.military.RecruitsPlayerInfo;
 import com.talhanation.bannermod.settlement.BannerModSettlementManager;
 import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
+import com.talhanation.bannermod.war.WarRuntimeContext;
+import com.talhanation.bannermod.war.runtime.WarDeclarationRecord;
+import com.talhanation.bannermod.war.runtime.WarDeclarationRuntime;
+import com.talhanation.bannermod.war.runtime.WarGoalType;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
@@ -22,6 +26,7 @@ import net.minecraft.world.level.GameType;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
+import java.util.List;
 import java.util.UUID;
 
 @GameTestHolder(BannerModMain.MOD_ID)
@@ -136,6 +141,31 @@ public class BannerModAdminRecoveryCommandGameTests {
         helper.assertTrue(result >= 1, "Expected worker rehome command to affect at least one worker");
         helper.assertTrue(expectedHome.equals(worker.getHomePos()),
                 "Expected /bannermod worker rehome to assign the chunk-center home position");
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void warWipeRemovesDeclaredWarByUuid(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        WarDeclarationRuntime declarations = WarRuntimeContext.declarations(level);
+        WarDeclarationRecord war = declarations.declareWar(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                WarGoalType.WHITE_PEACE,
+                "admincmds-wipe",
+                List.of(),
+                List.of(),
+                List.of(),
+                level.getGameTime(),
+                0L
+        ).orElseThrow();
+
+        int result = runCommand(level, "bannermod war wipe " + war.id());
+
+        helper.assertTrue(result == 1, "Expected war wipe command to succeed");
+        helper.assertTrue(declarations.byId(war.id()).isEmpty(),
+                "Expected /bannermod war wipe to remove the declared war");
         helper.succeed();
     }
 

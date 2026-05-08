@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.talhanation.bannermod.events.ClaimEvents;
@@ -38,6 +39,13 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public final class WarDeclarationCommands {
+    private static final SimpleCommandExceptionType ERR_INVALID_WAR_ID = new SimpleCommandExceptionType(
+            Component.literal("warId must be a valid UUID")
+    );
+    private static final SimpleCommandExceptionType ERR_SERVER_ONLY = new SimpleCommandExceptionType(
+            Component.literal("This command can only run on a server")
+    );
+
     private WarDeclarationCommands() {
     }
 
@@ -62,6 +70,10 @@ public final class WarDeclarationCommands {
                 .then(Commands.literal("cancel")
                         .then(Commands.argument("warId", StringArgumentType.word())
                                 .executes(ctx -> resolve(ctx, ResolveMode.CANCEL, 0L))))
+                .then(Commands.literal("wipe")
+                        .requires(source -> source.hasPermission(2))
+                        .then(Commands.argument("warId", StringArgumentType.word())
+                                .executes(WarDeclarationCommands::wipe)))
                 .then(Commands.literal("whitepeace")
                         .requires(source -> source.hasPermission(2))
                         .then(Commands.argument("warId", StringArgumentType.word())
@@ -207,6 +219,39 @@ public final class WarDeclarationCommands {
         };
 
         return finalizeOutcome(context, level, war, mode, result);
+    }
+
+    private static int wipe(com.mojang.brigadier.context.CommandContext<CommandSourceStack> context)
+            throws CommandSyntaxException {
+        UUID warId = parseWarId(StringArgumentType.getString(context, "warId"));
+        ServerLevel level = context.getSource().getLevel();
+        if (level == null || level.isClientSide()) {
+            throw ERR_SERVER_ONLY.create();
+        }
+        WarDeclarationRuntime declarations = WarRuntimeContext.declarations(level);
+        if (declarations.byId(warId).isEmpty()) {
+            throw WarCommandSupport.ERR_WAR_NOT_FOUND.create();
+        }
+
+        int removedSieges = 0;
+        for (var siege : WarRuntimeContext.sieges(level).forWar(warId)) {
+            if (WarRuntimeContext.sieges(level).remove(siege.id())) {
+                removedSieges++;
+            }
+        }
+        int removedInvites = WarRuntimeContext.allyInvites(level).removeForWar(warId);
+        declarations.remove(warId);
+        WarCommandSupport.reply(context, "Wiped war " + warId
+                + " (siege standards=" + removedSieges + ", ally invites=" + removedInvites + ")");
+        return 1;
+    }
+
+    private static UUID parseWarId(String token) throws CommandSyntaxException {
+        try {
+            return UUID.fromString(token);
+        } catch (IllegalArgumentException exception) {
+            throw ERR_INVALID_WAR_ID.create();
+        }
     }
 
     private static int vassalize(com.mojang.brigadier.context.CommandContext<CommandSourceStack> context)
