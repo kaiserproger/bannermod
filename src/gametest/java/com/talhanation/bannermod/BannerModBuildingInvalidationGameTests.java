@@ -23,7 +23,7 @@ import com.talhanation.bannermod.settlement.validation.BuildingValidationResult;
 import com.talhanation.bannermod.settlement.validation.BuildingInvalidationQueueData;
 import com.talhanation.bannermod.settlement.validation.BuildingInvalidationReason;
 import com.talhanation.bannermod.settlement.validation.BuildingInvalidationRuntime;
-import com.talhanation.bannermod.settlement.validation.DefaultBuildingValidator;
+import com.talhanation.bannermod.settlement.validation.SettlementBuildingValidator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -208,7 +208,7 @@ public class BannerModBuildingInvalidationGameTests {
                 0L
         ));
 
-        DefaultBuildingValidator validator = new DefaultBuildingValidator(new BuildingDefinitionRegistry());
+        SettlementBuildingValidator validator = new SettlementBuildingValidator(new BuildingDefinitionRegistry());
         BuildingValidationRequest request = new BuildingValidationRequest(
                 settlementId,
                 BuildingType.HOUSE,
@@ -251,7 +251,7 @@ public class BannerModBuildingInvalidationGameTests {
                 0L
         ));
 
-        DefaultBuildingValidator validator = new DefaultBuildingValidator(new BuildingDefinitionRegistry());
+        SettlementBuildingValidator validator = new SettlementBuildingValidator(new BuildingDefinitionRegistry());
         BuildingValidationRequest request = new BuildingValidationRequest(
                 settlementId,
                 BuildingType.STORAGE,
@@ -294,7 +294,7 @@ public class BannerModBuildingInvalidationGameTests {
                 level.setBlockAndUpdate(new BlockPos(x, origin.getY() + 1, z), Blocks.FARMLAND.defaultBlockState());
             }
         }
-        DefaultBuildingValidator validator = new DefaultBuildingValidator(new BuildingDefinitionRegistry());
+        SettlementBuildingValidator validator = new SettlementBuildingValidator(new BuildingDefinitionRegistry());
         BuildingValidationRequest request = new BuildingValidationRequest(
                 settlementId,
                 BuildingType.FARM,

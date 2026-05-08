@@ -13,7 +13,7 @@ import com.talhanation.bannermod.settlement.bootstrap.BootstrapResult;
 import com.talhanation.bannermod.settlement.bootstrap.SettlementBootstrapService;
 import com.talhanation.bannermod.settlement.validation.BuildingValidationRequest;
 import com.talhanation.bannermod.settlement.validation.BuildingValidationResult;
-import com.talhanation.bannermod.settlement.validation.DefaultBuildingValidator;
+import com.talhanation.bannermod.settlement.validation.SettlementBuildingValidator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
