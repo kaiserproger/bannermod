@@ -167,6 +167,22 @@ public final class WorkAreaIndex {
         return results;
     }
 
+    public int countInChunk(ServerLevel level, ChunkPos chunkPos, Class<? extends AbstractWorkAreaEntity> type) {
+        if (level == null || chunkPos == null || type == null) return 0;
+        Map<ChunkPos, Set<UUID>> chunks = byLevel.get(level.dimension());
+        if (chunks == null) return 0;
+        Set<UUID> uuids = chunks.get(chunkPos);
+        if (uuids == null || uuids.isEmpty()) return 0;
+        int count = 0;
+        for (UUID uuid : uuids) {
+            Entity entity = level.getEntity(uuid);
+            if (type.isInstance(entity) && entity.isAlive()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     /** Total entries tracked in a given level (diagnostics only). */
     public int sizeFor(ResourceKey<Level> dimension) {
         Map<ChunkPos, Set<UUID>> chunks = byLevel.get(dimension);
