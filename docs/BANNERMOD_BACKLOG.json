@@ -8826,8 +8826,8 @@
     {
       "id": "PACKETAUTH-015",
       "title": "Verify leader ownership in MessagePatrolLeaderSetWaitTime",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "MessagePatrolLeaderSetWaitTime resolves an AbstractLeaderEntity by UUID and only verifies a range AABB / distance before calling leader.setWaitTimeInMin(...). No ownership check; any client in range can mutate a foreign player's leader entity (waypoints, cycle, speed, info mode, etc.).",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessagePatrolLeaderSetWaitTime.java executeServerSide; add canDirectlyControl(sender, leader) (or equivalent owner-equality check via leader.getOwnerUUID()) before the mutation."
@@ -8837,14 +8837,20 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Handler now requires RecruitCommandAuthority.canDirectlyControl(player, leader) before leader.setWaitTimeInMin(this.time); 2) focused PatrolLeaderWaypointAuthorityTest passed and asserts a foreign non-op sender has CommandRole.NONE and the authority gate precedes the only wait-time mutation; 3) ./gradlew compileJava test with packet-authority focused tests passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-016",
       "title": "Verify leader ownership in MessageRemoveAssignedGroupFromCompanion",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "MessageRemoveAssignedGroupFromCompanion resolves an AbstractLeaderEntity by UUID and only checks a 100-block AABB before nulling its leader binding, resetting its army's listen/follow/hold-pos state, and broadcasting a leader-screen update. There is no sender-equality / canDirectlyControl gate; any client in range can detach a foreign player's companion's group.",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessageRemoveAssignedGroupFromCompanion.java executeServerSide; require canDirectlyControl(sender, leader) (or owner-equality via leader.getOwnerUUID()) before mutating leaderUUID, army state, or broadcasting screen updates."
@@ -8854,14 +8860,20 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Handler now requires RecruitCommandAuthority.canDirectlyControl(serverPlayer, companionEntity) before group leader binding, army reset, companion army detach, or screen broadcast mutations; 2) focused MessageRemoveAssignedGroupFromCompanionAuthorityTest passed and asserts a foreign non-op sender has CommandRole.NONE and the authority gate precedes those mutations; 3) ./gradlew compileJava test with packet-authority focused tests passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-017",
       "title": "Verify messenger ownership in MessageSendMessenger",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "MessageSendMessenger resolves a MessengerEntity by UUID with only a 16-block AABB check, then mutates messenger.setMessage / setTargetPlayerInfo and starts the delivery. There is no sender-equality check against messenger.getOwnerUUID(); any client in range can hijack a foreign messenger to deliver an arbitrary message and target.",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessageSendMessenger.java executeServerSide; require sender.getUUID().equals(messenger.getOwnerUUID()) (or sender.hasPermissions(2)) before mutating message/target/start."
@@ -8871,8 +8883,14 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Handler now returns unless sender owns the messenger or has op permission before message, target, treaty-state, or start mutations; 2) focused MessageSendMessengerAuthorityTest passed and asserts the owner/op gate precedes all messenger delivery mutations; 3) ./gradlew compileJava test with packet-authority focused tests passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-018",
