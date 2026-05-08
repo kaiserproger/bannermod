@@ -9529,7 +9529,7 @@
     {
       "id": "WORKGOAL-008B",
       "title": "Migrate AnimalFarmerEntity off AnimalFarmerWorkGoal",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "Once animal-husbandry orders exist, the final migration can delete the legacy specialist goal without dropping behavior.",
       "scope": [
@@ -9546,8 +9546,14 @@
         "WORKGOAL-008A"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Deleted src/main/java/com/talhanation/bannermod/ai/civilian/AnimalFarmerWorkGoal.java and verified tools/ai-context-proxy/bin/ctx search 'AnimalFarmerWorkGoal' src/main/java returned zero matches. 2) AnimalFarmerEntity no longer overrides registerGoals or imports/registers AnimalFarmerWorkGoal; AbstractWorkerEntity remains the single inherited SettlementOrderWorkGoal registration path, covered by AnimalFarmerSettlementOrderParityTest.animalFarmerUsesInheritedSettlementOrderGoalOnly. 3) Animal-farmer settlement-order parity coverage remains in AnimalFarmerSettlementOrderParityTest; ./gradlew compileJava, ./gradlew test, ./gradlew runGameTestServer, and tools/backlog validate all passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     }
   ]
 }
