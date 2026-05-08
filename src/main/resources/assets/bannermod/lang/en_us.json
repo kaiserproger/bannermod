@@ -2569,6 +2569,8 @@
   "bannermod.assign_home.reject.invalid_block": "That block isn't a valid home - pick a bed or a registered sleeping zone.",
   "bannermod.assign_home.button": "Assign Home",
   "bannermod.assign_home.prompt": "Right-click a bed within 30 seconds to assign it as home (ESC to cancel).",
+  "bannermod.assign_home.hud.title": "Assign Home: right-click a bed",
+  "bannermod.assign_home.hud.remaining": "%s seconds left - ESC cancels",
   "bannermod.assign_home.cancel.escape": "Assign-Home cancelled.",
   "bannermod.assign_home.cancel.timeout": "Assign-Home timed out - try again.",
   "perk.bannermod.universal.toughness_i": "Toughness I",
