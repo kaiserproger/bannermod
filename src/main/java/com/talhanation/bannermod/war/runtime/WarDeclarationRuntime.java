@@ -56,6 +56,14 @@ public class WarDeclarationRuntime {
         return Optional.ofNullable(warsById.get(id));
     }
 
+    public boolean remove(UUID id) {
+        boolean removed = warsById.remove(id) != null;
+        if (removed) {
+            dirtyListener.run();
+        }
+        return removed;
+    }
+
     public Optional<WarDeclarationRecord> byIdFragment(String token) {
         if (token == null || token.isBlank()) {
             return Optional.empty();

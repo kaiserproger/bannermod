@@ -9356,7 +9356,7 @@
     {
       "id": "ADMINCMDS-001C",
       "title": "Admin war wipe recovery command",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "Ops need a bounded server-side command to clear stuck war state without coupling it to other admin command domains.",
       "scope": [
@@ -9370,8 +9370,14 @@
         "GAMETESTBASE-001"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) /bannermod war wipe <warId> is registered under the existing /bannermod war command tree with requires(source -> source.hasPermission(2)); the handler parses warId as UUID, throws on invalid/missing war IDs, checks ServerLevel before mutation, removes the declaration and related siege/invite state; ./gradlew compileJava passed. 2) Added BannerModAdminRecoveryCommandGameTests.warWipeRemovesDeclaredWarByUuid happy path; ./gradlew compileGametestJava and ./gradlew runGameTestServer passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "ADMINCMDS-001D",
