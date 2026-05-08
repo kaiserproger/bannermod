@@ -2,13 +2,13 @@ package com.talhanation.bannermod.client.settlement;
 
 import com.talhanation.bannermod.governance.BannerModGovernorPolicy;
 import com.talhanation.bannermod.governance.BannerModGovernorSnapshot;
-import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodsSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodsSnapshot;
 import com.talhanation.bannermod.settlement.BannerModSettlementMarketState;
-import com.talhanation.bannermod.settlement.BannerModSettlementProjectCandidateSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementProjectCandidateSnapshot;
 import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
 import com.talhanation.bannermod.settlement.BannerModSettlementStockpileSummary;
 import com.talhanation.bannermod.settlement.BannerModSettlementSupplySignalState;
-import com.talhanation.bannermod.settlement.BannerModSettlementTradeRouteHandoffSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementTradeRouteHandoffSnapshot;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.Envelope;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.Payload;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.RefreshTrigger;
@@ -127,9 +127,9 @@ class BannerModSettlementClientMirrorTest {
                 0,
                 BannerModSettlementStockpileSummary.empty(),
                 BannerModSettlementMarketState.empty(),
-                BannerModSettlementDesiredGoodsSeed.empty(),
-                BannerModSettlementProjectCandidateSeed.empty(),
-                new BannerModSettlementTradeRouteHandoffSeed(0, 0, 0, 0, 0, 0, List.of(), List.of(), seaTradeLines),
+                BannerModSettlementDesiredGoodsSnapshot.empty(),
+                BannerModSettlementProjectCandidateSnapshot.empty(),
+                new BannerModSettlementTradeRouteHandoffSnapshot(0, 0, 0, 0, 0, 0, List.of(), List.of(), seaTradeLines),
                 BannerModSettlementSupplySignalState.empty(),
                 List.of(),
                 List.of()

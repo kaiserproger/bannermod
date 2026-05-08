@@ -6,7 +6,7 @@ import com.talhanation.bannermod.settlement.BannerModSettlementResidentAssignmen
 import com.talhanation.bannermod.settlement.BannerModSettlementResidentMode;
 import com.talhanation.bannermod.settlement.BannerModSettlementResidentRecord;
 import com.talhanation.bannermod.settlement.BannerModSettlementResidentRole;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRuntimeRoleSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementResidentRuntimeRoleState;
 import com.talhanation.bannermod.settlement.BannerModSettlementResidentScheduleSeed;
 import com.talhanation.bannermod.settlement.BannerModSettlementResidentServiceContract;
 import com.talhanation.bannermod.settlement.BannerModSettlementSellerDispatchRecord;
@@ -252,7 +252,7 @@ class BannerModResidentGoalSchedulerTest {
                 id,
                 BannerModSettlementResidentRole.CONTROLLED_WORKER,
                 BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK,
-                BannerModSettlementResidentRuntimeRoleSeed.LOCAL_LABOR,
+                BannerModSettlementResidentRuntimeRoleState.LOCAL_LABOR,
                 BannerModSettlementResidentServiceContract.notServiceActor(),
                 BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
                 UUID.fromString("00000000-0000-0000-0000-0000000000aa"),
@@ -268,7 +268,7 @@ class BannerModResidentGoalSchedulerTest {
                 id,
                 BannerModSettlementResidentRole.VILLAGER,
                 BannerModSettlementResidentScheduleSeed.SETTLEMENT_IDLE,
-                BannerModSettlementResidentRuntimeRoleSeed.VILLAGE_LIFE,
+                BannerModSettlementResidentRuntimeRoleState.VILLAGE_LIFE,
                 BannerModSettlementResidentServiceContract.notServiceActor(),
                 BannerModSettlementResidentMode.SETTLEMENT_RESIDENT,
                 null,
@@ -285,7 +285,7 @@ class BannerModResidentGoalSchedulerTest {
                 id,
                 BannerModSettlementResidentRole.CONTROLLED_WORKER,
                 BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK,
-                BannerModSettlementResidentRuntimeRoleSeed.LOCAL_LABOR,
+                BannerModSettlementResidentRuntimeRoleState.LOCAL_LABOR,
                 new BannerModSettlementResidentServiceContract(
                         BannerModSettlementServiceActorState.LOCAL_BUILDING_SERVICE,
                         marketBuilding,

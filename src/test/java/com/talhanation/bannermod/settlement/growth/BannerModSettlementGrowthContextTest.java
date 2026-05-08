@@ -1,14 +1,14 @@
 package com.talhanation.bannermod.settlement.growth;
 
 import com.talhanation.bannermod.governance.BannerModGovernorSnapshot;
-import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodsSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodSnapshot;
+import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodsSnapshot;
 import com.talhanation.bannermod.settlement.BannerModSettlementMarketState;
-import com.talhanation.bannermod.settlement.BannerModSettlementProjectCandidateSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementProjectCandidateSnapshot;
 import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
 import com.talhanation.bannermod.settlement.BannerModSettlementStockpileSummary;
 import com.talhanation.bannermod.settlement.BannerModSettlementSupplySignalState;
-import com.talhanation.bannermod.settlement.BannerModSettlementTradeRouteHandoffSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementTradeRouteHandoffSnapshot;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -40,11 +40,11 @@ class BannerModSettlementGrowthContextTest {
                 7L
         );
 
-        assertEquals(BannerModSettlementProjectCandidateSeed.empty(), ctx.projectCandidateSeed());
-        assertEquals(BannerModSettlementDesiredGoodsSeed.empty(), ctx.desiredGoodsSeed());
+        assertEquals(BannerModSettlementProjectCandidateSnapshot.empty(), ctx.projectCandidateSnapshot());
+        assertEquals(BannerModSettlementDesiredGoodsSnapshot.empty(), ctx.desiredGoodsSnapshot());
         assertEquals(BannerModSettlementStockpileSummary.empty(), ctx.stockpileSummary());
         assertEquals(BannerModSettlementMarketState.empty(), ctx.marketState());
-        assertEquals(BannerModSettlementTradeRouteHandoffSeed.empty(), ctx.tradeRouteHandoffSeed());
+        assertEquals(BannerModSettlementTradeRouteHandoffSnapshot.empty(), ctx.tradeRouteHandoffSnapshot());
         assertEquals(BannerModSettlementSupplySignalState.empty(), ctx.supplySignalState());
         assertTrue(ctx.buildings().isEmpty());
         assertTrue(ctx.residents().isEmpty());
@@ -62,11 +62,11 @@ class BannerModSettlementGrowthContextTest {
 
         BannerModSettlementGrowthContext ctx = BannerModSettlementGrowthContext.fromSnapshot(snapshot, 55L);
 
-        assertEquals(snapshot.projectCandidateSeed(), ctx.projectCandidateSeed());
-        assertEquals(snapshot.desiredGoodsSeed(), ctx.desiredGoodsSeed());
+        assertEquals(snapshot.projectCandidateSnapshot(), ctx.projectCandidateSnapshot());
+        assertEquals(snapshot.desiredGoodsSnapshot(), ctx.desiredGoodsSnapshot());
         assertEquals(snapshot.stockpileSummary(), ctx.stockpileSummary());
         assertEquals(snapshot.marketState(), ctx.marketState());
-        assertEquals(snapshot.tradeRouteHandoffSeed(), ctx.tradeRouteHandoffSeed());
+        assertEquals(snapshot.tradeRouteHandoffSnapshot(), ctx.tradeRouteHandoffSnapshot());
         assertEquals(snapshot.supplySignalState(), ctx.supplySignalState());
         assertEquals(2, ctx.housingHeadroom());
         assertEquals(55L, ctx.gameTime());
@@ -122,8 +122,8 @@ class BannerModSettlementGrowthContextTest {
                 0,
                 BannerModSettlementStockpileSummary.empty(),
                 BannerModSettlementMarketState.empty(),
-                new BannerModSettlementDesiredGoodsSeed(List.of(new BannerModSettlementDesiredGoodSeed("food", 2))),
-                new BannerModSettlementProjectCandidateSeed(
+                new BannerModSettlementDesiredGoodsSnapshot(List.of(new BannerModSettlementDesiredGoodSnapshot("food", 2))),
+                new BannerModSettlementProjectCandidateSnapshot(
                         "seed",
                         com.talhanation.bannermod.settlement.BannerModSettlementBuildingProfileSeed.GENERAL,
                         2,
@@ -131,7 +131,7 @@ class BannerModSettlementGrowthContextTest {
                         true,
                         List.of("housing_pressure")
                 ),
-                BannerModSettlementTradeRouteHandoffSeed.empty(),
+                BannerModSettlementTradeRouteHandoffSnapshot.empty(),
                 BannerModSettlementSupplySignalState.empty(),
                 List.of(),
                 List.of()

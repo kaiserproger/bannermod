@@ -56,9 +56,9 @@ class PoliticalStatePromotionPolicyTest {
                 empty.missingWorkAreaAssignmentCount(),
                 empty.stockpileSummary(),
                 empty.marketState(),
-                empty.desiredGoodsSeed(),
-                empty.projectCandidateSeed(),
-                empty.tradeRouteHandoffSeed(),
+                empty.desiredGoodsSnapshot(),
+                empty.projectCandidateSnapshot(),
+                empty.tradeRouteHandoffSnapshot(),
                 empty.supplySignalState(),
                 empty.residents(),
                 buildings
