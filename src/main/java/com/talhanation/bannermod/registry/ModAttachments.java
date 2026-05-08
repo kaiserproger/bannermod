@@ -12,7 +12,9 @@ public final class ModAttachments {
             DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, BannerModMain.MOD_ID);
 
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<PerkProgress>> PLAYER_PERKS =
-            ATTACHMENT_TYPES.register("player_perks", () -> AttachmentType.serializable(PerkProgress::new).build());
+            ATTACHMENT_TYPES.register("player_perks", () -> AttachmentType.serializable(PerkProgress::new)
+                    .copyOnDeath()
+                    .build());
 
     private ModAttachments() {
     }
