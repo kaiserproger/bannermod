@@ -8401,7 +8401,7 @@
     {
       "id": "WORKGOAL-006",
       "title": "Migrate MerchantEntity from MerchantWorkGoal to SettlementOrderWorkGoal",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "WORKGOAL-001 phase: merchant migration.",
       "scope": [
@@ -8420,13 +8420,19 @@
         "GAMETESTBASE-001"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) MerchantWorkGoal class is deleted from src/main and exact src/main search returns zero MerchantWorkGoal usages. 2) MerchantEntity now inherits the base SettlementOrderWorkGoal registration path without a redundant local goal override; MerchantWorkGoalMigrationContractTest passed as part of ./gradlew test. 3) Integration ./gradlew compileJava test runGameTestServer passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "WORKGOAL-007",
       "title": "Migrate FishermanEntity from FishermanWorkGoal to SettlementOrderWorkGoal",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "WORKGOAL-001 phase: fisherman migration.",
       "scope": [
@@ -8445,8 +8451,14 @@
         "GAMETESTBASE-001"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) FishermanWorkGoal class is deleted from src/main and exact src/main search returns zero FishermanWorkGoal usages. 2) FishingAreaWorkOrderPublisher, SettlementWorkOrderType.FISH, and SettlementOrderWorkGoal FISH execution preserve the fixed fishing output path; FishermanWorkGoalMigrationContractTest passed as part of ./gradlew test. 3) Integration ./gradlew compileJava test runGameTestServer passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "WORKGOAL-008",
