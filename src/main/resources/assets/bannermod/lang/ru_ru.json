@@ -2479,6 +2479,8 @@
   "bannermod.assign_home.reject.invalid_block": "Этот блок нельзя сделать домом - выберите кровать или зарегистрированную спальную зону.",
   "bannermod.assign_home.button": "Назначить дом",
   "bannermod.assign_home.prompt": "ПКМ по кровати в течение 30 секунд, чтобы назначить её домом (ESC - отмена).",
+  "bannermod.assign_home.hud.title": "Назначение дома: ПКМ по кровати",
+  "bannermod.assign_home.hud.remaining": "Осталось %s с - ESC отменяет",
   "bannermod.assign_home.cancel.escape": "Назначение дома отменено.",
   "bannermod.assign_home.cancel.timeout": "Время на выбор дома истекло - повторите.",
   "perk.bannermod.universal.toughness_i": "Стойкость I",

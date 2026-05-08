@@ -3,6 +3,7 @@ package com.talhanation.bannermod.client.military.events;
 import com.talhanation.bannermod.events.CommandEvents;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.client.civilian.gui.WorkerCommandScreen;
+import com.talhanation.bannermod.client.civilian.input.AssignHomeTargetSelector;
 import com.talhanation.bannermod.client.civilian.render.WorkerAreaRenderer;
 import com.talhanation.bannermod.client.military.gui.war.WarListScreen;
 import com.talhanation.bannermod.client.military.gui.worldmap.WorldMapScreen;
@@ -21,6 +22,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.bus.api.SubscribeEvent;
+import org.lwjgl.glfw.GLFW;
 
 @OnlyIn(Dist.CLIENT)
 
@@ -31,6 +33,11 @@ public class KeyEvents {
         LocalPlayer clientPlayerEntity = minecraft.player;
         if (clientPlayerEntity == null)
             return;
+
+        if (event.getKey() == GLFW.GLFW_KEY_ESCAPE && event.getAction() == GLFW.GLFW_PRESS
+                && AssignHomeTargetSelector.cancelWithEscape()) {
+            return;
+        }
 
         if (ModShortcuts.COMMAND_SCREEN_KEY != null && ModShortcuts.COMMAND_SCREEN_KEY.consumeClick()) {
             CommandEvents.openCommandScreen(clientPlayerEntity);
@@ -70,6 +77,11 @@ public class KeyEvents {
 
     @SubscribeEvent
     public void onPlayerPick(InputEvent.InteractionKeyMappingTriggered event){
+        if (event.isUseItem() && AssignHomeTargetSelector.handleUseOnTargetedBlock()) {
+            event.setCanceled(true);
+            return;
+        }
+
         if(event.isPickBlock()){
             Minecraft minecraft = Minecraft.getInstance();
             LocalPlayer clientPlayerEntity = minecraft.player;

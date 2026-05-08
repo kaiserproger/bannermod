@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.client.military.events;
 
+import com.talhanation.bannermod.client.civilian.input.AssignHomeTargetSelector;
 import com.talhanation.bannermod.client.military.gui.worldmap.ChunkTileManager;
 import com.talhanation.bannermod.client.military.gui.worldmap.WorldMapScreen;
 import com.talhanation.bannermod.config.RecruitsClientConfig;
@@ -12,6 +13,8 @@ import net.neoforged.bus.api.SubscribeEvent;
 public class ClientPlayerEvents {
     @SubscribeEvent
     public void onClientTick(ClientTickEvent.Post event) {
+        AssignHomeTargetSelector.tick();
+
         if (!(Minecraft.getInstance().screen instanceof WorldMapScreen screen)) return;
         if (!RecruitsClientConfig.UpdateMapTiles.get()) return;
 
