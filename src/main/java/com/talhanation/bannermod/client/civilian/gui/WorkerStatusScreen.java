@@ -59,6 +59,23 @@ public class WorkerStatusScreen extends Screen {
         ));
         refresh.setTooltip(Tooltip.create(text("gui.bannermod.worker_screen.refresh.tooltip")));
 
+        SmallCommandButton assignHome = this.addRenderableWidget(new SmallCommandButton(
+                firstCenter + 3 * strideX - BTN_W / 2, rowY, BTN_W, BTN_H,
+                clamped("bannermod.assign_home.button"),
+                button -> {
+                    AssignHomeTargetSelector.start(this.snapshot.workerUuid());
+                    this.onClose();
+                }
+        ));
+        assignHome.setTooltip(Tooltip.create(text("bannermod.assign_home.tooltip")));
+
+        SmallCommandButton close = this.addRenderableWidget(new SmallCommandButton(
+                firstCenter + 4 * strideX - BTN_W / 2, rowY, BTN_W, BTN_H,
+                clamped("gui.bannermod.worker_screen.close"),
+                button -> this.onClose()
+        ));
+        close.setTooltip(Tooltip.create(text("gui.bannermod.worker_screen.close.tooltip")));
+
         ActionMenuButton workerActions = new ActionMenuButton(
                 firstCenter + strideX - BTN_W / 2, rowY, BTN_W, BTN_H,
                 clamped("gui.bannermod.worker_screen.actions"),
@@ -84,23 +101,6 @@ public class WorkerStatusScreen extends Screen {
         reassign.setTooltip(Tooltip.create(text("gui.bannermod.worker_screen.reassign.tooltip")));
         reassign.active = this.snapshot.canConvert();
         this.addRenderableWidget(reassign);
-
-        SmallCommandButton assignHome = this.addRenderableWidget(new SmallCommandButton(
-                firstCenter + 3 * strideX - BTN_W / 2, rowY, BTN_W, BTN_H,
-                clamped("bannermod.assign_home.button"),
-                button -> {
-                    AssignHomeTargetSelector.start(this.snapshot.workerUuid());
-                    this.onClose();
-                }
-        ));
-        assignHome.setTooltip(Tooltip.create(text("bannermod.assign_home.tooltip")));
-
-        SmallCommandButton close = this.addRenderableWidget(new SmallCommandButton(
-                firstCenter + 4 * strideX - BTN_W / 2, rowY, BTN_W, BTN_H,
-                clamped("gui.bannermod.worker_screen.close"),
-                button -> this.onClose()
-        ));
-        close.setTooltip(Tooltip.create(text("gui.bannermod.worker_screen.close.tooltip")));
     }
 
     private List<ContextMenuEntry> buildReassignEntries() {
@@ -210,7 +210,7 @@ public class WorkerStatusScreen extends Screen {
     /**
      * Narrow command button styled with the same parchment-iron palette as
      * {@link com.talhanation.bannermod.client.military.gui.group.RecruitsCommandButton}
-     * but width-configurable so four widgets fit inside WIDTH=252.
+     * but width-configurable so the compact action row fits inside the ledger.
      */
     private static class SmallCommandButton extends ExtendedButton {
         SmallCommandButton(int x, int y, int width, int height, Component label, OnPress handler) {
