@@ -2,6 +2,8 @@ package com.talhanation.bannermod;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
+import com.talhanation.bannermod.entity.civilian.FarmerEntity;
+import com.talhanation.bannermod.entity.civilian.workarea.CropArea;
 import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.governance.BannerModTreasuryLedgerSnapshot;
 import com.talhanation.bannermod.governance.BannerModTreasuryManager;
@@ -10,10 +12,13 @@ import com.talhanation.bannermod.persistence.military.RecruitsPlayerInfo;
 import com.talhanation.bannermod.settlement.BannerModSettlementManager;
 import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.GameType;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
@@ -97,6 +102,40 @@ public class BannerModAdminRecoveryCommandGameTests {
         helper.assertTrue(TRUSTED_UUID.equals(claim.getTrustedPlayers().getFirst().getUUID()),
                 "Expected trust prune to preserve the valid trusted UUID");
         ClaimEvents.claimManager().removeClaim(claim);
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void workerUnbindClearsBoundWorkArea(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Player owner = helper.makeMockPlayer(GameType.SURVIVAL);
+        CropArea cropArea = BannerModGameTestSupport.spawnOwnedCropArea(helper, owner, new BlockPos(2, 2, 2));
+        FarmerEntity worker = BannerModGameTestSupport.spawnOwnedFarmer(helper, owner, new BlockPos(3, 2, 2));
+        worker.setCurrentWorkArea(cropArea);
+
+        int result = runCommand(level, "bannermod worker unbind " + worker.getId());
+
+        helper.assertTrue(result == 1, "Expected worker unbind command to succeed");
+        helper.assertTrue(worker.getBoundWorkAreaUUID() == null,
+                "Expected /bannermod worker unbind to clear the worker work-area binding");
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void workerRehomeAssignsHomeForWorkersInChunk(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        Player owner = helper.makeMockPlayer(GameType.SURVIVAL);
+        FarmerEntity worker = BannerModGameTestSupport.spawnOwnedFarmer(helper, owner, new BlockPos(4, 2, 4));
+        ChunkPos chunk = worker.chunkPosition();
+
+        int result = runCommand(level, "bannermod worker rehome " + chunk.x + " " + chunk.z);
+
+        BlockPos expectedHome = new BlockPos(chunk.getMiddleBlockX(), level.getSeaLevel(), chunk.getMiddleBlockZ());
+        helper.assertTrue(result >= 1, "Expected worker rehome command to affect at least one worker");
+        helper.assertTrue(expectedHome.equals(worker.getHomePos()),
+                "Expected /bannermod worker rehome to assign the chunk-center home position");
         helper.succeed();
     }
 
