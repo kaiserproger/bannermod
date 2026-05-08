@@ -8243,8 +8243,8 @@
     {
       "id": "BLDGVALIDATOR-004",
       "title": "Rename prefab DefaultBuildingValidator to PrefabFallbackValidator",
-      "status": "open",
-      "updated": "2026-05-05",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "Phase 3 of the BLDGVALIDATOR-001 split: with the settlement-side DefaultBuildingValidator gone, the prefab-side shadow class can be renamed to PrefabFallbackValidator to remove the lingering name conflict.",
       "scope": [
         "Rename settlement/prefab/validation/DefaultBuildingValidator.java to PrefabFallbackValidator.java.",
@@ -8261,8 +8261,14 @@
         "BLDGVALIDATOR-003"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) settlement/prefab/validation/PrefabFallbackValidator.java exists and old prefab DefaultBuildingValidator class is gone. 2) Stale DefaultBuildingValidator references under src/main/src/test/src/gametest are zero; focused prefab-validation tests passed in branch. 3) Integration ./gradlew compileJava test runGameTestServer passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "WORKGOAL-002",
@@ -9268,7 +9274,7 @@
     {
       "id": "EVENTSPKG-005D",
       "title": "Add final events package contract guard and full gate",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "EVENTSPKG-005 needs a final inventory and regression guard after the area moves land, plus the full verification gate required by the parent task.",
       "scope": [
@@ -9288,8 +9294,14 @@
         "GAMETESTBASE-001"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Inventoried events/ and moved RecruitEvents to entity/military/runtime; deleted unused AssassinEvents and WorkersCommandEvents stubs. 2) EventPackageContractTest now enforces that events/ classes are @SubscribeEvent hosts or Event payloads; stale RecruitEvents imports are zero. 3) Integration ./gradlew compileJava test runGameTestServer passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "ADMINCMDS-001A",
@@ -9411,7 +9423,7 @@
     {
       "id": "HOMEASSIGN-004B",
       "title": "Assign Home buttons in profile screens",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "Citizen, recruit, and worker profile screens need a consistent Minecraft-native affordance to launch the Assign Home selector.",
       "scope": [
@@ -9429,8 +9441,14 @@
         "HOMEASSIGN-004A"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Citizen, recruit, and worker profile screens have localized Assign Home buttons wired to AssignHomeTargetSelector.start(...) and close the profile to preserve selector/ESC flow. 2) Code-layout overlap review recorded: citizen button stays between portrait and inventory, recruit button moved to clear right-column row, worker row widened to five clamped buttons inside the parchment panel at 1080p/1440p. 3) en_us/ru_ru tooltip key exists; integration ./gradlew compileJava test runGameTestServer passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "HOMEASSIGN-004C",
