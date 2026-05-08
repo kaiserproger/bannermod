@@ -1,6 +1,7 @@
 package com.talhanation.bannermod.network.messages.military;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
+import com.talhanation.bannermod.army.command.RecruitCommandAuthority;
 import com.talhanation.bannermod.events.RecruitEvents;
 import com.talhanation.bannermod.entity.military.AbstractLeaderEntity;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
@@ -39,7 +40,8 @@ public class MessageRemoveAssignedGroupFromCompanion implements BannerModMessage
             ServerPlayer serverPlayer = context.getSender();
             Entity entity = serverPlayer.serverLevel().getEntity(this.companion);
             if (entity instanceof AbstractLeaderEntity companionEntity
-                    && serverPlayer.getBoundingBox().inflate(100D).intersects(companionEntity.getBoundingBox())) {
+                    && serverPlayer.getBoundingBox().inflate(100D).intersects(companionEntity.getBoundingBox())
+                    && RecruitCommandAuthority.canDirectlyControl(serverPlayer, companionEntity)) {
 
                 RecruitsGroup group = RecruitEvents.groupsManager().getGroup(companionEntity.getGroup());
                 if(group == null) return;
