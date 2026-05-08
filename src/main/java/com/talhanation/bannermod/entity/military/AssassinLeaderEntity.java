@@ -193,6 +193,11 @@ public class AssassinLeaderEntity extends AbstractOrderAbleEntity {
         return this.controlOwnerUUID != null && this.controlOwnerUUID.equals(player.getUUID());
     }
 
+    public boolean trySetCountFrom(UUID senderUUID, boolean senderHasOpPermission, int count) {
+        return AssassinLeaderCountAuthority.trySetCount(this.controlOwnerUUID, senderUUID, senderHasOpPermission,
+                count, this::setCount);
+    }
+
     @Nullable
     public UUID getControlOwnerUUID() {
         return controlOwnerUUID;
@@ -210,8 +215,6 @@ public class AssassinLeaderEntity extends AbstractOrderAbleEntity {
         return RecruitsServerConfig.MaxAssassinCount.get();
     }
 }
-
-
 
 
 
