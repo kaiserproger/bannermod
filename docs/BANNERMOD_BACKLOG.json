@@ -8261,7 +8261,7 @@
     {
       "id": "WORKGOAL-002",
       "title": "Migrate FarmerEntity from FarmerWorkGoal to SettlementOrderWorkGoal",
-      "status": "in_progress",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "WORKGOAL-001 phase: per-job goals coexist with the unified SettlementOrderWorkGoal, risking divergent fixes. Migrate one job at a time, starting with the farmer.",
       "scope": [
@@ -8285,13 +8285,19 @@
           "text": "Implementation branch feature/workgoal-002 migrates FarmerEntity off FarmerWorkGoal, deletes FarmerWorkGoal, and adds FarmerSettlementOrderParityTest. compileJava, focused parity test, full ./gradlew test, compileGametestJava, and tools/backlog validate passed. Closure is blocked on GAMETESTBASE-001 because existing farmer-related GameTests cannot be claimed green while integration runGameTestServer is failing."
         }
       ],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) FarmerWorkGoal is deleted and exact src/main search for FarmerWorkGoal/MinerWorkGoal legacy usages excludes FarmerWorkGoal. 2) FarmerEntity now uses the base AbstractWorkerEntity SettlementOrderWorkGoal path; FarmerSettlementOrderParityTest passed as part of ./gradlew test. 3) Integration ./gradlew compileJava test runGameTestServer passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "WORKGOAL-003",
       "title": "Migrate MinerEntity from MinerWorkGoal to SettlementOrderWorkGoal",
-      "status": "in_progress",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "WORKGOAL-001 phase 2: same per-job migration pattern for the miner.",
       "scope": [
@@ -8315,8 +8321,14 @@
           "text": "Implementation branch feature/workgoal-003 migrates MinerEntity off MinerWorkGoal, deletes MinerWorkGoal, preserves no-area idle status without duplicate SettlementOrderWorkGoal registration, and adds MinerWorkGoalMigrationContractTest. compileJava, focused contract test, full ./gradlew test, and tools/backlog validate passed. Closure is blocked on GAMETESTBASE-001 because runGameTestServer is failing on the integration baseline."
         }
       ],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) MinerWorkGoal is deleted and exact src/main search for MinerWorkGoal returns zero legacy usages. 2) MinerEntity uses the base SettlementOrderWorkGoal path without duplicate registration; MinerWorkGoalMigrationContractTest passed as part of ./gradlew test. 3) Integration ./gradlew compileJava test runGameTestServer passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "WORKGOAL-004",
@@ -9026,8 +9038,8 @@
     {
       "id": "FUZZHARDEN-001",
       "title": "Null-sender hardening for 73 packet handlers flagged by TESTFUZZ-001",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "TESTFUZZ-001 fuzz harness identified 73 BannerModMessage subclasses that throw NullPointerException when context.getSender() is null (or when UUID/group fields are null/zero). On a real server these reach the PacketHandler future as exceptions; under our adapter (BannerModNetworkContext) they leak to the netty thread or the synchronous sender check. Each handler must explicitly null-check the sender and reject malformed payloads instead of NPE-ing.",
       "scope": [
         "Add a null-check + early return (with optional debug log) to context.getSender() at the entry of executeServerSide() for each of the 73 handlers listed in BannerModMessageFuzzHarnessTest.KNOWN_LEAKY_HANDLERS.",
@@ -9042,8 +9054,14 @@
         "TESTFUZZ-001"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) KNOWN_LEAKY_HANDLERS is empty and the fuzz harness no longer carries expected-failing handler entries. 2) 73 packet handlers now early-return on null server sender and malformed nullable fields as applicable. 3) Focused BannerModMessageFuzzHarnessTest passed in task branch; integration ./gradlew compileJava test runGameTestServer passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "SETTREFACTOR-003A",
@@ -9327,7 +9345,7 @@
     {
       "id": "HOMEASSIGN-004A",
       "title": "Assign Home target-selector client flow",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "Players need a bounded client-side selection mode before profile screens can safely expose Assign Home without relying on ad-hoc clicks.",
       "scope": [
@@ -9345,8 +9363,14 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) AssignHomeTargetSelector implements 30-second right-click block selection, MessageAssignHome dispatch, ESC/timeout cancellation, and world-unload reset. 2) HUD prompt is localized and top-right stacked through HudOverlayCoordinator above existing BannerMod overlays, away from hotbar/chat/crosshair/boss bar space. 3) en_us/ru_ru keys exist; integration ./gradlew compileJava test runGameTestServer passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "HOMEASSIGN-004B",
@@ -9398,7 +9422,7 @@
     {
       "id": "GAMETESTBASE-001",
       "title": "Restore required GameTest baseline",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "Second-batch verification is blocked because runGameTestServer fails on the integration branch before task merges.",
       "scope": [
@@ -9412,8 +9436,14 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Reproduced integration runGameTestServer failures for fiverecruitformationholdsacrossdimensionteleport, starterbootstrapseedsrealworkerassignmentsandwaitingreasons, and friendlyclaimbindingallowsplacementandsettlementoperation. 2) Applied formation hold, friendly binding seam, and worker no-area status fixes. 3) Integration ./gradlew compileJava test runGameTestServer passed via ctx log; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     }
   ]
 }
