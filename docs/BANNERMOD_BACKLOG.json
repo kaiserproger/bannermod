@@ -8475,8 +8475,8 @@
     {
       "id": "EVENTSPKG-005",
       "title": "Move remaining non-event services out of events/ and finalize package contract",
-      "status": "open",
-      "updated": "2026-05-05",
+      "status": "in_progress",
+      "updated": "2026-05-08",
       "why": "EVENTSPKG-001 final phase: any service still in events/ after the prior moves must be relocated. Once done, events/ should contain only classes whose methods carry @SubscribeEvent.",
       "scope": [
         "Inventory events/ — for each class, decide: (a) it is a @SubscribeEvent host (stay) or (b) it is a service (move to the matching subsystem runtime/ folder).",
@@ -8491,11 +8491,17 @@
         "tools/backlog validate passes."
       ],
       "dependencies": [
-        "EVENTSPKG-002",
-        "EVENTSPKG-003",
-        "EVENTSPKG-004"
+        "EVENTSPKG-005A",
+        "EVENTSPKG-005B",
+        "EVENTSPKG-005C",
+        "EVENTSPKG-005D"
       ],
-      "progress": [],
+      "progress": [
+        {
+          "date": "2026-05-08",
+          "text": "parallel wave produced an 80+ file package-move diff in /home/user/bannermod-task-worktrees/EVENTSPKG-005; not merged because it is too broad for safe review as one task and the required runGameTestServer gate is currently blocked by unrelated baseline failures fiverecruitformationholdsacrossdimensionteleport, starterbootstrapseedsrealworkerassignmentsandwaitingreasons, and friendlyclaimbindingallowsplacementandsettlementoperation; moved remaining scope into area-based child tasks EVENTSPKG-005A/B/C plus final guard/gate EVENTSPKG-005D"
+        }
+      ],
       "verification": [],
       "evidence": []
     },
@@ -8989,8 +8995,8 @@
     {
       "id": "SETTREFACTOR-003A",
       "title": "Extract settlement treasury heartbeat derivation service",
-      "status": "open",
-      "updated": "2026-05-07",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "SETTREFACTOR-003 targeted treasury-hook methods in BannerModSettlementService, but current code no longer has treasury references there. The live treasury integration now sits in SettlementHeartbeatService's governor heartbeat path, so the extraction must target the actual runtime seam.",
       "scope": [
         "Create SettlementTreasuryDerivationService under settlement/runtime/ for the live governor-heartbeat treasury integration currently embedded in SettlementHeartbeatService.",
@@ -9006,13 +9012,19 @@
         "SETTREFACTOR-002"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) SettlementTreasuryDerivationService exists under settlement/runtime and owns BannerModTreasuryManager.get(level) for governor heartbeat batches plus heartbeat accounting derivation; 2) SettlementHeartbeatService no longer imports or directly calls BannerModTreasuryManager while the heartbeat batch counters/stage path are unchanged; 3) SettlementTreasuryDerivationServiceTest, BannerModGovernorHeartbeatTest, ./gradlew compileJava, and ./gradlew test passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-008A",
       "title": "Define server-authoritative AssassinLeader ownership",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "PACKETAUTH-008 needs an ownership check, but AssassinLeaderEntity currently has no persisted server-authoritative owner source. Adding a packet-side owner gate without defining how leaders become owned would either block legitimate count edits or let clients claim authority indirectly.",
       "scope": [
@@ -9027,8 +9039,14 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) AssassinLeaderEntity now has a server-side controlOwnerUUID assigned on the server GUI-open path before the menu can send count updates and persisted through ControlOwner NBT; 2) MessageAssassinCount only mutates count when leader.isControlledBy(player) passes and does not assign control from packet data; 3) AssassinLeaderControlAuthorityTest, ./gradlew compileJava, and ./gradlew test passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-008B",
@@ -9048,6 +9066,94 @@
       ],
       "dependencies": [
         "PACKETAUTH-008A"
+      ],
+      "progress": [],
+      "verification": [],
+      "evidence": []
+    },
+    {
+      "id": "EVENTSPKG-005A",
+      "title": "Move claim and settlement services out of events package",
+      "status": "open",
+      "updated": "2026-05-08",
+      "why": "EVENTSPKG-005 is too large to review safely as one 80+ file package move; claim and settlement service classes can be moved and verified independently.",
+      "scope": [
+        "Move claim and settlement service classes currently under events/ or events/civilian/ into settlement/runtime/ or the nearest existing settlement runtime package: ClaimAccessQueries, ClaimInteractionTargetResolver, ClaimProtectionEventService, ClaimProtectionFeedback, ClaimProtectionPolicy, ClaimQueueTickService, and SettlementContainerHookPolicy.",
+        "Update all main, test, and gametest imports for those moved classes without changing runtime behavior.",
+        "Keep only actual NeoForge event subscriber hosts in the events package for this area."
+      ],
+      "acceptance": [
+        "The listed claim/settlement service classes no longer live under src/main/java/com/talhanation/bannermod/events/**.",
+        "All imports are updated and no old package references remain for the moved classes.",
+        "./gradlew compileJava and focused affected unit tests pass; tools/backlog validate passes."
+      ],
+      "dependencies": [],
+      "progress": [],
+      "verification": [],
+      "evidence": []
+    },
+    {
+      "id": "EVENTSPKG-005B",
+      "title": "Move recruit combat and military runtime services out of events package",
+      "status": "open",
+      "updated": "2026-05-08",
+      "why": "EVENTSPKG-005 mixes several military and combat service moves; separating them keeps review and verification bounded.",
+      "scope": [
+        "Move recruit, command, governor-workflow, debug, combat-policy, world-lifecycle, target-authority, type-conversion, and siege tuning service classes out of events/ and events/runtime/ into combat/runtime/, entity/military/runtime/, war/runtime/, or the nearest existing subsystem package.",
+        "Update all main, test, and gametest imports for those moved classes without changing runtime behavior.",
+        "Remove only empty/dead event stubs in this area when no references remain."
+      ],
+      "acceptance": [
+        "Military/combat runtime service classes moved by this task no longer live under src/main/java/com/talhanation/bannermod/events/**.",
+        "Actual @SubscribeEvent host classes remain in events/ and still register normally.",
+        "./gradlew compileJava and focused affected unit tests pass; tools/backlog validate passes."
+      ],
+      "dependencies": [],
+      "progress": [],
+      "verification": [],
+      "evidence": []
+    },
+    {
+      "id": "EVENTSPKG-005C",
+      "title": "Move citizen worker and villager services out of events package",
+      "status": "open",
+      "updated": "2026-05-08",
+      "why": "Citizen, worker, and villager service moves are a separate reviewable slice of EVENTSPKG-005.",
+      "scope": [
+        "Move citizen lifecycle, villager conversion, guard spawn/factory, worker animal/market/settlement/trade service classes out of events/ and events/runtime/ into citizen/runtime/, settlement/civilian/runtime/, or the nearest existing subsystem package.",
+        "Update all main, test, and gametest imports for those moved classes without changing runtime behavior.",
+        "Remove only empty/dead event stubs in this area when no references remain."
+      ],
+      "acceptance": [
+        "Citizen, worker, and villager runtime service classes moved by this task no longer live under src/main/java/com/talhanation/bannermod/events/**.",
+        "Actual @SubscribeEvent host classes remain in events/ and still register normally.",
+        "./gradlew compileJava and focused affected unit tests pass; tools/backlog validate passes."
+      ],
+      "dependencies": [],
+      "progress": [],
+      "verification": [],
+      "evidence": []
+    },
+    {
+      "id": "EVENTSPKG-005D",
+      "title": "Add final events package contract guard and full gate",
+      "status": "open",
+      "updated": "2026-05-08",
+      "why": "EVENTSPKG-005 needs a final inventory and regression guard after the area moves land, plus the full verification gate required by the parent task.",
+      "scope": [
+        "Inventory src/main/java/com/talhanation/bannermod/events/** after EVENTSPKG-005A/B/C and move any remaining non-event service or payload class that does not satisfy the final package contract.",
+        "Add a guard test under src/test that fails when a class is added under events/ without @SubscribeEvent event-host behavior, or document the same rule only if a code guard is impossible.",
+        "Run the full EVENTSPKG-005 verification gates and address any package-move regressions."
+      ],
+      "acceptance": [
+        "events/ contains only classes satisfying the final event-package contract; no service classes remain there.",
+        "A guard test or explicit CONTRIBUTING.md contract prevents future non-event services from being added to events/.",
+        "./gradlew compileJava, ./gradlew test, ./gradlew runGameTestServer, and tools/backlog validate pass before EVENTSPKG-005 is closed."
+      ],
+      "dependencies": [
+        "EVENTSPKG-005A",
+        "EVENTSPKG-005B",
+        "EVENTSPKG-005C"
       ],
       "progress": [],
       "verification": [],
