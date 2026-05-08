@@ -1,7 +1,8 @@
-package com.talhanation.bannermod.events;
+package com.talhanation.bannermod.governance.runtime;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
+import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.governance.BannerModGovernorAuthority;
 import com.talhanation.bannermod.governance.BannerModGovernorManager;
 import com.talhanation.bannermod.governance.BannerModGovernorPolicy;
@@ -29,12 +30,12 @@ import com.talhanation.bannermod.network.compat.BannerModNetworkHooks;
 import com.talhanation.bannermod.network.compat.BannerModPacketDistributor;
 import org.jetbrains.annotations.NotNull;
 
-final class RecruitGovernorWorkflow {
+public final class RecruitGovernorWorkflow {
 
     private RecruitGovernorWorkflow() {
     }
 
-    static boolean tryPromoteRecruit(AbstractRecruitEntity recruit, String name, ServerPlayer player) {
+    public static boolean tryPromoteRecruit(AbstractRecruitEntity recruit, String name, ServerPlayer player) {
         if (!(recruit.getCommandSenderWorld() instanceof ServerLevel serverLevel)) {
             return true;
         }
@@ -67,7 +68,7 @@ final class RecruitGovernorWorkflow {
         return true;
     }
 
-    static void openGovernorScreen(Player player, AbstractRecruitEntity recruit) {
+    public static void openGovernorScreen(Player player, AbstractRecruitEntity recruit) {
         if (player instanceof ServerPlayer serverPlayer) {
             BannerModNetworkHooks.openScreen(serverPlayer, new MenuProvider() {
                 @Override
@@ -86,7 +87,7 @@ final class RecruitGovernorWorkflow {
         }
     }
 
-    static void syncGovernorScreen(ServerPlayer player, AbstractRecruitEntity recruit) {
+    public static void syncGovernorScreen(ServerPlayer player, AbstractRecruitEntity recruit) {
         RecruitsClaim claim = resolveClaim(recruit);
         long gameTime = recruit.getCommandSenderWorld().getGameTime();
         Envelope envelope = Envelope.empty(0L, gameTime, RefreshTrigger.SCREEN_OPEN);
@@ -100,7 +101,7 @@ final class RecruitGovernorWorkflow {
                 new MessageToClientUpdateGovernorScreen(recruit.getUUID(), envelope));
     }
 
-    static void syncGovernorSnapshotsOnLogin(ServerPlayer player) {
+    public static void syncGovernorSnapshotsOnLogin(ServerPlayer player) {
         ServerLevel level = player.serverLevel();
         BannerModGovernorManager governorManager = BannerModGovernorManager.get(level);
         BannerModSettlementManager settlementManager = BannerModSettlementManager.get(level);
@@ -116,7 +117,7 @@ final class RecruitGovernorWorkflow {
         }
     }
 
-    static void syncGovernorMutationRefresh(ServerLevel level, RecruitsClaim claim) {
+    public static void syncGovernorMutationRefresh(ServerLevel level, RecruitsClaim claim) {
         BannerModGovernorSnapshot governorSnapshot = BannerModGovernorManager.get(level).getSnapshot(claim.getUUID());
         if (governorSnapshot == null || governorSnapshot.governorRecruitUuid() == null || governorSnapshot.governorOwnerUuid() == null) {
             return;
@@ -130,7 +131,7 @@ final class RecruitGovernorWorkflow {
         sendGovernorUpdate(player, governorSnapshot.governorRecruitUuid(), envelope);
     }
 
-    static Envelope buildEnvelope(RecruitsClaim claim,
+    public static Envelope buildEnvelope(RecruitsClaim claim,
                                   BannerModSettlementSnapshot settlementSnapshot,
                                   BannerModGovernorSnapshot governorSnapshot,
                                   long gameTime,
@@ -138,7 +139,7 @@ final class RecruitGovernorWorkflow {
         return buildEnvelope(claim.getUUID(), settlementSnapshot, governorSnapshot, gameTime, trigger);
     }
 
-    static Envelope buildEnvelope(java.util.UUID claimUuid,
+    public static Envelope buildEnvelope(java.util.UUID claimUuid,
                                   BannerModSettlementSnapshot settlementSnapshot,
                                   BannerModGovernorSnapshot governorSnapshot,
                                   long gameTime,
@@ -152,7 +153,7 @@ final class RecruitGovernorWorkflow {
                 new MessageToClientUpdateGovernorScreen(recruitUuid, envelope));
     }
 
-    static void updateGovernorPolicy(ServerPlayer player, AbstractRecruitEntity recruit, BannerModGovernorPolicy policy, int value) {
+    public static void updateGovernorPolicy(ServerPlayer player, AbstractRecruitEntity recruit, BannerModGovernorPolicy policy, int value) {
         if (!(recruit.getCommandSenderWorld() instanceof ServerLevel serverLevel)) {
             return;
         }

@@ -3,7 +3,7 @@ package com.talhanation.bannermod.network.messages.military;
 import com.talhanation.bannermod.army.command.CommandHierarchy;
 import com.talhanation.bannermod.army.command.CommandRole;
 import com.talhanation.bannermod.army.command.RecruitCommandAuthority;
-import com.talhanation.bannermod.events.DebugEvents;
+import com.talhanation.bannermod.entity.military.runtime.DebugEvents;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.network.payload.BannerModMessage;
 import net.minecraft.network.protocol.PacketFlow;

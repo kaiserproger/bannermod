@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.network.messages.military;
 
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
-import com.talhanation.bannermod.events.runtime.RecruitTypeConverter;
+import com.talhanation.bannermod.entity.military.runtime.RecruitTypeConverter;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 import com.talhanation.bannermod.network.payload.BannerModMessage;
 import net.minecraft.network.FriendlyByteBuf;

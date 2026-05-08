@@ -1,10 +1,11 @@
-package com.talhanation.bannermod.events.runtime;
+package com.talhanation.bannermod.combat.runtime;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.compat.IWeapon;
 import com.talhanation.bannermod.config.RecruitsServerConfig;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.entity.military.MessengerEntity;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEntityAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;

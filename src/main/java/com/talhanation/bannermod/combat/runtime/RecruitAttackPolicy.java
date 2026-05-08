@@ -1,7 +1,8 @@
-package com.talhanation.bannermod.events.runtime;
+package com.talhanation.bannermod.combat.runtime;
 
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.entity.military.MessengerEntity;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEntityAccess;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.player.Player;

@@ -1,4 +1,4 @@
-package com.talhanation.bannermod.events;
+package com.talhanation.bannermod.war.runtime;
 
 import com.talhanation.bannermod.compat.MedievalSiegeMachinesCompat;
 import net.minecraft.core.BlockPos;
@@ -13,7 +13,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-final class SiegeExplosionTuning {
+public final class SiegeExplosionTuning {
     private static final Set<String> FULL_SIEGE_NAMESPACES = Set.of(
             MedievalSiegeMachinesCompat.MOD_ID,
             MedievalSiegeMachinesCompat.LEGACY_MOD_ID
@@ -26,11 +26,11 @@ final class SiegeExplosionTuning {
     private SiegeExplosionTuning() {
     }
 
-    static boolean shouldLimitTerrainDamage(@Nullable Entity sourceEntity) {
+    public static boolean shouldLimitTerrainDamage(@Nullable Entity sourceEntity) {
         return isSiegeExplosionSource(entityTypeId(sourceEntity));
     }
 
-    static boolean isSiegeExplosionSource(@Nullable ResourceLocation entityId) {
+    public static boolean isSiegeExplosionSource(@Nullable ResourceLocation entityId) {
         if (entityId == null) {
             return false;
         }
@@ -45,7 +45,7 @@ final class SiegeExplosionTuning {
         return path.contains("cannon") || path.contains("bomb") || path.contains("shell");
     }
 
-    static void limitAffectedBlocks(Vec3 center, List<BlockPos> affectedBlocks) {
+    public static void limitAffectedBlocks(Vec3 center, List<BlockPos> affectedBlocks) {
         if (affectedBlocks == null || affectedBlocks.size() <= MAX_AFFECTED_BLOCKS) {
             return;
         }

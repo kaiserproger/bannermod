@@ -1,4 +1,4 @@
-package com.talhanation.bannermod.events.runtime;
+package com.talhanation.bannermod.entity.military.runtime;
 
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import net.minecraft.world.entity.Entity;
@@ -6,12 +6,12 @@ import net.minecraft.world.entity.LivingEntity;
 
 import javax.annotation.Nullable;
 
-final class RecruitEntityAccess {
+public final class RecruitEntityAccess {
     private RecruitEntityAccess() {
     }
 
     @Nullable
-    static AbstractRecruitEntity asRecruit(@Nullable Entity entity) {
+    public static AbstractRecruitEntity asRecruit(@Nullable Entity entity) {
         if (!AbstractRecruitEntity.class.isInstance(entity)) {
             return null;
         }
@@ -19,7 +19,7 @@ final class RecruitEntityAccess {
     }
 
     @Nullable
-    static AbstractRecruitEntity asRecruit(@Nullable LivingEntity entity) {
+    public static AbstractRecruitEntity asRecruit(@Nullable LivingEntity entity) {
         return asRecruit((Entity) entity);
     }
 }
