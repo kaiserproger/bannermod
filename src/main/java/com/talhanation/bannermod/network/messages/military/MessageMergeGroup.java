@@ -10,7 +10,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageMergeGroup implements BannerModMessage<MessageMergeGroup> {
@@ -32,7 +31,8 @@ public class MessageMergeGroup implements BannerModMessage<MessageMergeGroup> {
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             RecruitsGroup groupToMerge = RecruitEvents.groupsManager().getGroup(mergeUUID);
             RecruitsGroup baseGroup = RecruitEvents.groupsManager().getGroup(groupUUID);
 

@@ -8,7 +8,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageDisband implements BannerModMessage<MessageDisband> {
@@ -30,10 +29,11 @@ public class MessageDisband implements BannerModMessage<MessageDisband> {
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             AbstractRecruitEntity recruit = RecruitMessageEntityResolver.resolveRecruitInInflatedBox(player, this.recruit, 16D);
             if (RecruitCommandAuthority.canDirectlyControl(player, recruit)) {
-                recruit.disband(context.getSender(), keepTeam, true);
+                recruit.disband(player, keepTeam, true);
             }
         });
     }

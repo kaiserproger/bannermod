@@ -20,7 +20,6 @@ import net.minecraft.world.entity.player.Player;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 import com.talhanation.bannermod.network.compat.BannerModPacketDistributor;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -58,7 +57,8 @@ public class MessageHireFromNobleVillager implements BannerModMessage<MessageHir
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             ServerLevel serverLevel = player.serverLevel();
             Entity nobleEntity = serverLevel.getEntity(this.nobleUUID);
             if (!(nobleEntity instanceof VillagerNobleEntity villagerNoble)

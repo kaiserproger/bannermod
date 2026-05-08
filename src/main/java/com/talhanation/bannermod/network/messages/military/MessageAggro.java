@@ -15,7 +15,6 @@ import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageAggro implements BannerModMessage<MessageAggro> {
@@ -44,7 +43,8 @@ public class MessageAggro implements BannerModMessage<MessageAggro> {
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
 
             double boundBoxInflateModifier = fromGui ? 16.0D : 100.0D;
             AABB commandBox = player.getBoundingBox().inflate(boundBoxInflateModifier);

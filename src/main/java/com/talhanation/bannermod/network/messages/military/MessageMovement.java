@@ -15,7 +15,6 @@ import net.minecraft.world.entity.player.Player;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.HashSet;
 import java.util.Set;
@@ -44,14 +43,15 @@ public class MessageMovement implements BannerModMessage<MessageMovement> {
     }
 
     public void executeServerSide(BannerModNetworkContext context){
-        ServerPlayer sender = Objects.requireNonNull(context.getSender());
+        ServerPlayer sender = context.getSender();
+        if (sender == null) return;
         if (!com.talhanation.bannermod.network.throttle.PacketRateLimiter.shared()
                 .tryAcquire(sender.getUUID(), MessageMovement.class)) {
             RuntimeProfilingCounters.increment("network.rate_limit.dropped.movement");
             return;
         }
         context.enqueueWork(() -> {
-            dispatchToServer(Objects.requireNonNull(context.getSender()), this.player_uuid, this.group, this.state, this.formation, this.tight);
+            dispatchToServer(sender, this.player_uuid, this.group, this.state, this.formation, this.tight);
         });
     }
 

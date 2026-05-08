@@ -38,6 +38,7 @@ public class MessageRemoveAssignedGroupFromCompanion implements BannerModMessage
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
             ServerPlayer serverPlayer = context.getSender();
+            if (serverPlayer == null) return;
             Entity entity = serverPlayer.serverLevel().getEntity(this.companion);
             if (entity instanceof AbstractLeaderEntity companionEntity
                     && serverPlayer.getBoundingBox().inflate(100D).intersects(companionEntity.getBoundingBox())

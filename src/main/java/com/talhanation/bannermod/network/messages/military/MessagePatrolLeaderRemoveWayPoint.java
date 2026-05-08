@@ -13,7 +13,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 import com.talhanation.bannermod.network.compat.BannerModPacketDistributor;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessagePatrolLeaderRemoveWayPoint implements BannerModMessage<MessagePatrolLeaderRemoveWayPoint> {
@@ -32,7 +31,8 @@ public class MessagePatrolLeaderRemoveWayPoint implements BannerModMessage<Messa
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             Entity entity = player.serverLevel().getEntity(this.worker);
             if (entity instanceof AbstractLeaderEntity leader
                     && leader.isAlive()

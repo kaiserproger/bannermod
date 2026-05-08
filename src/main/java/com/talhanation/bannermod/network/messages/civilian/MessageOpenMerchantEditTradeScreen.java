@@ -34,10 +34,11 @@ public class MessageOpenMerchantEditTradeScreen implements BannerModMessage<Mess
     @Override
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            if (!context.getSender().getUUID().equals(player)) {
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
+            if (!player.getUUID().equals(this.player)) {
                 return;
             }
-            ServerPlayer player = context.getSender();
             Entity entity = player.serverLevel().getEntity(this.merchantUuid);
             if (entity instanceof MerchantEntity merchant
                     && merchant.isAlive()

@@ -8,7 +8,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageListen implements BannerModMessage<MessageListen> {
@@ -30,7 +29,8 @@ public class MessageListen implements BannerModMessage<MessageListen> {
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             AbstractRecruitEntity recruit = RecruitMessageEntityResolver.resolveRecruitInInflatedBox(player, this.uuid, 100.0D);
             if (RecruitCommandAuthority.canDirectlyControl(player, recruit)) {
                 recruit.setListen(bool);

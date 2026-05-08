@@ -31,6 +31,7 @@ public class MessageCommandScreen implements BannerModMessage<MessageCommandScre
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
             ServerPlayer player = context.getSender();
+            if (player == null) return;
             if (!player.getUUID().equals(uuid)) {
                 return;
             }

@@ -13,7 +13,6 @@ import net.minecraft.server.level.ServerPlayer;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageDisbandGroup implements BannerModMessage<MessageDisbandGroup> {
@@ -37,7 +36,8 @@ public class MessageDisbandGroup implements BannerModMessage<MessageDisbandGroup
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             RecruitsGroup group = RecruitEvents.groupsManager().getGroup(groupUUID);
             if(group == null) return;
 

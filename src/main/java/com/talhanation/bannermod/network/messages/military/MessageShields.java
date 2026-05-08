@@ -14,7 +14,6 @@ import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -39,7 +38,8 @@ public class MessageShields implements BannerModMessage<MessageShields> {
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             dispatchToServer(player, this.player, this.group, this.should);
         });
     }

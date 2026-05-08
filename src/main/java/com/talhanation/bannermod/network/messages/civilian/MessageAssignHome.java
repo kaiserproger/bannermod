@@ -19,7 +19,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -68,7 +67,8 @@ public class MessageAssignHome implements BannerModMessage<MessageAssignHome> {
     @Override
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer sender = Objects.requireNonNull(context.getSender(), "sender required for MessageAssignHome");
+            ServerPlayer sender = context.getSender();
+            if (sender == null) return;
             handle(sender, this.entityUuid, this.pos);
         });
     }

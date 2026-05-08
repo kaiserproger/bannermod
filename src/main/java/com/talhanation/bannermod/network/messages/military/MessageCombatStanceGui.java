@@ -10,7 +10,6 @@ import net.minecraft.server.level.ServerPlayer;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageCombatStanceGui implements BannerModMessage<MessageCombatStanceGui> {
@@ -36,7 +35,8 @@ public class MessageCombatStanceGui implements BannerModMessage<MessageCombatSta
                 return;
             }
 
-            ServerPlayer serverPlayer = Objects.requireNonNull(context.getSender());
+            ServerPlayer serverPlayer = context.getSender();
+            if (serverPlayer == null) return;
             AbstractRecruitEntity recruit = RecruitMessageEntityResolver.resolveRecruitInInflatedBox(serverPlayer, this.recruitUuid, 16.0D);
             if (recruit == null) {
                 return;
