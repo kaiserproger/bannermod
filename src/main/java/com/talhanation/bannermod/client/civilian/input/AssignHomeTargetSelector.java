@@ -38,6 +38,10 @@ public final class AssignHomeTargetSelector {
         return entityUuid != null;
     }
 
+    public static void reset() {
+        clear();
+    }
+
     public static void tick() {
         if (!isActive()) return;
         if (System.currentTimeMillis() - startedAtMs >= TIMEOUT_MS) {

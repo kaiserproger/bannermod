@@ -39,6 +39,7 @@ public class ClientPlayerEvents {
     @SubscribeEvent
     public void onWorldUnload(LevelEvent.Unload event) {
         if (event.getLevel().isClientSide()) {
+            AssignHomeTargetSelector.reset();
             ChunkTileManager.getInstance().close();
         }
     }
