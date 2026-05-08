@@ -11,10 +11,10 @@ public record BannerModSettlementResidentRecord(
         BannerModSettlementResidentRole role,
         BannerModSettlementResidentScheduleSeed scheduleSeed,
         BannerModSettlementResidentScheduleWindowSeed scheduleWindowSeed,
-        BannerModSettlementResidentRuntimeRoleSeed runtimeRoleSeed,
+        BannerModSettlementResidentRuntimeRoleState runtimeRoleState,
         BannerModSettlementResidentServiceContract serviceContract,
         BannerModSettlementResidentJobDefinition jobDefinition,
-        BannerModSettlementResidentJobTargetSelectionSeed jobTargetSelectionSeed,
+        BannerModSettlementResidentJobTargetSelectionState jobTargetSelectionState,
         BannerModSettlementResidentMode residentMode,
         @Nullable UUID ownerUuid,
         @Nullable String teamId,
@@ -27,10 +27,10 @@ public record BannerModSettlementResidentRecord(
                                              BannerModSettlementResidentRole role,
                                              BannerModSettlementResidentScheduleSeed scheduleSeed,
                                              BannerModSettlementResidentScheduleWindowSeed scheduleWindowSeed,
-                                             BannerModSettlementResidentRuntimeRoleSeed runtimeRoleSeed,
+                                             BannerModSettlementResidentRuntimeRoleState runtimeRoleState,
                                              BannerModSettlementResidentServiceContract serviceContract,
                                              BannerModSettlementResidentJobDefinition jobDefinition,
-                                             BannerModSettlementResidentJobTargetSelectionSeed jobTargetSelectionSeed,
+                                             BannerModSettlementResidentJobTargetSelectionState jobTargetSelectionState,
                                              BannerModSettlementResidentMode residentMode,
                                              @Nullable UUID ownerUuid,
                                              @Nullable String teamId,
@@ -42,17 +42,17 @@ public record BannerModSettlementResidentRecord(
                 role,
                 scheduleSeed,
                 scheduleWindowSeed,
-                runtimeRoleSeed,
+                runtimeRoleState,
                 serviceContract,
                 jobDefinition,
-                jobTargetSelectionSeed,
+                jobTargetSelectionState,
                 residentMode,
                 ownerUuid,
                 teamId,
                 boundWorkAreaUuid,
                 assignmentState,
                 roleProfile,
-                BannerModSettlementResidentSchedulePolicy.defaultFor(scheduleSeed, scheduleWindowSeed, runtimeRoleSeed, roleProfile)
+                BannerModSettlementResidentSchedulePolicy.defaultFor(scheduleSeed, scheduleWindowSeed, runtimeRoleState, roleProfile)
         );
     }
 
@@ -60,10 +60,10 @@ public record BannerModSettlementResidentRecord(
                                              BannerModSettlementResidentRole role,
                                              BannerModSettlementResidentScheduleSeed scheduleSeed,
                                              BannerModSettlementResidentScheduleWindowSeed scheduleWindowSeed,
-                                             BannerModSettlementResidentRuntimeRoleSeed runtimeRoleSeed,
+                                             BannerModSettlementResidentRuntimeRoleState runtimeRoleState,
                                              BannerModSettlementResidentServiceContract serviceContract,
                                              BannerModSettlementResidentJobDefinition jobDefinition,
-                                             BannerModSettlementResidentJobTargetSelectionSeed jobTargetSelectionSeed,
+                                             BannerModSettlementResidentJobTargetSelectionState jobTargetSelectionState,
                                              BannerModSettlementResidentMode residentMode,
                                              @Nullable UUID ownerUuid,
                                              @Nullable String teamId,
@@ -74,16 +74,16 @@ public record BannerModSettlementResidentRecord(
                 role,
                 scheduleSeed,
                 scheduleWindowSeed,
-                runtimeRoleSeed,
+                runtimeRoleState,
                 serviceContract,
                 jobDefinition,
-                jobTargetSelectionSeed,
+                jobTargetSelectionState,
                 residentMode,
                 ownerUuid,
                 teamId,
                 boundWorkAreaUuid,
                 assignmentState,
-                BannerModSettlementResidentRoleProfile.defaultFor(role, runtimeRoleSeed, residentMode, assignmentState)
+                BannerModSettlementResidentRoleProfile.defaultFor(role, runtimeRoleState, residentMode, assignmentState)
         );
     }
 
@@ -91,7 +91,7 @@ public record BannerModSettlementResidentRecord(
                                              BannerModSettlementResidentRole role,
                                              BannerModSettlementResidentScheduleSeed scheduleSeed,
                                              BannerModSettlementResidentScheduleWindowSeed scheduleWindowSeed,
-                                             BannerModSettlementResidentRuntimeRoleSeed runtimeRoleSeed,
+                                             BannerModSettlementResidentRuntimeRoleState runtimeRoleState,
                                              BannerModSettlementResidentServiceContract serviceContract,
                                              BannerModSettlementResidentJobDefinition jobDefinition,
                                              BannerModSettlementResidentMode residentMode,
@@ -104,23 +104,23 @@ public record BannerModSettlementResidentRecord(
                 role,
                 scheduleSeed,
                 scheduleWindowSeed,
-                runtimeRoleSeed,
+                runtimeRoleState,
                 serviceContract,
                 jobDefinition,
-                BannerModSettlementResidentJobTargetSelectionSeed.defaultFor(residentUuid, jobDefinition, serviceContract, BannerModSettlementMarketState.empty()),
+                BannerModSettlementResidentJobTargetSelectionState.defaultFor(residentUuid, jobDefinition, serviceContract, BannerModSettlementMarketState.empty()),
                 residentMode,
                 ownerUuid,
                 teamId,
                 boundWorkAreaUuid,
                 assignmentState,
-                BannerModSettlementResidentRoleProfile.defaultFor(role, runtimeRoleSeed, residentMode, assignmentState)
+                BannerModSettlementResidentRoleProfile.defaultFor(role, runtimeRoleState, residentMode, assignmentState)
         );
     }
 
     public BannerModSettlementResidentRecord(UUID residentUuid,
                                              BannerModSettlementResidentRole role,
                                              BannerModSettlementResidentScheduleSeed scheduleSeed,
-                                             BannerModSettlementResidentRuntimeRoleSeed runtimeRoleSeed,
+                                             BannerModSettlementResidentRuntimeRoleState runtimeRoleState,
                                              BannerModSettlementResidentServiceContract serviceContract,
                                              BannerModSettlementResidentMode residentMode,
                                              @Nullable UUID ownerUuid,
@@ -131,13 +131,13 @@ public record BannerModSettlementResidentRecord(
                 residentUuid,
                 role,
                 scheduleSeed,
-                BannerModSettlementResidentScheduleWindowSeed.defaultFor(scheduleSeed, runtimeRoleSeed),
-                runtimeRoleSeed,
+                BannerModSettlementResidentScheduleWindowSeed.defaultFor(scheduleSeed, runtimeRoleState),
+                runtimeRoleState,
                 serviceContract,
-                BannerModSettlementResidentJobDefinition.defaultFor(role, runtimeRoleSeed, serviceContract, null),
-                BannerModSettlementResidentJobTargetSelectionSeed.defaultFor(
+                BannerModSettlementResidentJobDefinition.defaultFor(role, runtimeRoleState, serviceContract, null),
+                BannerModSettlementResidentJobTargetSelectionState.defaultFor(
                         residentUuid,
-                        BannerModSettlementResidentJobDefinition.defaultFor(role, runtimeRoleSeed, serviceContract, null),
+                        BannerModSettlementResidentJobDefinition.defaultFor(role, runtimeRoleState, serviceContract, null),
                         serviceContract,
                         BannerModSettlementMarketState.empty()
                 ),
@@ -146,7 +146,7 @@ public record BannerModSettlementResidentRecord(
                 teamId,
                 boundWorkAreaUuid,
                 assignmentState,
-                BannerModSettlementResidentRoleProfile.defaultFor(role, runtimeRoleSeed, residentMode, assignmentState)
+                BannerModSettlementResidentRoleProfile.defaultFor(role, runtimeRoleState, residentMode, assignmentState)
         );
     }
 
@@ -154,7 +154,7 @@ public record BannerModSettlementResidentRecord(
                                              BannerModSettlementResidentRole role,
                                              BannerModSettlementResidentScheduleSeed scheduleSeed,
                                              BannerModSettlementResidentScheduleWindowSeed scheduleWindowSeed,
-                                             BannerModSettlementResidentRuntimeRoleSeed runtimeRoleSeed,
+                                             BannerModSettlementResidentRuntimeRoleState runtimeRoleState,
                                              BannerModSettlementResidentServiceContract serviceContract,
                                              BannerModSettlementResidentMode residentMode,
                                              @Nullable UUID ownerUuid,
@@ -166,12 +166,12 @@ public record BannerModSettlementResidentRecord(
                 role,
                 scheduleSeed,
                 scheduleWindowSeed,
-                runtimeRoleSeed,
+                runtimeRoleState,
                 serviceContract,
-                BannerModSettlementResidentJobDefinition.defaultFor(role, runtimeRoleSeed, serviceContract, null),
-                BannerModSettlementResidentJobTargetSelectionSeed.defaultFor(
+                BannerModSettlementResidentJobDefinition.defaultFor(role, runtimeRoleState, serviceContract, null),
+                BannerModSettlementResidentJobTargetSelectionState.defaultFor(
                         residentUuid,
-                        BannerModSettlementResidentJobDefinition.defaultFor(role, runtimeRoleSeed, serviceContract, null),
+                        BannerModSettlementResidentJobDefinition.defaultFor(role, runtimeRoleState, serviceContract, null),
                         serviceContract,
                         BannerModSettlementMarketState.empty()
                 ),
@@ -180,7 +180,7 @@ public record BannerModSettlementResidentRecord(
                 teamId,
                 boundWorkAreaUuid,
                 assignmentState,
-                BannerModSettlementResidentRoleProfile.defaultFor(role, runtimeRoleSeed, residentMode, assignmentState)
+                BannerModSettlementResidentRoleProfile.defaultFor(role, runtimeRoleState, residentMode, assignmentState)
         );
     }
 
@@ -190,10 +190,10 @@ public record BannerModSettlementResidentRecord(
         tag.putString("Role", this.role.name());
         tag.putString("ScheduleSeed", this.scheduleSeed.name());
         tag.putString("ScheduleWindowSeed", this.scheduleWindowSeed.name());
-        tag.putString("RuntimeRoleSeed", this.runtimeRoleSeed.name());
+        tag.putString("RuntimeRoleSeed", this.runtimeRoleState.name());
         tag.put("ServiceContract", this.serviceContract.toTag());
         tag.put("JobDefinition", this.jobDefinition.toTag());
-        tag.put("JobTargetSelectionSeed", this.jobTargetSelectionSeed.toTag());
+        tag.put("JobTargetSelectionSeed", this.jobTargetSelectionState.toTag());
         tag.putString("ResidentMode", this.residentMode.name());
         if (this.ownerUuid != null) {
             tag.putUUID("OwnerUuid", this.ownerUuid);
@@ -224,36 +224,36 @@ public record BannerModSettlementResidentRecord(
         BannerModSettlementResidentAssignmentState assignmentState = tag.contains("AssignmentState", Tag.TAG_STRING)
                 ? BannerModSettlementResidentAssignmentState.fromTagName(tag.getString("AssignmentState"))
                 : defaultAssignmentState(role, boundWorkAreaUuid);
-        BannerModSettlementResidentRuntimeRoleSeed runtimeRoleSeed = tag.contains("RuntimeRoleSeed", Tag.TAG_STRING)
-                ? BannerModSettlementResidentRuntimeRoleSeed.fromTagName(tag.getString("RuntimeRoleSeed"))
-                : BannerModSettlementResidentRuntimeRoleSeed.defaultFor(role, scheduleSeed, residentMode, assignmentState);
+        BannerModSettlementResidentRuntimeRoleState runtimeRoleState = tag.contains("RuntimeRoleSeed", Tag.TAG_STRING)
+                ? BannerModSettlementResidentRuntimeRoleState.fromTagName(tag.getString("RuntimeRoleSeed"))
+                : BannerModSettlementResidentRuntimeRoleState.defaultFor(role, scheduleSeed, residentMode, assignmentState);
         BannerModSettlementResidentScheduleWindowSeed scheduleWindowSeed = tag.contains("ScheduleWindowSeed", Tag.TAG_STRING)
                 ? BannerModSettlementResidentScheduleWindowSeed.fromTagName(tag.getString("ScheduleWindowSeed"))
-                : BannerModSettlementResidentScheduleWindowSeed.defaultFor(scheduleSeed, runtimeRoleSeed);
+                : BannerModSettlementResidentScheduleWindowSeed.defaultFor(scheduleSeed, runtimeRoleState);
         BannerModSettlementResidentServiceContract serviceContract = tag.contains("ServiceContract", Tag.TAG_COMPOUND)
                 ? BannerModSettlementResidentServiceContract.fromTag(tag.getCompound("ServiceContract"))
                 : BannerModSettlementResidentServiceContract.defaultFor(role, residentMode, assignmentState, boundWorkAreaUuid, null);
         BannerModSettlementResidentJobDefinition jobDefinition = tag.contains("JobDefinition", Tag.TAG_COMPOUND)
                 ? BannerModSettlementResidentJobDefinition.fromTag(tag.getCompound("JobDefinition"))
-                : BannerModSettlementResidentJobDefinition.defaultFor(role, runtimeRoleSeed, serviceContract, null);
-        BannerModSettlementResidentJobTargetSelectionSeed jobTargetSelectionSeed = tag.contains("JobTargetSelectionSeed", Tag.TAG_COMPOUND)
-                ? BannerModSettlementResidentJobTargetSelectionSeed.fromTag(tag.getCompound("JobTargetSelectionSeed"))
-                : BannerModSettlementResidentJobTargetSelectionSeed.defaultFor(tag.getUUID("ResidentUuid"), jobDefinition, serviceContract, BannerModSettlementMarketState.empty());
+                : BannerModSettlementResidentJobDefinition.defaultFor(role, runtimeRoleState, serviceContract, null);
+        BannerModSettlementResidentJobTargetSelectionState jobTargetSelectionState = tag.contains("JobTargetSelectionSeed", Tag.TAG_COMPOUND)
+                ? BannerModSettlementResidentJobTargetSelectionState.fromTag(tag.getCompound("JobTargetSelectionSeed"))
+                : BannerModSettlementResidentJobTargetSelectionState.defaultFor(tag.getUUID("ResidentUuid"), jobDefinition, serviceContract, BannerModSettlementMarketState.empty());
         BannerModSettlementResidentRoleProfile roleProfile = tag.contains("RoleProfile", Tag.TAG_COMPOUND)
                 ? BannerModSettlementResidentRoleProfile.fromTag(tag.getCompound("RoleProfile"))
-                : BannerModSettlementResidentRoleProfile.defaultFor(role, runtimeRoleSeed, residentMode, assignmentState);
+                : BannerModSettlementResidentRoleProfile.defaultFor(role, runtimeRoleState, residentMode, assignmentState);
         BannerModSettlementResidentSchedulePolicy schedulePolicy = tag.contains("SchedulePolicy", Tag.TAG_COMPOUND)
                 ? BannerModSettlementResidentSchedulePolicy.fromTag(tag.getCompound("SchedulePolicy"))
-                : BannerModSettlementResidentSchedulePolicy.defaultFor(scheduleSeed, scheduleWindowSeed, runtimeRoleSeed, roleProfile);
+                : BannerModSettlementResidentSchedulePolicy.defaultFor(scheduleSeed, scheduleWindowSeed, runtimeRoleState, roleProfile);
         return new BannerModSettlementResidentRecord(
                 tag.getUUID("ResidentUuid"),
                 role,
                 scheduleSeed,
                 scheduleWindowSeed,
-                runtimeRoleSeed,
+                runtimeRoleState,
                 serviceContract,
                 jobDefinition,
-                jobTargetSelectionSeed,
+                jobTargetSelectionState,
                 residentMode,
                 ownerUuid,
                 teamId,

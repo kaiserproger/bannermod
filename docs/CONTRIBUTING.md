@@ -22,6 +22,48 @@ BannerMod is a brownfield merge workspace. Contributions should be small, verifi
 9. Update the backlog through `tools/backlog progress` or `tools/backlog done --verification`, and update `docs/STATUS.md` / `.planning/STATE.md` when shipped behavior or project status changes.
 10. Commit atomically by area: code, tools, and docs should usually be separate commits.
 
+## Naming Conventions
+
+- Use `Seed` for static, config-derived input that drives later derivation.
+- Use `Record` for persistent immutable facts or lifecycle entries that can be serialized.
+- Use `Snapshot` for live read-only views assembled from current runtime data.
+- Use `State` for mutable runtime state or current state-machine values.
+
+### Settlement Suffix Audit
+
+This table was produced from `ctx` inspection of settlement `*Seed`, `*Record`, `*Snapshot`, and `*State` classes during `NAMINGCONV-001`.
+
+| Class | Category | Audit result |
+| --- | --- | --- |
+| `BannerModSettlementBuildingProfileSeed` | Seed | Static building profile input derived from work-area/building type. |
+| `BannerModSettlementJobHandlerSeed` | Seed | Static job-handler input used by resident job definitions. |
+| `BannerModSettlementResidentSchedulePolicySeed` | Seed | Static schedule-policy preset input. |
+| `BannerModSettlementResidentScheduleSeed` | Seed | Static resident schedule preset input. |
+| `BannerModSettlementResidentScheduleWindowSeed` | Seed | Static schedule window preset input. |
+| `BannerModSettlementBuildingRecord` | Record | Persistent immutable building data. |
+| `BannerModSettlementMarketRecord` | Record | Persistent immutable market data. |
+| `BannerModSettlementResidentRecord` | Record | Persistent immutable resident data. |
+| `BannerModSettlementSellerDispatchRecord` | Record | Persistent immutable seller dispatch entry. |
+| `SettlementRecord` | Record | Persistent immutable settlement bootstrap data. |
+| `ValidatedBuildingRecord` | Record | Persistent immutable validated-building data. |
+| `SellerPhaseRecord` | Record | Persistent immutable seller phase entry. |
+| `BannerModSettlementSnapshot` | Snapshot | Live read-only settlement view. |
+| `BannerModSettlementDesiredGoodSnapshot` | Snapshot | Live read-only desired-good view; renamed from `BannerModSettlementDesiredGoodSeed`. |
+| `BannerModSettlementDesiredGoodsSnapshot` | Snapshot | Live read-only desired-goods view; renamed from `BannerModSettlementDesiredGoodsSeed`. |
+| `BannerModSettlementProjectCandidateSnapshot` | Snapshot | Live read-only growth candidate view; renamed from `BannerModSettlementProjectCandidateSeed`. |
+| `BannerModSettlementTradeRouteHandoffSnapshot` | Snapshot | Live read-only logistics handoff view; renamed from `BannerModSettlementTradeRouteHandoffSeed`. |
+| `ValidatedBuildingSnapshot` | Snapshot | Live read-only validated-building view. |
+| `BannerModSettlementMarketState` | State | Current market aggregate state. |
+| `BannerModSettlementResidentAssignmentState` | State | Current resident assignment state value. |
+| `BannerModSettlementResidentJobTargetSelectionState` | State | Current resident job-target selection state; renamed from `BannerModSettlementResidentJobTargetSelectionSeed`. |
+| `BannerModSettlementResidentRuntimeRoleState` | State | Current resident runtime role state; renamed from `BannerModSettlementResidentRuntimeRoleSeed`. |
+| `BannerModSettlementSellerDispatchState` | State | Current seller dispatch state value. |
+| `BannerModSettlementServiceActorState` | State | Current service actor state value. |
+| `BannerModSettlementSupplySignalState` | State | Current supply signal aggregate state. |
+| `BannerModSettlementClientSnapshotContract.SnapshotState` | State | Current client snapshot envelope state value. |
+| `BannerModSettlementOrchestrator.LevelRuntimeState` | State | Mutable per-level settlement orchestrator runtime state. |
+| `BuildingValidationState` | State | Current building validation state value. |
+
 ## Backlog Intake
 
 - Add backlog work with `tools/backlog add <ID> <title> --why ... --scope ... --acceptance ...`.

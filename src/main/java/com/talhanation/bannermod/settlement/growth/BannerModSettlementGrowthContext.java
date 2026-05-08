@@ -2,14 +2,14 @@ package com.talhanation.bannermod.settlement.growth;
 
 import com.talhanation.bannermod.governance.BannerModGovernorSnapshot;
 import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodsSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodsSnapshot;
 import com.talhanation.bannermod.settlement.BannerModSettlementMarketState;
-import com.talhanation.bannermod.settlement.BannerModSettlementProjectCandidateSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementProjectCandidateSnapshot;
 import com.talhanation.bannermod.settlement.BannerModSettlementResidentRecord;
 import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
 import com.talhanation.bannermod.settlement.BannerModSettlementStockpileSummary;
 import com.talhanation.bannermod.settlement.BannerModSettlementSupplySignalState;
-import com.talhanation.bannermod.settlement.BannerModSettlementTradeRouteHandoffSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementTradeRouteHandoffSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -21,11 +21,11 @@ import java.util.List;
  * is left accessible for tests that want a minimal input.
  */
 public record BannerModSettlementGrowthContext(
-        BannerModSettlementProjectCandidateSeed projectCandidateSeed,
-        BannerModSettlementDesiredGoodsSeed desiredGoodsSeed,
+        BannerModSettlementProjectCandidateSnapshot projectCandidateSnapshot,
+        BannerModSettlementDesiredGoodsSnapshot desiredGoodsSnapshot,
         BannerModSettlementStockpileSummary stockpileSummary,
         BannerModSettlementMarketState marketState,
-        BannerModSettlementTradeRouteHandoffSeed tradeRouteHandoffSeed,
+        BannerModSettlementTradeRouteHandoffSnapshot tradeRouteHandoffSnapshot,
         BannerModSettlementSupplySignalState supplySignalState,
         List<BannerModSettlementBuildingRecord> buildings,
         List<BannerModSettlementResidentRecord> residents,
@@ -37,16 +37,16 @@ public record BannerModSettlementGrowthContext(
         long gameTime
 ) {
     public BannerModSettlementGrowthContext {
-        projectCandidateSeed = projectCandidateSeed == null
-                ? BannerModSettlementProjectCandidateSeed.empty() : projectCandidateSeed;
-        desiredGoodsSeed = desiredGoodsSeed == null
-                ? BannerModSettlementDesiredGoodsSeed.empty() : desiredGoodsSeed;
+        projectCandidateSnapshot = projectCandidateSnapshot == null
+                ? BannerModSettlementProjectCandidateSnapshot.empty() : projectCandidateSnapshot;
+        desiredGoodsSnapshot = desiredGoodsSnapshot == null
+                ? BannerModSettlementDesiredGoodsSnapshot.empty() : desiredGoodsSnapshot;
         stockpileSummary = stockpileSummary == null
                 ? BannerModSettlementStockpileSummary.empty() : stockpileSummary;
         marketState = marketState == null
                 ? BannerModSettlementMarketState.empty() : marketState;
-        tradeRouteHandoffSeed = tradeRouteHandoffSeed == null
-                ? BannerModSettlementTradeRouteHandoffSeed.empty() : tradeRouteHandoffSeed;
+        tradeRouteHandoffSnapshot = tradeRouteHandoffSnapshot == null
+                ? BannerModSettlementTradeRouteHandoffSnapshot.empty() : tradeRouteHandoffSnapshot;
         supplySignalState = supplySignalState == null
                 ? BannerModSettlementSupplySignalState.empty() : supplySignalState;
         buildings = List.copyOf(buildings == null ? List.of() : buildings);
@@ -73,11 +73,11 @@ public record BannerModSettlementGrowthContext(
             throw new IllegalArgumentException("snapshot must not be null");
         }
         return new BannerModSettlementGrowthContext(
-                snapshot.projectCandidateSeed(),
-                snapshot.desiredGoodsSeed(),
+                snapshot.projectCandidateSnapshot(),
+                snapshot.desiredGoodsSnapshot(),
                 snapshot.stockpileSummary(),
                 snapshot.marketState(),
-                snapshot.tradeRouteHandoffSeed(),
+                snapshot.tradeRouteHandoffSnapshot(),
                 snapshot.supplySignalState(),
                 snapshot.buildings(),
                 snapshot.residents(),

@@ -49,10 +49,10 @@ public record BannerModSettlementResidentJobDefinition(
     }
 
     public static BannerModSettlementResidentJobDefinition defaultFor(BannerModSettlementResidentRole role,
-                                                                      BannerModSettlementResidentRuntimeRoleSeed runtimeRoleSeed,
+                                                                      BannerModSettlementResidentRuntimeRoleState runtimeRoleState,
                                                                       BannerModSettlementResidentServiceContract serviceContract,
                                                                       @Nullable BannerModSettlementBuildingRecord building) {
-        return switch (runtimeRoleSeed) {
+        return switch (runtimeRoleState) {
             case VILLAGE_LIFE -> new BannerModSettlementResidentJobDefinition(BannerModSettlementJobHandlerSeed.VILLAGE_LIFE, null, null, null, null);
             case GOVERNANCE -> new BannerModSettlementResidentJobDefinition(BannerModSettlementJobHandlerSeed.GOVERNANCE, null, null, null, null);
             case LOCAL_LABOR -> new BannerModSettlementResidentJobDefinition(

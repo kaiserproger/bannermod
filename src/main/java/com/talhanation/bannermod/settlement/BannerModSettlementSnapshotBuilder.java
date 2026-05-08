@@ -82,9 +82,9 @@ final class BannerModSettlementSnapshotBuilder {
                 counts.missingWorkAreaAssignmentCount(),
                 logistics.stockpileSummary(),
                 staffing.marketState(),
-                logistics.desiredGoodsSeed(),
-                logistics.projectCandidateSeed(),
-                logistics.tradeRouteHandoffSeed(),
+                logistics.desiredGoodsSnapshot(),
+                logistics.projectCandidateSnapshot(),
+                logistics.tradeRouteHandoffSnapshot(),
                 logistics.supplySignalState(),
                 staffing.residents(),
                 staffing.buildings()

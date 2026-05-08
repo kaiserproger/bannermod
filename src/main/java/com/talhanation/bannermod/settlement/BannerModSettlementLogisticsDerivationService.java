@@ -29,30 +29,30 @@ final class BannerModSettlementLogisticsDerivationService {
                 reservations
         );
         BannerModSettlementStockpileSummary stockpileSummary = BannerModSettlementService.summarizeStockpiles(buildings, liveSeaTradeEntrypoints);
-        BannerModSettlementDesiredGoodsSeed desiredGoodsSeed = BannerModSettlementService.summarizeDesiredGoods(
+        BannerModSettlementDesiredGoodsSnapshot desiredGoodsSnapshot = BannerModSettlementService.summarizeDesiredGoods(
                 buildings,
                 stockpileSummary,
                 marketState,
                 seaTradeSummary
         );
-        BannerModSettlementProjectCandidateSeed projectCandidateSeed = BannerModSettlementService.summarizeProjectCandidate(
+        BannerModSettlementProjectCandidateSnapshot projectCandidateSnapshot = BannerModSettlementService.summarizeProjectCandidate(
                 buildings,
                 stockpileSummary,
-                desiredGoodsSeed,
+                desiredGoodsSnapshot,
                 marketState,
                 governedSettlement,
                 claimedSettlement
         );
-        BannerModSettlementTradeRouteHandoffSeed tradeRouteHandoffSeed = BannerModSettlementService.summarizeTradeRouteHandoffSeed(
+        BannerModSettlementTradeRouteHandoffSnapshot tradeRouteHandoffSnapshot = BannerModSettlementService.summarizeTradeRouteHandoffSnapshot(
                 stockpileSummary,
                 marketState,
-                desiredGoodsSeed,
+                desiredGoodsSnapshot,
                 reservationSignalSeed,
                 seaTradeSummary,
                 localSeaTradeExecutions
         );
         BannerModSettlementSupplySignalState supplySignalState = BannerModSettlementService.summarizeSupplySignals(
-                desiredGoodsSeed,
+                desiredGoodsSnapshot,
                 stockpileSummary,
                 marketState,
                 residents,
@@ -62,18 +62,18 @@ final class BannerModSettlementLogisticsDerivationService {
         );
         return new LogisticsResult(
                 stockpileSummary,
-                desiredGoodsSeed,
-                projectCandidateSeed,
-                tradeRouteHandoffSeed,
+                desiredGoodsSnapshot,
+                projectCandidateSnapshot,
+                tradeRouteHandoffSnapshot,
                 supplySignalState,
                 reservationSignalSeed
         );
     }
 
     record LogisticsResult(BannerModSettlementStockpileSummary stockpileSummary,
-                           BannerModSettlementDesiredGoodsSeed desiredGoodsSeed,
-                           BannerModSettlementProjectCandidateSeed projectCandidateSeed,
-                           BannerModSettlementTradeRouteHandoffSeed tradeRouteHandoffSeed,
+                           BannerModSettlementDesiredGoodsSnapshot desiredGoodsSnapshot,
+                           BannerModSettlementProjectCandidateSnapshot projectCandidateSnapshot,
+                           BannerModSettlementTradeRouteHandoffSnapshot tradeRouteHandoffSnapshot,
                            BannerModSettlementSupplySignalState supplySignalState,
                            BannerModSettlementService.ReservationSignalSeed reservationSignalSeed) {
     }

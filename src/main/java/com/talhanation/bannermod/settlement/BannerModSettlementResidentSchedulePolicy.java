@@ -44,10 +44,10 @@ public record BannerModSettlementResidentSchedulePolicy(
 
     public static BannerModSettlementResidentSchedulePolicy defaultFor(BannerModSettlementResidentScheduleSeed scheduleSeed,
                                                                        BannerModSettlementResidentScheduleWindowSeed scheduleWindowSeed,
-                                                                       BannerModSettlementResidentRuntimeRoleSeed runtimeRoleSeed,
+                                                                       BannerModSettlementResidentRuntimeRoleState runtimeRoleState,
                                                                        BannerModSettlementResidentRoleProfile roleProfile) {
         return new BannerModSettlementResidentSchedulePolicy(
-                defaultPolicySeed(scheduleSeed, scheduleWindowSeed, runtimeRoleSeed),
+                defaultPolicySeed(scheduleSeed, scheduleWindowSeed, runtimeRoleState),
                 scheduleSeed,
                 scheduleWindowSeed,
                 roleProfile.goalDomainId(),
@@ -57,8 +57,8 @@ public record BannerModSettlementResidentSchedulePolicy(
 
     private static BannerModSettlementResidentSchedulePolicySeed defaultPolicySeed(BannerModSettlementResidentScheduleSeed scheduleSeed,
                                                                                    BannerModSettlementResidentScheduleWindowSeed scheduleWindowSeed,
-                                                                                   BannerModSettlementResidentRuntimeRoleSeed runtimeRoleSeed) {
-        return switch (runtimeRoleSeed) {
+                                                                                   BannerModSettlementResidentRuntimeRoleState runtimeRoleState) {
+        return switch (runtimeRoleState) {
             case GOVERNANCE -> BannerModSettlementResidentSchedulePolicySeed.GOVERNANCE_CIVIC;
             case LOCAL_LABOR -> BannerModSettlementResidentSchedulePolicySeed.LOCAL_LABOR_DAY;
             case FLOATING_LABOR -> scheduleWindowSeed == BannerModSettlementResidentScheduleWindowSeed.LABOR_DAY

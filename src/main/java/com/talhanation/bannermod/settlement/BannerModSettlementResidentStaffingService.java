@@ -25,7 +25,7 @@ final class BannerModSettlementResidentStaffingService {
                 staffedResidents,
                 staffedBuildings
         );
-        staffedResidents = BannerModSettlementService.applyResidentJobTargetSelectionSeeds(staffedResidents, staffedMarketState);
+        staffedResidents = BannerModSettlementService.applyResidentJobTargetSelectionStates(staffedResidents, staffedMarketState);
         return new StaffingResult(staffedResidents, staffedBuildings, staffedMarketState);
     }
 

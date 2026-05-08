@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public record BannerModSettlementProjectCandidateSeed(
+public record BannerModSettlementProjectCandidateSnapshot(
         String candidateId,
         @Nullable BannerModSettlementBuildingProfileSeed targetBuildingProfileSeed,
         int priority,
@@ -17,7 +17,7 @@ public record BannerModSettlementProjectCandidateSeed(
         boolean claimedSettlement,
         List<String> driverIds
 ) {
-    public BannerModSettlementProjectCandidateSeed {
+    public BannerModSettlementProjectCandidateSnapshot {
         candidateId = candidateId == null || candidateId.isBlank() ? "none" : candidateId;
         priority = Math.max(0, priority);
         driverIds = List.copyOf(driverIds == null ? List.of() : driverIds);
@@ -42,11 +42,11 @@ public record BannerModSettlementProjectCandidateSeed(
         return tag;
     }
 
-    public static BannerModSettlementProjectCandidateSeed fromTag(CompoundTag tag) {
+    public static BannerModSettlementProjectCandidateSnapshot fromTag(CompoundTag tag) {
         BannerModSettlementBuildingProfileSeed targetBuildingProfileSeed = tag.contains("TargetBuildingProfileSeed", Tag.TAG_STRING)
                 ? BannerModSettlementBuildingProfileSeed.fromTagName(tag.getString("TargetBuildingProfileSeed"))
                 : null;
-        return new BannerModSettlementProjectCandidateSeed(
+        return new BannerModSettlementProjectCandidateSnapshot(
                 tag.contains("CandidateId", Tag.TAG_STRING) ? tag.getString("CandidateId") : "none",
                 targetBuildingProfileSeed,
                 tag.getInt("Priority"),
@@ -56,8 +56,8 @@ public record BannerModSettlementProjectCandidateSeed(
         );
     }
 
-    public static BannerModSettlementProjectCandidateSeed empty() {
-        return new BannerModSettlementProjectCandidateSeed("none", null, 0, false, false, List.of());
+    public static BannerModSettlementProjectCandidateSnapshot empty() {
+        return new BannerModSettlementProjectCandidateSnapshot("none", null, 0, false, false, List.of());
     }
 
     private static List<String> readDriverIds(ListTag list) {

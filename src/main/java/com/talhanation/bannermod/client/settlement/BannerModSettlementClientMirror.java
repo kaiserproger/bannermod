@@ -3,7 +3,7 @@ package com.talhanation.bannermod.client.settlement;
 import com.talhanation.bannermod.governance.BannerModGovernorPolicy;
 import com.talhanation.bannermod.governance.BannerModGovernorRecommendation;
 import com.talhanation.bannermod.governance.BannerModGovernorSnapshot;
-import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodSnapshot;
 import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
 import com.talhanation.bannermod.settlement.BannerModSettlementStrategicSignals;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.Envelope;
@@ -58,7 +58,7 @@ public final class BannerModSettlementClientMirror {
         List<String> recommendations = governor == null ? List.of() : new ArrayList<>(governor.recommendationTokens());
         if (settlement != null) {
             recommendations = new ArrayList<>(recommendations);
-            recommendations.addAll(settlement.tradeRouteHandoffSeed().seaTradeStatusLines());
+            recommendations.addAll(settlement.tradeRouteHandoffSnapshot().seaTradeStatusLines());
         }
 
         return new GovernorView(
@@ -103,11 +103,11 @@ public final class BannerModSettlementClientMirror {
                 + settlement.stockpileSummary().slotCapacity());
         BannerModSettlementStrategicSignals signals = BannerModSettlementStrategicSignals.fromSnapshot(settlement);
         lines.add("gui.bannermod.governor.logistics.role " + signals.roleId());
-        List<BannerModSettlementDesiredGoodSeed> desiredGoods = settlement.desiredGoodsSeed().desiredGoods();
+        List<BannerModSettlementDesiredGoodSnapshot> desiredGoods = settlement.desiredGoodsSnapshot().desiredGoods();
         lines.add(desiredGoods.isEmpty()
                 ? "gui.bannermod.governor.logistics.goods_none"
                 : "gui.bannermod.governor.logistics.goods " + desiredGoods.get(0).desiredGoodId() + " " + desiredGoods.get(0).driverCount());
-        lines.addAll(settlement.tradeRouteHandoffSeed().seaTradeStatusLines());
+        lines.addAll(settlement.tradeRouteHandoffSnapshot().seaTradeStatusLines());
         return lines;
     }
 

@@ -111,11 +111,11 @@ public final class BannerModSettlementService {
                     BannerModSettlementResidentRole.VILLAGER,
                     BannerModSettlementResidentScheduleSeed.SETTLEMENT_IDLE,
                     BannerModSettlementResidentScheduleWindowSeed.DAYLIGHT_FLEX,
-                    BannerModSettlementResidentRuntimeRoleSeed.VILLAGE_LIFE,
+                    BannerModSettlementResidentRuntimeRoleState.VILLAGE_LIFE,
                     BannerModSettlementResidentServiceContract.notServiceActor(),
                     BannerModSettlementResidentJobDefinition.defaultFor(
                             BannerModSettlementResidentRole.VILLAGER,
-                            BannerModSettlementResidentRuntimeRoleSeed.VILLAGE_LIFE,
+                            BannerModSettlementResidentRuntimeRoleState.VILLAGE_LIFE,
                             BannerModSettlementResidentServiceContract.notServiceActor(),
                             null
                     ),
@@ -132,7 +132,7 @@ public final class BannerModSettlementService {
             BannerModSettlementResidentAssignmentState assignmentState = worker.getBoundWorkAreaUUID() == null
                     ? BannerModSettlementResidentAssignmentState.UNASSIGNED
                     : BannerModSettlementResidentAssignmentState.ASSIGNED_MISSING_BUILDING;
-            BannerModSettlementResidentRuntimeRoleSeed runtimeRoleSeed = BannerModSettlementResidentRuntimeRoleSeed.defaultFor(
+            BannerModSettlementResidentRuntimeRoleState runtimeRoleState = BannerModSettlementResidentRuntimeRoleState.defaultFor(
                     BannerModSettlementResidentRole.CONTROLLED_WORKER,
                     scheduleSeed,
                     residentMode,
@@ -142,12 +142,12 @@ public final class BannerModSettlementService {
                     worker.getUUID(),
                     BannerModSettlementResidentRole.CONTROLLED_WORKER,
                     scheduleSeed,
-                    BannerModSettlementResidentScheduleWindowSeed.defaultFor(scheduleSeed, runtimeRoleSeed),
-                    runtimeRoleSeed,
+                    BannerModSettlementResidentScheduleWindowSeed.defaultFor(scheduleSeed, runtimeRoleState),
+                    runtimeRoleState,
                     BannerModSettlementResidentServiceContract.defaultFor(BannerModSettlementResidentRole.CONTROLLED_WORKER, residentMode, assignmentState, worker.getBoundWorkAreaUUID(), null),
                     BannerModSettlementResidentJobDefinition.defaultFor(
                             BannerModSettlementResidentRole.CONTROLLED_WORKER,
-                            runtimeRoleSeed,
+                            runtimeRoleState,
                             BannerModSettlementResidentServiceContract.defaultFor(BannerModSettlementResidentRole.CONTROLLED_WORKER, residentMode, assignmentState, worker.getBoundWorkAreaUUID(), null),
                             null
                     ),
@@ -164,11 +164,11 @@ public final class BannerModSettlementService {
                     BannerModSettlementResidentRole.GOVERNOR_RECRUIT,
                     BannerModSettlementResidentScheduleSeed.GOVERNING,
                     BannerModSettlementResidentScheduleWindowSeed.CIVIC_DAY,
-                    BannerModSettlementResidentRuntimeRoleSeed.GOVERNANCE,
+                    BannerModSettlementResidentRuntimeRoleState.GOVERNANCE,
                     BannerModSettlementResidentServiceContract.notServiceActor(),
                     BannerModSettlementResidentJobDefinition.defaultFor(
                             BannerModSettlementResidentRole.GOVERNOR_RECRUIT,
-                            BannerModSettlementResidentRuntimeRoleSeed.GOVERNANCE,
+                            BannerModSettlementResidentRuntimeRoleState.GOVERNANCE,
                             BannerModSettlementResidentServiceContract.notServiceActor(),
                             null
                     ),
@@ -213,7 +213,7 @@ public final class BannerModSettlementService {
                 assignmentState = BannerModSettlementResidentAssignmentState.ASSIGNED_MISSING_BUILDING;
             }
 
-            BannerModSettlementResidentRuntimeRoleSeed runtimeRoleSeed = BannerModSettlementResidentRuntimeRoleSeed.defaultFor(
+            BannerModSettlementResidentRuntimeRoleState runtimeRoleState = BannerModSettlementResidentRuntimeRoleState.defaultFor(
                     resident.role(),
                     resident.scheduleSeed(),
                     resident.residentMode(),
@@ -221,7 +221,7 @@ public final class BannerModSettlementService {
             );
             BannerModSettlementResidentScheduleWindowSeed scheduleWindowSeed = BannerModSettlementResidentScheduleWindowSeed.defaultFor(
                     resident.scheduleSeed(),
-                    runtimeRoleSeed
+                    runtimeRoleState
             );
 
             updatedResidents.add(new BannerModSettlementResidentRecord(
@@ -229,10 +229,10 @@ public final class BannerModSettlementService {
                     resident.role(),
                     resident.scheduleSeed(),
                     scheduleWindowSeed,
-                    runtimeRoleSeed,
+                    runtimeRoleState,
                     resident.serviceContract(),
                     resident.jobDefinition(),
-                    resident.jobTargetSelectionSeed(),
+                    resident.jobTargetSelectionState(),
                     resident.residentMode(),
                     resident.ownerUuid(),
                     resident.teamId(),
@@ -240,7 +240,7 @@ public final class BannerModSettlementService {
                     assignmentState,
                     BannerModSettlementResidentRoleProfile.defaultFor(
                             resident.role(),
-                            runtimeRoleSeed,
+                            runtimeRoleState,
                             resident.residentMode(),
                             assignmentState
                     )
@@ -277,10 +277,10 @@ public final class BannerModSettlementService {
                     resident.role(),
                     resident.scheduleSeed(),
                     resident.scheduleWindowSeed(),
-                    resident.runtimeRoleSeed(),
+                    resident.runtimeRoleState(),
                     serviceContract,
                     resident.jobDefinition(),
-                    resident.jobTargetSelectionSeed(),
+                    resident.jobTargetSelectionState(),
                     resident.residentMode(),
                     resident.ownerUuid(),
                     resident.teamId(),
@@ -310,7 +310,7 @@ public final class BannerModSettlementService {
                     : buildingsByUuid.get(resident.serviceContract().serviceBuildingUuid());
             BannerModSettlementResidentJobDefinition jobDefinition = BannerModSettlementResidentJobDefinition.defaultFor(
                     resident.role(),
-                    resident.runtimeRoleSeed(),
+                    resident.runtimeRoleState(),
                     resident.serviceContract(),
                     targetBuilding
             );
@@ -319,10 +319,10 @@ public final class BannerModSettlementService {
                     resident.role(),
                     resident.scheduleSeed(),
                     resident.scheduleWindowSeed(),
-                    resident.runtimeRoleSeed(),
+                    resident.runtimeRoleState(),
                     resident.serviceContract(),
                     jobDefinition,
-                    resident.jobTargetSelectionSeed(),
+                    resident.jobTargetSelectionState(),
                     resident.residentMode(),
                     resident.ownerUuid(),
                     resident.teamId(),
@@ -334,7 +334,7 @@ public final class BannerModSettlementService {
         return updatedResidents;
     }
 
-    static List<BannerModSettlementResidentRecord> applyResidentJobTargetSelectionSeeds(List<BannerModSettlementResidentRecord> residents,
+    static List<BannerModSettlementResidentRecord> applyResidentJobTargetSelectionStates(List<BannerModSettlementResidentRecord> residents,
                                                                                         BannerModSettlementMarketState marketState) {
         if (residents.isEmpty()) {
             return List.of();
@@ -342,7 +342,7 @@ public final class BannerModSettlementService {
 
         List<BannerModSettlementResidentRecord> updatedResidents = new ArrayList<>(residents.size());
         for (BannerModSettlementResidentRecord resident : residents) {
-            BannerModSettlementResidentJobTargetSelectionSeed jobTargetSelectionSeed = BannerModSettlementResidentJobTargetSelectionSeed.defaultFor(
+            BannerModSettlementResidentJobTargetSelectionState jobTargetSelectionState = BannerModSettlementResidentJobTargetSelectionState.defaultFor(
                     resident.residentUuid(),
                     resident.jobDefinition(),
                     resident.serviceContract(),
@@ -353,10 +353,10 @@ public final class BannerModSettlementService {
                     resident.role(),
                     resident.scheduleSeed(),
                     resident.scheduleWindowSeed(),
-                    resident.runtimeRoleSeed(),
+                    resident.runtimeRoleState(),
                     resident.serviceContract(),
                     resident.jobDefinition(),
-                    jobTargetSelectionSeed,
+                    jobTargetSelectionState,
                     resident.residentMode(),
                     resident.ownerUuid(),
                     resident.teamId(),
@@ -751,13 +751,13 @@ public final class BannerModSettlementService {
         return new BannerModSettlementMarketState(markets.size(), openMarketCount, totalStorageSlots, freeStorageSlots, 0, 0, markets, List.of());
     }
 
-    static BannerModSettlementDesiredGoodsSeed summarizeDesiredGoods(List<BannerModSettlementBuildingRecord> buildings,
+    static BannerModSettlementDesiredGoodsSnapshot summarizeDesiredGoods(List<BannerModSettlementBuildingRecord> buildings,
                                                                       BannerModSettlementStockpileSummary stockpileSummary,
                                                                       BannerModSettlementMarketState marketState) {
         return summarizeDesiredGoods(buildings, stockpileSummary, marketState, BannerModSeaTradeSummary.summarise(List.of()));
     }
 
-    static BannerModSettlementDesiredGoodsSeed summarizeDesiredGoods(List<BannerModSettlementBuildingRecord> buildings,
+    static BannerModSettlementDesiredGoodsSnapshot summarizeDesiredGoods(List<BannerModSettlementBuildingRecord> buildings,
                                                                       BannerModSettlementStockpileSummary stockpileSummary,
                                                                       BannerModSettlementMarketState marketState,
                                                                       BannerModSeaTradeSummary.Summary seaTradeSummary) {
@@ -784,64 +784,64 @@ public final class BannerModSettlementService {
             addDesiredGoodDriver(desiredGoods, "sea_export:" + entry.getKey(), entry.getValue());
         }
 
-        List<BannerModSettlementDesiredGoodSeed> desiredGoodSeeds = new ArrayList<>(desiredGoods.size());
+        List<BannerModSettlementDesiredGoodSnapshot> desiredGoodSeeds = new ArrayList<>(desiredGoods.size());
         for (Map.Entry<String, Integer> entry : desiredGoods.entrySet()) {
-            desiredGoodSeeds.add(new BannerModSettlementDesiredGoodSeed(entry.getKey(), entry.getValue()));
+            desiredGoodSeeds.add(new BannerModSettlementDesiredGoodSnapshot(entry.getKey(), entry.getValue()));
         }
-        return new BannerModSettlementDesiredGoodsSeed(desiredGoodSeeds);
+        return new BannerModSettlementDesiredGoodsSnapshot(desiredGoodSeeds);
     }
 
-    static BannerModSettlementTradeRouteHandoffSeed summarizeTradeRouteHandoffSeed(BannerModSettlementStockpileSummary stockpileSummary,
+    static BannerModSettlementTradeRouteHandoffSnapshot summarizeTradeRouteHandoffSnapshot(BannerModSettlementStockpileSummary stockpileSummary,
                                                                                      BannerModSettlementMarketState marketState,
-                                                                                     BannerModSettlementDesiredGoodsSeed desiredGoodsSeed,
+                                                                                     BannerModSettlementDesiredGoodsSnapshot desiredGoodsSnapshot,
                                                                                      ReservationSignalSeed reservationSignalSeed) {
-        return summarizeTradeRouteHandoffSeed(stockpileSummary, marketState, desiredGoodsSeed, reservationSignalSeed, BannerModSeaTradeSummary.summarise(List.of()));
+        return summarizeTradeRouteHandoffSnapshot(stockpileSummary, marketState, desiredGoodsSnapshot, reservationSignalSeed, BannerModSeaTradeSummary.summarise(List.of()));
     }
 
-    static BannerModSettlementTradeRouteHandoffSeed summarizeTradeRouteHandoffSeed(BannerModSettlementStockpileSummary stockpileSummary,
+    static BannerModSettlementTradeRouteHandoffSnapshot summarizeTradeRouteHandoffSnapshot(BannerModSettlementStockpileSummary stockpileSummary,
                                                                                       BannerModSettlementMarketState marketState,
-                                                                                      BannerModSettlementDesiredGoodsSeed desiredGoodsSeed,
+                                                                                      BannerModSettlementDesiredGoodsSnapshot desiredGoodsSnapshot,
                                                                                       ReservationSignalSeed reservationSignalSeed,
                                                                                       BannerModSeaTradeSummary.Summary seaTradeSummary) {
-        return summarizeTradeRouteHandoffSeed(stockpileSummary, marketState, desiredGoodsSeed, reservationSignalSeed, seaTradeSummary, List.of());
+        return summarizeTradeRouteHandoffSnapshot(stockpileSummary, marketState, desiredGoodsSnapshot, reservationSignalSeed, seaTradeSummary, List.of());
     }
 
-    static BannerModSettlementTradeRouteHandoffSeed summarizeTradeRouteHandoffSeed(BannerModSettlementStockpileSummary stockpileSummary,
+    static BannerModSettlementTradeRouteHandoffSnapshot summarizeTradeRouteHandoffSnapshot(BannerModSettlementStockpileSummary stockpileSummary,
                                                                                       BannerModSettlementMarketState marketState,
-                                                                                      BannerModSettlementDesiredGoodsSeed desiredGoodsSeed,
+                                                                                      BannerModSettlementDesiredGoodsSnapshot desiredGoodsSnapshot,
                                                                                       ReservationSignalSeed reservationSignalSeed,
                                                                                       BannerModSeaTradeSummary.Summary seaTradeSummary,
                                                                                       List<BannerModSeaTradeExecutionRecord> seaTradeExecutionRecords) {
-        return new BannerModSettlementTradeRouteHandoffSeed(
+        return new BannerModSettlementTradeRouteHandoffSnapshot(
                 marketState.sellerDispatchCount(),
                 marketState.readySellerDispatchCount(),
                 stockpileSummary.routedStorageCount(),
                 stockpileSummary.portEntrypointCount(),
                 reservationSignalSeed.activeReservationCount(),
                 reservationSignalSeed.reservedUnitCount(),
-                desiredGoodsSeed.desiredGoods(),
+                desiredGoodsSnapshot.desiredGoods(),
                 marketState.sellerDispatches(),
                 seaTradeStatusLines(seaTradeSummary, seaTradeExecutionRecords)
         );
     }
 
-    static BannerModSettlementSupplySignalState summarizeSupplySignals(BannerModSettlementDesiredGoodsSeed desiredGoodsSeed,
+    static BannerModSettlementSupplySignalState summarizeSupplySignals(BannerModSettlementDesiredGoodsSnapshot desiredGoodsSnapshot,
                                                                         BannerModSettlementStockpileSummary stockpileSummary,
                                                                         BannerModSettlementMarketState marketState,
                                                                         List<BannerModSettlementResidentRecord> residents,
                                                                         List<BannerModSettlementBuildingRecord> buildings,
                                                                         ReservationSignalSeed reservationSignalSeed) {
-        return summarizeSupplySignals(desiredGoodsSeed, stockpileSummary, marketState, residents, buildings, reservationSignalSeed, BannerModSeaTradeSummary.summarise(List.of()));
+        return summarizeSupplySignals(desiredGoodsSnapshot, stockpileSummary, marketState, residents, buildings, reservationSignalSeed, BannerModSeaTradeSummary.summarise(List.of()));
     }
 
-    static BannerModSettlementSupplySignalState summarizeSupplySignals(BannerModSettlementDesiredGoodsSeed desiredGoodsSeed,
+    static BannerModSettlementSupplySignalState summarizeSupplySignals(BannerModSettlementDesiredGoodsSnapshot desiredGoodsSnapshot,
                                                                         BannerModSettlementStockpileSummary stockpileSummary,
                                                                         BannerModSettlementMarketState marketState,
                                                                         List<BannerModSettlementResidentRecord> residents,
                                                                         List<BannerModSettlementBuildingRecord> buildings,
                                                                         ReservationSignalSeed reservationSignalSeed,
                                                                         BannerModSeaTradeSummary.Summary seaTradeSummary) {
-        if (desiredGoodsSeed.desiredGoods().isEmpty()) {
+        if (desiredGoodsSnapshot.desiredGoods().isEmpty()) {
             return BannerModSettlementSupplySignalState.empty();
         }
 
@@ -873,7 +873,7 @@ public final class BannerModSettlementService {
         int shortageSignalCount = 0;
         int shortageUnitCount = 0;
         int reservationHintUnitCount = 0;
-        for (BannerModSettlementDesiredGoodSeed desiredGood : desiredGoodsSeed.desiredGoods()) {
+        for (BannerModSettlementDesiredGoodSnapshot desiredGood : desiredGoodsSnapshot.desiredGoods()) {
             int coverageUnits = resolveSupplyCoverageUnits(desiredGood.desiredGoodId(), stockpileSummary, marketState, serviceCoverageByGood, seaTradeSummary);
             int shortageUnits = Math.max(0, desiredGood.driverCount() - coverageUnits);
             int reservationHintUnits = reservationSignalSeed.reservationHintUnitsByGood().getOrDefault(desiredGood.desiredGoodId(), 0);
@@ -900,9 +900,9 @@ public final class BannerModSettlementService {
         );
     }
 
-    static BannerModSettlementProjectCandidateSeed summarizeProjectCandidate(List<BannerModSettlementBuildingRecord> buildings,
+    static BannerModSettlementProjectCandidateSnapshot summarizeProjectCandidate(List<BannerModSettlementBuildingRecord> buildings,
                                                                             BannerModSettlementStockpileSummary stockpileSummary,
-                                                                            BannerModSettlementDesiredGoodsSeed desiredGoodsSeed,
+                                                                            BannerModSettlementDesiredGoodsSnapshot desiredGoodsSnapshot,
                                                                             BannerModSettlementMarketState marketState,
                                                                             boolean governedSettlement,
                                                                             boolean claimedSettlement) {
@@ -912,13 +912,13 @@ public final class BannerModSettlementService {
         }
 
         Map<String, Integer> desiredGoodsById = new LinkedHashMap<>();
-        for (BannerModSettlementDesiredGoodSeed desiredGood : desiredGoodsSeed.desiredGoods()) {
+        for (BannerModSettlementDesiredGoodSnapshot desiredGood : desiredGoodsSnapshot.desiredGoods()) {
             desiredGoodsById.merge(desiredGood.desiredGoodId(), desiredGood.driverCount(), Integer::sum);
         }
 
         int governanceBoost = (governedSettlement ? 1 : 0) + (claimedSettlement ? 1 : 0);
         if (stockpileSummary.storageBuildingCount() <= 0 && (!buildings.isEmpty() || !desiredGoodsById.isEmpty())) {
-            return new BannerModSettlementProjectCandidateSeed(
+            return new BannerModSettlementProjectCandidateSnapshot(
                     "storage_foundation",
                     BannerModSettlementBuildingProfileSeed.STORAGE,
                     1 + governanceBoost + Math.min(2, desiredGoodsById.size()),
@@ -928,7 +928,7 @@ public final class BannerModSettlementService {
             );
         }
         if (marketState.marketCount() <= 0 && desiredGoodsById.getOrDefault("market_goods", 0) > 0) {
-            return new BannerModSettlementProjectCandidateSeed(
+            return new BannerModSettlementProjectCandidateSnapshot(
                     "market_foundation",
                     BannerModSettlementBuildingProfileSeed.MARKET,
                     1 + governanceBoost + Math.min(2, desiredGoodsById.getOrDefault("market_goods", 0)),
@@ -938,7 +938,7 @@ public final class BannerModSettlementService {
             );
         }
         if (marketState.marketCount() > marketState.openMarketCount()) {
-            return new BannerModSettlementProjectCandidateSeed(
+            return new BannerModSettlementProjectCandidateSnapshot(
                     "market_recovery",
                     BannerModSettlementBuildingProfileSeed.MARKET,
                     1 + governanceBoost + (marketState.marketCount() - marketState.openMarketCount()),
@@ -948,7 +948,7 @@ public final class BannerModSettlementService {
             );
         }
 
-        BannerModSettlementProjectCandidateSeed foodCandidate = buildProfilePressureCandidate(
+        BannerModSettlementProjectCandidateSnapshot foodCandidate = buildProfilePressureCandidate(
                 "food_capacity_growth",
                 BannerModSettlementBuildingProfileSeed.FOOD_PRODUCTION,
                 desiredGoodsById.getOrDefault("food", 0),
@@ -962,7 +962,7 @@ public final class BannerModSettlementService {
             return foodCandidate;
         }
 
-        BannerModSettlementProjectCandidateSeed materialCandidate = buildProfilePressureCandidate(
+        BannerModSettlementProjectCandidateSnapshot materialCandidate = buildProfilePressureCandidate(
                 "material_capacity_growth",
                 BannerModSettlementBuildingProfileSeed.MATERIAL_PRODUCTION,
                 desiredGoodsById.getOrDefault("materials", 0),
@@ -976,7 +976,7 @@ public final class BannerModSettlementService {
             return materialCandidate;
         }
 
-        BannerModSettlementProjectCandidateSeed constructionCandidate = buildProfilePressureCandidate(
+        BannerModSettlementProjectCandidateSnapshot constructionCandidate = buildProfilePressureCandidate(
                 "construction_capacity_growth",
                 BannerModSettlementBuildingProfileSeed.CONSTRUCTION,
                 desiredGoodsById.getOrDefault("construction_materials", 0),
@@ -990,7 +990,7 @@ public final class BannerModSettlementService {
             return constructionCandidate;
         }
 
-        return new BannerModSettlementProjectCandidateSeed(
+        return new BannerModSettlementProjectCandidateSnapshot(
                 "none",
                 null,
                 0,
@@ -1278,7 +1278,7 @@ public final class BannerModSettlementService {
         };
     }
 
-    private static BannerModSettlementProjectCandidateSeed buildProfilePressureCandidate(String candidateId,
+    private static BannerModSettlementProjectCandidateSnapshot buildProfilePressureCandidate(String candidateId,
                                                                                           BannerModSettlementBuildingProfileSeed targetProfileSeed,
                                                                                           int desiredCount,
                                                                                          int currentCount,
@@ -1288,9 +1288,9 @@ public final class BannerModSettlementService {
                                                                                          List<String> driverIds) {
         int pressure = desiredCount - currentCount;
         if (pressure <= 0) {
-            return BannerModSettlementProjectCandidateSeed.empty();
+            return BannerModSettlementProjectCandidateSnapshot.empty();
         }
-        return new BannerModSettlementProjectCandidateSeed(
+        return new BannerModSettlementProjectCandidateSnapshot(
                 candidateId,
                 targetProfileSeed,
                 Math.min(5, governanceBoost + pressure),

@@ -4,7 +4,7 @@ import net.minecraft.nbt.CompoundTag;
 
 public record BannerModSettlementResidentRoleProfile(
         BannerModSettlementResidentRole role,
-        BannerModSettlementResidentRuntimeRoleSeed runtimeRoleSeed,
+        BannerModSettlementResidentRuntimeRoleState runtimeRoleState,
         BannerModSettlementResidentMode residentMode,
         BannerModSettlementResidentAssignmentState assignmentState,
         String profileId,
@@ -14,7 +14,7 @@ public record BannerModSettlementResidentRoleProfile(
     public CompoundTag toTag() {
         CompoundTag tag = new CompoundTag();
         tag.putString("Role", this.role.name());
-        tag.putString("RuntimeRoleSeed", this.runtimeRoleSeed.name());
+        tag.putString("RuntimeRoleSeed", this.runtimeRoleState.name());
         tag.putString("ResidentMode", this.residentMode.name());
         tag.putString("AssignmentState", this.assignmentState.name());
         tag.putString("ProfileId", this.profileId);
@@ -26,7 +26,7 @@ public record BannerModSettlementResidentRoleProfile(
     public static BannerModSettlementResidentRoleProfile fromTag(CompoundTag tag) {
         return new BannerModSettlementResidentRoleProfile(
                 BannerModSettlementResidentRole.fromTagName(tag.getString("Role")),
-                BannerModSettlementResidentRuntimeRoleSeed.fromTagName(tag.getString("RuntimeRoleSeed")),
+                BannerModSettlementResidentRuntimeRoleState.fromTagName(tag.getString("RuntimeRoleSeed")),
                 BannerModSettlementResidentMode.fromTagName(tag.getString("ResidentMode")),
                 BannerModSettlementResidentAssignmentState.fromTagName(tag.getString("AssignmentState")),
                 tag.getString("ProfileId"),
@@ -36,13 +36,13 @@ public record BannerModSettlementResidentRoleProfile(
     }
 
     public static BannerModSettlementResidentRoleProfile defaultFor(BannerModSettlementResidentRole role,
-                                                                    BannerModSettlementResidentRuntimeRoleSeed runtimeRoleSeed,
+                                                                    BannerModSettlementResidentRuntimeRoleState runtimeRoleState,
                                                                     BannerModSettlementResidentMode residentMode,
                                                                     BannerModSettlementResidentAssignmentState assignmentState) {
-        return switch (runtimeRoleSeed) {
+        return switch (runtimeRoleState) {
             case VILLAGE_LIFE -> new BannerModSettlementResidentRoleProfile(
                     role,
-                    runtimeRoleSeed,
+                    runtimeRoleState,
                     residentMode,
                     assignmentState,
                     "village_life",
@@ -51,7 +51,7 @@ public record BannerModSettlementResidentRoleProfile(
             );
             case GOVERNANCE -> new BannerModSettlementResidentRoleProfile(
                     role,
-                    runtimeRoleSeed,
+                    runtimeRoleState,
                     residentMode,
                     assignmentState,
                     "governance",
@@ -60,7 +60,7 @@ public record BannerModSettlementResidentRoleProfile(
             );
             case LOCAL_LABOR -> new BannerModSettlementResidentRoleProfile(
                     role,
-                    runtimeRoleSeed,
+                    runtimeRoleState,
                     residentMode,
                     assignmentState,
                     residentMode == BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER
@@ -71,7 +71,7 @@ public record BannerModSettlementResidentRoleProfile(
             );
             case FLOATING_LABOR -> new BannerModSettlementResidentRoleProfile(
                     role,
-                    runtimeRoleSeed,
+                    runtimeRoleState,
                     residentMode,
                     assignmentState,
                     residentMode == BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER
@@ -82,7 +82,7 @@ public record BannerModSettlementResidentRoleProfile(
             );
             case ORPHANED_LABOR_ASSIGNMENT -> new BannerModSettlementResidentRoleProfile(
                     role,
-                    runtimeRoleSeed,
+                    runtimeRoleState,
                     residentMode,
                     assignmentState,
                     "orphaned_labor_assignment",

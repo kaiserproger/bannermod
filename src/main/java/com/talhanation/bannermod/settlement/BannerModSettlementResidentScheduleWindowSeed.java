@@ -37,13 +37,13 @@ public enum BannerModSettlementResidentScheduleWindowSeed {
     }
 
     public static BannerModSettlementResidentScheduleWindowSeed defaultFor(BannerModSettlementResidentScheduleSeed scheduleSeed,
-                                                                           BannerModSettlementResidentRuntimeRoleSeed runtimeRoleSeed) {
-        if (runtimeRoleSeed == BannerModSettlementResidentRuntimeRoleSeed.GOVERNANCE
+                                                                           BannerModSettlementResidentRuntimeRoleState runtimeRoleState) {
+        if (runtimeRoleState == BannerModSettlementResidentRuntimeRoleState.GOVERNANCE
                 || scheduleSeed == BannerModSettlementResidentScheduleSeed.GOVERNING) {
             return CIVIC_DAY;
         }
-        if (runtimeRoleSeed == BannerModSettlementResidentRuntimeRoleSeed.LOCAL_LABOR
-                || runtimeRoleSeed == BannerModSettlementResidentRuntimeRoleSeed.ORPHANED_LABOR_ASSIGNMENT
+        if (runtimeRoleState == BannerModSettlementResidentRuntimeRoleState.LOCAL_LABOR
+                || runtimeRoleState == BannerModSettlementResidentRuntimeRoleState.ORPHANED_LABOR_ASSIGNMENT
                 || scheduleSeed == BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK) {
             return LABOR_DAY;
         }
