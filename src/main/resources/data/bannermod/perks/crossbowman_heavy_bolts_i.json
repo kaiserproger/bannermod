@@ -1,0 +1,12 @@
+{
+  "id": "crossbowman/heavy_bolts_i",
+  "archetype": "crossbowman",
+  "point_cost": 1,
+  "prerequisites": [],
+  "bonuses": [
+    {
+      "stat": "ranged_velocity",
+      "amount": 0.1
+    }
+  ]
+}
