@@ -20,7 +20,7 @@ public final class PerkRegistry {
     private static final Map<PerkArchetype, List<PerkNode>> BY_ARCHETYPE = new EnumMap<>(PerkArchetype.class);
 
     static {
-        replaceAll(List.of());
+        replaceAll(defaultNodes());
     }
 
     private PerkRegistry() {
@@ -60,6 +60,23 @@ public final class PerkRegistry {
      */
     public static boolean isKnown(String id) {
         return BY_ID.containsKey(id);
+    }
+
+    private static List<PerkNode> defaultNodes() {
+        return List.of(
+                PerkNode.leaf("universal/toughness_i", PerkArchetype.UNIVERSAL, 1,
+                        new PerkBonus(PerkStat.MAX_HEALTH, 2.0D)),
+                PerkNode.leaf("swordsman/iron_grip_i", PerkArchetype.SWORDSMAN, 1,
+                        new PerkBonus(PerkStat.ATTACK_DAMAGE, 0.5D)),
+                PerkNode.leaf("bowman/steady_aim_i", PerkArchetype.BOWMAN, 1,
+                        new PerkBonus(PerkStat.RANGED_ACCURACY, 0.05D)),
+                PerkNode.leaf("crossbowman/heavy_bolts_i", PerkArchetype.CROSSBOWMAN, 1,
+                        new PerkBonus(PerkStat.RANGED_VELOCITY, 0.1D)),
+                PerkNode.leaf("pikeman/braced_stance_i", PerkArchetype.PIKEMAN, 1,
+                        new PerkBonus(PerkStat.KNOCKBACK_RESIST, 0.1D)),
+                PerkNode.leaf("cavalry/swift_charge_i", PerkArchetype.CAVALRY, 1,
+                        new PerkBonus(PerkStat.MOVEMENT_SPEED, 0.01D))
+        );
     }
 
 }
