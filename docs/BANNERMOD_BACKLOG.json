@@ -9306,7 +9306,7 @@
     {
       "id": "ADMINCMDS-001A",
       "title": "Admin claim settlement and treasury recovery commands",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "Ops need focused recovery commands for orphaned claims and incorrect treasury state without mixing unrelated worker, war, and debug command work.",
       "scope": [
@@ -9323,8 +9323,14 @@
         "GAMETESTBASE-001"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) /bannermod settlement prune, treasury set, treasury show, and claim trust prune-dead-uuids are registered under /bannermod with source.hasPermission(2); claimUuid is parsed through UUID.fromString and treasury amount uses IntegerArgumentType.integer(0); handlers use ServerLevel from CommandSourceStack. 2) GameTest coverage added: settlementPruneRemovesSnapshotByClaimUuid, treasurySetWritesRequestedBalance, treasuryShowReportsExistingBalance, claimTrustPruneDeadUuidsRemovesInvalidTrustedEntries. 3) Verification passed: ctx log -- ./gradlew compileJava, ctx log -- ./gradlew compileGametestJava, ctx log -- ./gradlew runGameTestServer, tools/backlog validate."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "ADMINCMDS-001B",
