@@ -44,9 +44,8 @@ import static org.junit.jupiter.api.Assertions.fail;
  * </ul>
  *
  * <p>Acceptance for TESTFUZZ-001 is the harness existing and running. Handlers that DO leak a
- * {@link RuntimeException} on adversarial input are documented in
- * {@link #KNOWN_LEAKY_HANDLERS} with a {@code TODO(FUZZHARDEN-001)} marker and tracked under the
- * follow-up backlog task. Hardening the handlers themselves is explicitly out of scope here.
+ * {@link RuntimeException} on adversarial input should be hardened or, if intentionally deferred,
+ * documented in {@link #KNOWN_LEAKY_HANDLERS} with a tracked follow-up.
  */
 class BannerModMessageFuzzHarnessTest {
 
@@ -160,8 +159,8 @@ class BannerModMessageFuzzHarnessTest {
             StringBuilder msg = new StringBuilder();
             msg.append("Fuzz harness detected ").append(uniqueLeakers.size())
                     .append(" handlers leaking RuntimeException on adversarial input. ");
-            msg.append("Either add them to KNOWN_LEAKY_HANDLERS with a TODO(FUZZHARDEN-001) ")
-                    .append("comment and track them under a follow-up task, or harden the handlers.\n");
+            msg.append("Either harden the handlers or add them to KNOWN_LEAKY_HANDLERS ")
+                    .append("with a tracked follow-up.\n");
             msg.append("Unique leaking classes:\n");
             for (String leakerClass : uniqueLeakers) {
                 msg.append("  - ").append(leakerClass).append('\n');
