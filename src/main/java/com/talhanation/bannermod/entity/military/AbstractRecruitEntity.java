@@ -8,7 +8,7 @@ import com.talhanation.bannermod.citizen.CitizenRole;
 import com.talhanation.bannermod.entity.citizen.AbstractCitizenEntity;
 import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.events.*;
-import com.talhanation.bannermod.events.RecruitEvent;
+import com.talhanation.bannermod.api.event.RecruitEvent;
 import com.talhanation.bannermod.compat.IWeapon;
 import com.talhanation.bannermod.config.RecruitsClientConfig;
 import com.talhanation.bannermod.config.RecruitsServerConfig;

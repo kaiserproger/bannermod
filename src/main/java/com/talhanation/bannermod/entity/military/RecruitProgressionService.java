@@ -2,7 +2,7 @@ package com.talhanation.bannermod.entity.military;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.config.RecruitsServerConfig;
-import com.talhanation.bannermod.events.RecruitEvent;
+import com.talhanation.bannermod.api.event.RecruitEvent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;

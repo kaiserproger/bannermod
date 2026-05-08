@@ -1,4 +1,4 @@
-package com.talhanation.bannermod.events;
+package com.talhanation.bannermod.api.event;
 
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import net.minecraft.world.entity.player.Player;

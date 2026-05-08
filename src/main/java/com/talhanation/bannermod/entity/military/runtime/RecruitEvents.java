@@ -5,7 +5,7 @@ import com.talhanation.bannermod.governance.BannerModGovernorPolicy;
 import com.talhanation.bannermod.governance.runtime.RecruitGovernorWorkflow;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.entity.military.ICompanion;
-import com.talhanation.bannermod.events.RecruitEvent;
+import com.talhanation.bannermod.api.event.RecruitEvent;
 import com.talhanation.bannermod.registry.military.ModEntityTypes;
 import com.talhanation.bannermod.inventory.military.PromoteContainer;
 import com.talhanation.bannermod.network.messages.military.MessageOpenPromoteScreen;
