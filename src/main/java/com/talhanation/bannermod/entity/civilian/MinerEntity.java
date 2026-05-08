@@ -7,7 +7,6 @@ import com.talhanation.bannermod.entity.civilian.workarea.MiningArea;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.util.RandomSource;
@@ -34,22 +33,6 @@ import java.util.function.Predicate;
 public class MinerEntity extends AbstractWorkerEntity{
     public MinerEntity(EntityType<? extends AbstractWorkerEntity> entityType, Level world) {
         super(entityType, world);
-    }
-
-    @Override
-    public void tick() {
-        super.tick();
-        this.updateMiningIdleStatus();
-    }
-
-    private void updateMiningIdleStatus() {
-        if (!(this.getCommandSenderWorld() instanceof ServerLevel level)) {
-            return;
-        }
-        if (this.needsToSleep() || !this.shouldWork() || this.needsToGetToChest() || this.getCurrentMiningArea() != null) {
-            return;
-        }
-        this.reportIdleReason("miner_no_area", Component.literal(this.getName().getString() + ": Waiting for a mining area."));
     }
 
     public static AttributeSupplier.Builder setAttributes() {
