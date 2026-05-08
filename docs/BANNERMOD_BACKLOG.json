@@ -7840,8 +7840,8 @@
     {
       "id": "NAMINGCONV-001",
       "title": "Establish + enforce Seed/Record/Snapshot/State naming convention",
-      "status": "open",
-      "updated": "2026-05-04",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "These suffixes coexist in settlement/ with overlapping semantics (BannerModSettlementResidentScheduleSeed, ...SchedulePolicySeed, ...ScheduleWindowSeed, etc). Source: review Part A 12.2 / VERIFIED.",
       "scope": [
         "Document convention in docs/CONTRIBUTING.md: Seed = static config-derived input, Record = persistent immutable, Snapshot = live read-only view, State = mutable runtime",
@@ -7854,8 +7854,14 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) CONTRIBUTING.md now documents Seed/Record/Snapshot/State conventions and includes a ctx-derived settlement suffix audit table. 2) Audit renamed mismatched settlement classes from Seed to Snapshot/State while preserving persisted tag keys where needed. 3) code-simplifier reviewed stale names; ./gradlew compileJava passed via ctx log; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "SKILLTREE-002",
