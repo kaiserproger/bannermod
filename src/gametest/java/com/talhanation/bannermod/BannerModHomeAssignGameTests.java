@@ -27,7 +27,8 @@ import java.util.UUID;
  *   <li>Recruits, workers, and citizens all expose a {@code homePos} that
  *       round-trips through NBT.</li>
  *   <li>{@link MessageAssignHome#handle} validates ownership and bed
- *       targets (rejects unknown entity, non-owner, and non-bed pos).</li>
+ *       targets, then applies the same server-side home update used by the
+ *       30-second Assign Home selector flow.</li>
  * </ul>
  *
  * <p>Save/load round-trip is exercised in the harness by the
@@ -125,7 +126,7 @@ public class BannerModHomeAssignGameTests {
 
     @PrefixGameTestTemplate(false)
     @GameTest(template = "harness_empty")
-    public static void assignHomeAcceptsBedFromOwner(GameTestHelper helper) {
+    public static void assignHomeMessageAcceptsBedFromOwner(GameTestHelper helper) {
         UUID ownerId = UUID.randomUUID();
         ServerPlayer owner = (ServerPlayer) BannerModDedicatedServerGameTestSupport.createPositionedFakeServerPlayer(
                 helper.getLevel(), ownerId, "homeassign-owner", helper.absolutePos(BlockPos.ZERO));
@@ -134,6 +135,7 @@ public class BannerModHomeAssignGameTests {
         // Pin the recruit's owner explicitly to the fake server player so the
         // ownership check inside MessageAssignHome#handle accepts the request.
         recruit.setOwnerUUID(Optional.of(ownerId));
+        recruit.setHomeBuildAreaUUID(UUID.randomUUID());
 
         BlockPos bedRel = new BlockPos(1, 1, 1);
         BlockPos bedAbs = helper.absolutePos(bedRel);
@@ -143,7 +145,9 @@ public class BannerModHomeAssignGameTests {
         boolean accepted = MessageAssignHome.handle(owner, recruit.getUUID(), bedAbs);
         helper.assertTrue(accepted, "Owner should be allowed to assign a bed as home");
         helper.assertTrue(bedAbs.equals(recruit.getHomePos()),
-                "Recruit homePos must update to the bed BlockPos after assign-home");
+                "Recruit homePos must update to the bed BlockPos through MessageAssignHome");
+        helper.assertTrue(recruit.getHomeBuildAreaUUID() == null,
+                "MessageAssignHome must clear stale prefab home linkage for direct bed assignment");
 
         helper.succeed();
     }
