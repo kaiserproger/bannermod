@@ -9,6 +9,7 @@ import com.talhanation.bannermod.client.military.gui.widgets.ActionMenuButton;
 import com.talhanation.bannermod.client.military.gui.widgets.ContextMenuEntry;
 import com.talhanation.bannermod.entity.civilian.WorkerInspectionSnapshot;
 import com.talhanation.bannermod.network.messages.civilian.MessageConvertWorkerToCitizen;
+import com.talhanation.bannermod.network.messages.civilian.MessageDismissWorker;
 import com.talhanation.bannermod.network.messages.civilian.MessageOpenWorkerScreen;
 import com.talhanation.bannermod.network.messages.civilian.MessageReassignWorkerProfession;
 import net.minecraft.client.Minecraft;
@@ -58,20 +59,18 @@ public class WorkerStatusScreen extends Screen {
         ));
         refresh.setTooltip(Tooltip.create(text("gui.bannermod.worker_screen.refresh.tooltip")));
 
-        SmallCommandButton convert = this.addRenderableWidget(new SmallCommandButton(
+        ActionMenuButton workerActions = new ActionMenuButton(
                 firstCenter + strideX - BTN_W / 2, rowY, BTN_W, BTN_H,
-                clamped("gui.bannermod.worker_screen.convert"),
-                button -> {
-                    BannerModMain.SIMPLE_CHANNEL.sendToServer(new MessageConvertWorkerToCitizen(this.snapshot.workerUuid()));
-                    this.onClose();
-                }
-        ));
-        convert.active = this.snapshot.canConvert();
+                clamped("gui.bannermod.worker_screen.actions"),
+                buildWorkerActionEntries()
+        );
+        workerActions.setOpenUpward(true);
         if (this.snapshot.convertBlockedReasonKey() != null) {
-            convert.setTooltip(Tooltip.create(text(this.snapshot.convertBlockedReasonKey())));
+            workerActions.setTooltip(Tooltip.create(text(this.snapshot.convertBlockedReasonKey())));
         } else {
-            convert.setTooltip(Tooltip.create(text("gui.bannermod.worker_screen.convert.tooltip.dismiss_path")));
+            workerActions.setTooltip(Tooltip.create(text("gui.bannermod.worker_screen.actions.tooltip")));
         }
+        this.addRenderableWidget(workerActions);
 
         // Reassign — opens an ActionMenuButton with one row per available
         // CONTROLLED_WORKER profession (current one filtered out). Server is
@@ -124,6 +123,27 @@ public class WorkerStatusScreen extends Screen {
                 this.onClose();
             }, true));
         }
+        return entries;
+    }
+
+    private List<ContextMenuEntry> buildWorkerActionEntries() {
+        List<ContextMenuEntry> entries = new ArrayList<>();
+        entries.add(new ContextMenuEntry(
+                Component.translatable("gui.bannermod.worker_screen.convert").getString(),
+                () -> {
+                    BannerModMain.SIMPLE_CHANNEL.sendToServer(new MessageConvertWorkerToCitizen(this.snapshot.workerUuid()));
+                    this.onClose();
+                },
+                this.snapshot.canConvert()
+        ));
+        entries.add(new ContextMenuEntry(
+                Component.translatable("gui.bannermod.worker_screen.dismiss").getString(),
+                () -> {
+                    BannerModMain.SIMPLE_CHANNEL.sendToServer(new MessageDismissWorker(this.snapshot.workerUuid()));
+                    this.onClose();
+                },
+                true
+        ));
         return entries;
     }
 
