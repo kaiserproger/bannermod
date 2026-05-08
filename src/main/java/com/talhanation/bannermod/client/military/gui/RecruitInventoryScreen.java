@@ -313,7 +313,7 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         if (!moreButton.active) moreButton.setTooltip(Tooltip.create(TOOLTIP_NOBLE_LOCKED));
         addRenderableWidget(moreButton);
 
-        Button assignHome = addRenderableWidget(new ProfileButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 8,
+        Button assignHome = addRenderableWidget(new ProfileButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 6,
                 80, 20, TEXT_ASSIGN_HOME, button -> {
             AssignHomeTargetSelector.start(this.recruit.getUUID());
             this.onClose();
