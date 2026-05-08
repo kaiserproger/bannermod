@@ -383,7 +383,7 @@ public final class SettlementOrderWorkGoal extends Goal {
             this.activeOrder = null;
             return;
         }
-        if(!fisherman.hasFreeInvSlot()){
+        if (!fisherman.hasFreeInvSlot()) {
             fisherman.reportBlockedReason("fisherman_inventory_full", Component.literal(fisherman.getName().getString() + ": My inventory is full."));
             fisherman.forcedDeposit = true;
             runtime.release(activeOrder.orderUuid());
@@ -392,7 +392,7 @@ public final class SettlementOrderWorkGoal extends Goal {
         }
 
         boolean hasFishingRod = fisherman.getInventory().hasAnyMatching(itemStack -> itemStack.getItem() instanceof FishingRodItem);
-        if(!hasFishingRod){
+        if (!hasFishingRod) {
             fisherman.requestRequiredItem(new NeededItem(stack -> stack.getItem() instanceof FishingRodItem, 1, true),
                     "fisherman_missing_rod",
                     Component.literal(fisherman.getName().getString() + ": I need a fishing rod to continue."));
@@ -412,7 +412,9 @@ public final class SettlementOrderWorkGoal extends Goal {
         fisherman.spawnFishingLoot(fishingBobber);
         fishingBobber.discard();
         fisherman.farmedItems++;
-        if(fisherman.tickCount % 2 == 0) fisherman.damageMainHandItem();
+        if (fisherman.tickCount % 2 == 0) {
+            fisherman.damageMainHandItem();
+        }
         completeActiveOrder(runtime, level);
         this.activeOrder = null;
     }
@@ -428,7 +430,15 @@ public final class SettlementOrderWorkGoal extends Goal {
             return false;
         }
         return switch (order.type()) {
-            case HARVEST_CROP, BREAK_BLOCK, MINE_BLOCK, FELL_TREE, TILL_SOIL, PLANT_CROP, REPLANT_TREE, BUILD_BLOCK -> true;
+            case HARVEST_CROP,
+                 BREAK_BLOCK,
+                 MINE_BLOCK,
+                 FELL_TREE,
+                 FISH,
+                 TILL_SOIL,
+                 PLANT_CROP,
+                 REPLANT_TREE,
+                 BUILD_BLOCK -> true;
             default -> false;
         };
     }

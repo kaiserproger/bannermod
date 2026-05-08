@@ -57,6 +57,8 @@ class FishermanWorkGoalMigrationContractTest {
                 "publisher must emit the fixed fishing-area target position");
 
         int fishCase = goal.indexOf("case FISH");
+        int executableGate = goal.indexOf("private static boolean isExecutableOrder");
+        int executableFish = goal.indexOf("FISH", executableGate);
         int switchRod = goal.indexOf("fisherman.switchMainHandItem", fishCase);
         int throwSwing = goal.indexOf("fisherman.swing(InteractionHand.MAIN_HAND)", switchRod);
         int throwSound = goal.indexOf("SoundEvents.FISHING_BOBBER_THROW", throwSwing);
@@ -71,6 +73,8 @@ class FishermanWorkGoalMigrationContractTest {
         int complete = goal.indexOf("completeActiveOrder(runtime, level)", damageRod);
 
         assertTrue(fishCase >= 0, "SettlementOrderWorkGoal must handle FISH orders");
+        assertTrue(executableFish > executableGate,
+                "SettlementOrderWorkGoal must accept FISH orders before the FISH path can run");
         assertTrue(switchRod > fishCase,
                 "fixed fishing target must select a fishing rod before casting");
         assertTrue(throwSwing > switchRod,
