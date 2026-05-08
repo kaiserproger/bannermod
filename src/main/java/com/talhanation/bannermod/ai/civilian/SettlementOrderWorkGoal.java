@@ -1,10 +1,13 @@
 package com.talhanation.bannermod.ai.civilian;
 
 import com.talhanation.bannermod.entity.civilian.AbstractWorkerEntity;
+import com.talhanation.bannermod.entity.civilian.FishermanEntity;
+import com.talhanation.bannermod.entity.civilian.FishingBobberEntity;
 import com.talhanation.bannermod.entity.civilian.workarea.BuildArea;
 import com.talhanation.bannermod.entity.civilian.workarea.StorageArea;
 import com.talhanation.bannermod.entity.civilian.workarea.WorkAreaIndex;
 import com.talhanation.bannermod.persistence.civilian.BuildBlockParse;
+import com.talhanation.bannermod.persistence.civilian.NeededItem;
 import com.talhanation.bannermod.settlement.BannerModSettlementOrchestrator;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrder;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderRuntime;
@@ -12,6 +15,7 @@ import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderType;
 import com.talhanation.bannermod.shared.logistics.BannerModLogisticsItemFilter;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -20,6 +24,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.FishingRodItem;
 import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -362,6 +367,7 @@ public final class SettlementOrderWorkGoal extends Goal {
             case TILL_SOIL -> executeTillSoil(level, target, runtime);
             case PLANT_CROP -> executePlantCrop(level, target, runtime);
             case REPLANT_TREE -> executeReplantTree(level, target, runtime);
+            case FISH -> executeFish(target, runtime, level);
             case BUILD_BLOCK -> executeBuildBlock(level, target, runtime);
             default -> {
                 // Placement-style or specialist types are left to legacy profession goals.
@@ -369,6 +375,46 @@ public final class SettlementOrderWorkGoal extends Goal {
                 this.activeOrder = null;
             }
         }
+    }
+
+    private void executeFish(BlockPos target, SettlementWorkOrderRuntime runtime, ServerLevel level) {
+        if (!(worker instanceof FishermanEntity fisherman)) {
+            runtime.release(activeOrder.orderUuid());
+            this.activeOrder = null;
+            return;
+        }
+        if(!fisherman.hasFreeInvSlot()){
+            fisherman.reportBlockedReason("fisherman_inventory_full", Component.literal(fisherman.getName().getString() + ": My inventory is full."));
+            fisherman.forcedDeposit = true;
+            runtime.release(activeOrder.orderUuid());
+            this.activeOrder = null;
+            return;
+        }
+
+        boolean hasFishingRod = fisherman.getInventory().hasAnyMatching(itemStack -> itemStack.getItem() instanceof FishingRodItem);
+        if(!hasFishingRod){
+            fisherman.requestRequiredItem(new NeededItem(stack -> stack.getItem() instanceof FishingRodItem, 1, true),
+                    "fisherman_missing_rod",
+                    Component.literal(fisherman.getName().getString() + ": I need a fishing rod to continue."));
+            runtime.release(activeOrder.orderUuid());
+            this.activeOrder = null;
+            return;
+        }
+
+        fisherman.clearWorkStatus();
+        fisherman.switchMainHandItem(itemStack -> itemStack.getItem() instanceof FishingRodItem);
+        fisherman.swing(InteractionHand.MAIN_HAND);
+        fisherman.playSound(SoundEvents.FISHING_BOBBER_THROW, 1, 1);
+        FishingBobberEntity fishingBobber = fisherman.throwFishingHook(target.getCenter());
+        fisherman.playSound(SoundEvents.FISHING_BOBBER_SPLASH, 1, 1);
+        fisherman.swing(InteractionHand.MAIN_HAND);
+        fisherman.playSound(SoundEvents.FISHING_BOBBER_RETRIEVE, 1, 1);
+        fisherman.spawnFishingLoot(fishingBobber);
+        fishingBobber.discard();
+        fisherman.farmedItems++;
+        if(fisherman.tickCount % 2 == 0) fisherman.damageMainHandItem();
+        completeActiveOrder(runtime, level);
+        this.activeOrder = null;
     }
 
     private static boolean isExecutableOrder(SettlementWorkOrder order) {
