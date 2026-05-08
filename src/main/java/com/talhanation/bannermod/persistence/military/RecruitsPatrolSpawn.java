@@ -1,6 +1,6 @@
 package com.talhanation.bannermod.persistence.military;
 
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.config.RecruitsServerConfig;
 import com.talhanation.bannermod.entity.military.*;
 import com.talhanation.bannermod.ai.military.villager.FollowCaravanOwner;

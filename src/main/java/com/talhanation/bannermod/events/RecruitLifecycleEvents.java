@@ -3,6 +3,7 @@ package com.talhanation.bannermod.events;
 import com.talhanation.bannermod.ai.pathfinding.AsyncPathProcessor;
 import com.talhanation.bannermod.ai.pathfinding.async.TrueAsyncPathfindingRuntime;
 import com.talhanation.bannermod.entity.military.RecruitIndex;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.entity.military.runtime.RecruitWorldLifecycleService;
 import com.talhanation.bannermod.governance.runtime.RecruitGovernorWorkflow;
 import com.talhanation.bannermod.util.FormationDimensionGuard;

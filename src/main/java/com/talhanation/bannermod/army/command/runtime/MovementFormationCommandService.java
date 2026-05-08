@@ -7,7 +7,7 @@ import com.talhanation.bannermod.entity.military.AbstractLeaderEntity;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.entity.military.CaptainEntity;
 import com.talhanation.bannermod.entity.military.RecruitIndex;
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.persistence.military.RecruitsGroup;
 import com.talhanation.bannermod.util.RuntimeProfilingCounters;
 import com.talhanation.bannermod.util.FormationUtils;

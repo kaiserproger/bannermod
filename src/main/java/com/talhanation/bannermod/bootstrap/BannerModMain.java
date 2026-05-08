@@ -6,7 +6,7 @@ import com.talhanation.bannermod.events.CommandEvents;
 import com.talhanation.bannermod.events.DamageEvent;
 import com.talhanation.bannermod.events.PillagerEvents;
 import com.talhanation.bannermod.events.RecruitCombatEvents;
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.events.RecruitLifecycleEvents;
 import com.talhanation.bannermod.events.VillagerEvents;
 import com.talhanation.bannermod.events.WorkersVillagerEvents;

@@ -2,7 +2,7 @@ package com.talhanation.bannermod.entity.military;
 
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.config.RecruitsServerConfig;
 import com.talhanation.bannermod.ai.military.UseShield;
 import com.talhanation.bannermod.network.messages.military.MessageToClientOpenNobleTradeScreen;

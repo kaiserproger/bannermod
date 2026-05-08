@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.shared.settlement;
 
 import com.talhanation.bannermod.events.ClaimEvents;
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.governance.BannerModGovernorManager;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.settlement.BannerModSettlementManager;

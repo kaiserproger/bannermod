@@ -1,6 +1,6 @@
 package com.talhanation.bannermod.network.messages.military;
 
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.governance.BannerModGovernorPolicy;
 import com.talhanation.bannermod.network.payload.BannerModMessage;

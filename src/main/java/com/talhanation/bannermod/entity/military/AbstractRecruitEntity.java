@@ -6,6 +6,7 @@ import com.talhanation.bannermod.citizen.CitizenCore;
 import com.talhanation.bannermod.citizen.CitizenPersistenceBridge;
 import com.talhanation.bannermod.citizen.CitizenRole;
 import com.talhanation.bannermod.entity.citizen.AbstractCitizenEntity;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.events.*;
 import com.talhanation.bannermod.events.RecruitEvent;
 import com.talhanation.bannermod.compat.IWeapon;

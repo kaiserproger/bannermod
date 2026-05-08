@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.persistence.military;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.config.RecruitsServerConfig;
 import com.talhanation.bannermod.network.messages.military.MessageToClientUpdateUnitInfo;
 import net.minecraft.server.level.ServerLevel;

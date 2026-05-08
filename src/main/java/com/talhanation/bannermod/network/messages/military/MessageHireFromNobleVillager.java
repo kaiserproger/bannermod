@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.network.messages.military;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.entity.military.VillagerNobleEntity;
 import com.talhanation.bannermod.entity.military.runtime.VillagerConversionService;

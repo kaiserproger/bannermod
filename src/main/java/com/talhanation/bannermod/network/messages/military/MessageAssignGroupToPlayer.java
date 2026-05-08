@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.network.messages.military;
 
 import com.talhanation.bannermod.army.command.RecruitCommandAuthority;
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.entity.military.RecruitIndex;
 import com.talhanation.bannermod.persistence.military.RecruitsGroup;

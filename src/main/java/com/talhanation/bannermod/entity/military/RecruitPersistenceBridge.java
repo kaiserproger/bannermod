@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.entity.military;
 
 import com.talhanation.bannermod.citizen.CitizenRole;
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;

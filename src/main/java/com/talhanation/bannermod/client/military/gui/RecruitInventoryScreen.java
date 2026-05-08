@@ -3,7 +3,7 @@ package com.talhanation.bannermod.client.military.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.bannermod.ai.military.CombatStance;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.client.military.ClientManager;
 import com.talhanation.bannermod.client.military.gui.widgets.ActionMenuButton;
 import com.talhanation.bannermod.client.military.gui.widgets.ContextMenuEntry;
