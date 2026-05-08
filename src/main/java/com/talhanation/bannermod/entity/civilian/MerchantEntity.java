@@ -5,7 +5,6 @@ import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.ai.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.config.WorkersServerConfig;
-import com.talhanation.bannermod.ai.civilian.MerchantWorkGoal;
 import com.talhanation.bannermod.entity.civilian.workarea.MarketArea;
 import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.governance.BannerModGovernorManager;
@@ -111,12 +110,6 @@ public class MerchantEntity extends AbstractWorkerEntity {
     @Override
     public List<Item> inventoryInputHelp() {
         return null;
-    }
-
-    @Override
-    protected void registerGoals() {
-        super.registerGoals();
-        this.goalSelector.addGoal(3, new MerchantWorkGoal(this));
     }
 
     @Nullable
