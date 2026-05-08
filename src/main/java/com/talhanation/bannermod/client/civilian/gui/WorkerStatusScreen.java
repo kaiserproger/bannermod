@@ -9,6 +9,7 @@ import com.talhanation.bannermod.client.military.gui.widgets.ActionMenuButton;
 import com.talhanation.bannermod.client.military.gui.widgets.ContextMenuEntry;
 import com.talhanation.bannermod.entity.civilian.WorkerInspectionSnapshot;
 import com.talhanation.bannermod.network.messages.civilian.MessageConvertWorkerToCitizen;
+import com.talhanation.bannermod.network.messages.civilian.MessageDismissWorker;
 import com.talhanation.bannermod.network.messages.civilian.MessageOpenWorkerScreen;
 import com.talhanation.bannermod.network.messages.civilian.MessageReassignWorkerProfession;
 import net.minecraft.client.Minecraft;
@@ -58,34 +59,6 @@ public class WorkerStatusScreen extends Screen {
         ));
         refresh.setTooltip(Tooltip.create(text("gui.bannermod.worker_screen.refresh.tooltip")));
 
-        SmallCommandButton convert = this.addRenderableWidget(new SmallCommandButton(
-                firstCenter + strideX - BTN_W / 2, rowY, BTN_W, BTN_H,
-                clamped("gui.bannermod.worker_screen.convert"),
-                button -> {
-                    BannerModMain.SIMPLE_CHANNEL.sendToServer(new MessageConvertWorkerToCitizen(this.snapshot.workerUuid()));
-                    this.onClose();
-                }
-        ));
-        convert.active = this.snapshot.canConvert();
-        if (this.snapshot.convertBlockedReasonKey() != null) {
-            convert.setTooltip(Tooltip.create(text(this.snapshot.convertBlockedReasonKey())));
-        } else {
-            convert.setTooltip(Tooltip.create(text("gui.bannermod.worker_screen.convert.tooltip.dismiss_path")));
-        }
-
-        // Reassign — opens an ActionMenuButton with one row per available
-        // CONTROLLED_WORKER profession (current one filtered out). Server is
-        // authoritative; client only sends the intent.
-        ActionMenuButton reassign = new ActionMenuButton(
-                firstCenter + 2 * strideX - BTN_W / 2, rowY, BTN_W, BTN_H,
-                clamped("gui.bannermod.worker_screen.reassign"),
-                buildReassignEntries()
-        );
-        reassign.setOpenUpward(true);
-        reassign.setTooltip(Tooltip.create(text("gui.bannermod.worker_screen.reassign.tooltip")));
-        reassign.active = this.snapshot.canConvert();
-        this.addRenderableWidget(reassign);
-
         SmallCommandButton assignHome = this.addRenderableWidget(new SmallCommandButton(
                 firstCenter + 3 * strideX - BTN_W / 2, rowY, BTN_W, BTN_H,
                 clamped("bannermod.assign_home.button"),
@@ -102,6 +75,32 @@ public class WorkerStatusScreen extends Screen {
                 button -> this.onClose()
         ));
         close.setTooltip(Tooltip.create(text("gui.bannermod.worker_screen.close.tooltip")));
+
+        ActionMenuButton workerActions = new ActionMenuButton(
+                firstCenter + strideX - BTN_W / 2, rowY, BTN_W, BTN_H,
+                clamped("gui.bannermod.worker_screen.actions"),
+                buildWorkerActionEntries()
+        );
+        workerActions.setOpenUpward(true);
+        if (this.snapshot.convertBlockedReasonKey() != null) {
+            workerActions.setTooltip(Tooltip.create(text(this.snapshot.convertBlockedReasonKey())));
+        } else {
+            workerActions.setTooltip(Tooltip.create(text("gui.bannermod.worker_screen.actions.tooltip")));
+        }
+        this.addRenderableWidget(workerActions);
+
+        // Reassign — opens an ActionMenuButton with one row per available
+        // CONTROLLED_WORKER profession (current one filtered out). Server is
+        // authoritative; client only sends the intent.
+        ActionMenuButton reassign = new ActionMenuButton(
+                firstCenter + 2 * strideX - BTN_W / 2, rowY, BTN_W, BTN_H,
+                clamped("gui.bannermod.worker_screen.reassign"),
+                buildReassignEntries()
+        );
+        reassign.setOpenUpward(true);
+        reassign.setTooltip(Tooltip.create(text("gui.bannermod.worker_screen.reassign.tooltip")));
+        reassign.active = this.snapshot.canConvert();
+        this.addRenderableWidget(reassign);
     }
 
     private List<ContextMenuEntry> buildReassignEntries() {
@@ -124,6 +123,27 @@ public class WorkerStatusScreen extends Screen {
                 this.onClose();
             }, true));
         }
+        return entries;
+    }
+
+    private List<ContextMenuEntry> buildWorkerActionEntries() {
+        List<ContextMenuEntry> entries = new ArrayList<>();
+        entries.add(new ContextMenuEntry(
+                Component.translatable("gui.bannermod.worker_screen.convert").getString(),
+                () -> {
+                    BannerModMain.SIMPLE_CHANNEL.sendToServer(new MessageConvertWorkerToCitizen(this.snapshot.workerUuid()));
+                    this.onClose();
+                },
+                this.snapshot.canConvert()
+        ));
+        entries.add(new ContextMenuEntry(
+                Component.translatable("gui.bannermod.worker_screen.dismiss").getString(),
+                () -> {
+                    BannerModMain.SIMPLE_CHANNEL.sendToServer(new MessageDismissWorker(this.snapshot.workerUuid()));
+                    this.onClose();
+                },
+                true
+        ));
         return entries;
     }
 
@@ -190,7 +210,7 @@ public class WorkerStatusScreen extends Screen {
     /**
      * Narrow command button styled with the same parchment-iron palette as
      * {@link com.talhanation.bannermod.client.military.gui.group.RecruitsCommandButton}
-     * but width-configurable so four widgets fit inside WIDTH=252.
+     * but width-configurable so the compact action row fits inside the ledger.
      */
     private static class SmallCommandButton extends ExtendedButton {
         SmallCommandButton(int x, int y, int width, int height, Component label, OnPress handler) {
