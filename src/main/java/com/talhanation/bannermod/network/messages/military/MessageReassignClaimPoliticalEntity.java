@@ -4,6 +4,7 @@ import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.config.RecruitsServerConfig;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.war.WarRuntimeContext;
+import com.talhanation.bannermod.war.runtime.ClaimRepublisher;
 import com.talhanation.bannermod.war.registry.PoliticalEntityAuthority;
 import com.talhanation.bannermod.war.registry.PoliticalEntityRecord;
 import com.talhanation.bannermod.war.registry.PoliticalRegistryRuntime;
@@ -79,13 +80,14 @@ public class MessageReassignClaimPoliticalEntity implements BannerModMessage<Mes
                 }
             }
 
-            TransferResult transferResult = reassignClaimPoliticalEntity(
+            TransferResult transferResult = reassignClaimPoliticalEntityAndRepublish(
                     sender.getUUID(),
                     isAdmin,
                     existingClaim,
                     sourcePeRecord,
                     targetPeRecord,
-                    targetPoliticalEntityId);
+                    targetPoliticalEntityId,
+                    claim -> ClaimEvents.claimManager().addOrUpdateClaim(level, claim));
             if (!transferResult.transferred()) {
                 if (transferResult.denialReasonKey() != null) {
                     sender.sendSystemMessage(Component.translatable(transferResult.denialKey())
@@ -96,8 +98,6 @@ public class MessageReassignClaimPoliticalEntity implements BannerModMessage<Mes
                 }
                 return;
             }
-            ClaimEvents.claimManager().addOrUpdateClaim(level, existingClaim);
-
             String targetName = targetPeRecord != null
                     ? targetPeRecord.name()
                     : Component.translatable("chat.bannermod.claim.transfer.detached").getString();
@@ -150,6 +150,26 @@ public class MessageReassignClaimPoliticalEntity implements BannerModMessage<Mes
 
         existingClaim.setOwnerPoliticalEntityId(targetPoliticalEntityId);
         return TransferResult.success();
+    }
+
+    static TransferResult reassignClaimPoliticalEntityAndRepublish(UUID actorUuid,
+                                                                   boolean admin,
+                                                                   RecruitsClaim existingClaim,
+                                                                   @Nullable PoliticalEntityRecord sourcePeRecord,
+                                                                   @Nullable PoliticalEntityRecord targetPeRecord,
+                                                                   @Nullable UUID targetPoliticalEntityId,
+                                                                   ClaimRepublisher republisher) {
+        TransferResult result = reassignClaimPoliticalEntity(
+                actorUuid,
+                admin,
+                existingClaim,
+                sourcePeRecord,
+                targetPeRecord,
+                targetPoliticalEntityId);
+        if (result.transferred()) {
+            republisher.republish(existingClaim);
+        }
+        return result;
     }
 
     record TransferResult(boolean transferred, @Nullable String denialKey, @Nullable String denialReasonKey) {

@@ -26,18 +26,21 @@ class MessageReassignClaimPoliticalEntityTest {
         RecruitsClaim claim = new RecruitsClaim("border claim", SOURCE_ID);
         PoliticalEntityRecord source = entity(SOURCE_ID, "Source", ACTOR);
         PoliticalEntityRecord target = entity(TARGET_ID, "Target", ACTOR);
+        UUID[] republishedOwner = new UUID[1];
 
-        MessageReassignClaimPoliticalEntity.TransferResult result = MessageReassignClaimPoliticalEntity.reassignClaimPoliticalEntity(
+        MessageReassignClaimPoliticalEntity.TransferResult result = MessageReassignClaimPoliticalEntity.reassignClaimPoliticalEntityAndRepublish(
                 ACTOR,
                 false,
                 claim,
                 source,
                 target,
-                TARGET_ID);
+                TARGET_ID,
+                republishedClaim -> republishedOwner[0] = republishedClaim.getOwnerPoliticalEntityId());
 
         assertTrue(result.transferred());
         assertNull(result.denialKey());
         assertEquals(TARGET_ID, claim.getOwnerPoliticalEntityId());
+        assertEquals(TARGET_ID, republishedOwner[0]);
     }
 
     @Test
@@ -45,19 +48,22 @@ class MessageReassignClaimPoliticalEntityTest {
         RecruitsClaim claim = new RecruitsClaim("border claim", SOURCE_ID);
         PoliticalEntityRecord source = entity(SOURCE_ID, "Source", ACTOR);
         PoliticalEntityRecord target = entity(TARGET_ID, "Target", OTHER);
+        boolean[] republished = new boolean[1];
 
-        MessageReassignClaimPoliticalEntity.TransferResult result = MessageReassignClaimPoliticalEntity.reassignClaimPoliticalEntity(
+        MessageReassignClaimPoliticalEntity.TransferResult result = MessageReassignClaimPoliticalEntity.reassignClaimPoliticalEntityAndRepublish(
                 ACTOR,
                 false,
                 claim,
                 source,
                 target,
-                TARGET_ID);
+                TARGET_ID,
+                republishedClaim -> republished[0] = true);
 
         assertFalse(result.transferred());
         assertEquals("chat.bannermod.claim.transfer.denied.no_target_authority", result.denialKey());
         assertEquals(PoliticalEntityAuthority.DENIAL_LEADER_ONLY_KEY, result.denialReasonKey());
         assertEquals(SOURCE_ID, claim.getOwnerPoliticalEntityId());
+        assertFalse(republished[0]);
     }
 
     private static PoliticalEntityRecord entity(UUID id, String name, UUID leader) {
