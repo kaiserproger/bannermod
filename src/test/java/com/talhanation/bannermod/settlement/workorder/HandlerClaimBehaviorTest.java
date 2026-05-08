@@ -106,6 +106,20 @@ class HandlerClaimBehaviorTest {
     }
 
     @Test
+    void buildHandlerClaimsAnimalOrderForAssignedPen() {
+        SettlementWorkOrderRuntime runtime = new SettlementWorkOrderRuntime();
+        runtime.publish(SettlementWorkOrder.pending(CLAIM, BUILDING,
+                SettlementWorkOrderType.ANIMAL_BREED, new BlockPos(1, 64, 1), null, 90, 10L));
+        BannerModSettlementResidentRecord resident = controlledResident("animal_pen_area");
+        JobExecutionContext ctx = new JobExecutionContext(resident, 100L, RESIDENT, BUILDING, runtime);
+
+        JobExecutionResult result = new BuildJobHandler().runOneStep(ctx);
+
+        assertEquals(JobExecutionResult.COMPLETED, result);
+        assertEquals(SettlementWorkOrderType.ANIMAL_BREED, runtime.currentClaim(RESIDENT).orElseThrow().type());
+    }
+
+    @Test
     void buildHandlerIgnoresFarmingOrder() {
         SettlementWorkOrderRuntime runtime = new SettlementWorkOrderRuntime();
         runtime.publish(SettlementWorkOrder.pending(CLAIM, BUILDING,
@@ -120,10 +134,14 @@ class HandlerClaimBehaviorTest {
     }
 
     private static BannerModSettlementResidentRecord controlledResident() {
+        return controlledResident("crop_area");
+    }
+
+    private static BannerModSettlementResidentRecord controlledResident(String buildingTypeId) {
         BannerModSettlementResidentServiceContract serviceContract = new BannerModSettlementResidentServiceContract(
                 BannerModSettlementServiceActorState.LOCAL_BUILDING_SERVICE,
                 BUILDING,
-                "crop_area"
+                buildingTypeId
         );
         return new BannerModSettlementResidentRecord(
                 RESIDENT,

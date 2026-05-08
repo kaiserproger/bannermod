@@ -14,10 +14,10 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Construction-style work handler bound to {@link BannerModSettlementJobHandlerSeed#LOCAL_BUILDING_LABOR}.
+ * Building-bound work handler bound to {@link BannerModSettlementJobHandlerSeed#LOCAL_BUILDING_LABOR}.
  *
- * <p>Claim lifecycle mirrors {@link HarvestJobHandler} but the set of accepted order types
- * is restricted to building-oriented work (break / place blocks).</p>
+ * <p>Claim lifecycle mirrors {@link HarvestJobHandler} but scopes accepted order types to work
+ * emitted by the resident's assigned local building.</p>
  */
 public final class BuildJobHandler implements JobHandler {
 
@@ -25,7 +25,10 @@ public final class BuildJobHandler implements JobHandler {
 
     public static final Set<SettlementWorkOrderType> SUPPORTED_TYPES = EnumSet.of(
             SettlementWorkOrderType.BREAK_BLOCK,
-            SettlementWorkOrderType.BUILD_BLOCK
+            SettlementWorkOrderType.BUILD_BLOCK,
+            SettlementWorkOrderType.ANIMAL_BREED,
+            SettlementWorkOrderType.ANIMAL_SPECIAL_TASK,
+            SettlementWorkOrderType.ANIMAL_SLAUGHTER
     );
 
     @Override

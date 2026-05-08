@@ -18,6 +18,10 @@ public enum SettlementWorkOrderType {
 
     FISH,
 
+    ANIMAL_BREED,
+    ANIMAL_SPECIAL_TASK,
+    ANIMAL_SLAUGHTER,
+
     BREAK_BLOCK,
     BUILD_BLOCK,
 

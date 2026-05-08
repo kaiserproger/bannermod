@@ -2,6 +2,7 @@ package com.talhanation.bannermod.settlement.workorder;
 
 import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
 import com.talhanation.bannermod.settlement.workorder.publisher.BuildAreaWorkOrderPublisher;
+import com.talhanation.bannermod.settlement.workorder.publisher.AnimalPenWorkOrderPublisher;
 import com.talhanation.bannermod.settlement.workorder.publisher.CropAreaWorkOrderPublisher;
 import com.talhanation.bannermod.settlement.workorder.publisher.FishingAreaWorkOrderPublisher;
 import com.talhanation.bannermod.settlement.workorder.publisher.LumberAreaWorkOrderPublisher;
@@ -26,6 +27,7 @@ public final class SettlementWorkOrderPublisherRegistry {
     /** Pre-populated registry containing publishers for every work-area type currently shipped. */
     public static SettlementWorkOrderPublisherRegistry defaults() {
         SettlementWorkOrderPublisherRegistry registry = new SettlementWorkOrderPublisherRegistry();
+        registry.register(new AnimalPenWorkOrderPublisher());
         registry.register(new CropAreaWorkOrderPublisher());
         registry.register(new FishingAreaWorkOrderPublisher());
         registry.register(new BuildAreaWorkOrderPublisher());
