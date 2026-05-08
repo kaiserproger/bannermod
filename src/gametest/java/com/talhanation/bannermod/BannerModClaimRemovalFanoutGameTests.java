@@ -6,8 +6,8 @@ import com.talhanation.bannermod.entity.civilian.workarea.CropArea;
 import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.governance.BannerModTreasuryManager;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
-import com.talhanation.bannermod.settlement.BannerModSettlementManager;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementManager;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
 import com.talhanation.bannermod.war.WarRuntimeContext;
 import com.talhanation.bannermod.war.runtime.OccupationRecord;
 import com.talhanation.bannermod.war.runtime.OccupationRuntime;
@@ -62,8 +62,8 @@ public class BannerModClaimRemovalFanoutGameTests {
                 "Expected treasury ledger to exist after seeding a deposit");
 
         // 2) Settlement snapshot persisted for this claim
-        BannerModSettlementManager settlements = BannerModSettlementManager.get(level);
-        settlements.putSnapshot(BannerModSettlementSnapshot.create(claimUuid, anchorChunk, OWNER_TEAM_ID));
+        SettlementManager settlements = SettlementManager.get(level);
+        settlements.putSnapshot(SettlementSnapshot.create(claimUuid, anchorChunk, OWNER_TEAM_ID));
         helper.assertTrue(settlements.getSnapshot(claimUuid) != null,
                 "Expected settlement snapshot to exist after putSnapshot");
 
@@ -127,9 +127,9 @@ public class BannerModClaimRemovalFanoutGameTests {
         treasury.depositTaxes(targetUuid, targetChunk, OWNER_TEAM_ID, 10, level.getGameTime());
         treasury.depositTaxes(siblingUuid, siblingChunk, OTHER_TEAM_ID, 17, level.getGameTime());
 
-        BannerModSettlementManager settlements = BannerModSettlementManager.get(level);
-        settlements.putSnapshot(BannerModSettlementSnapshot.create(targetUuid, targetChunk, OWNER_TEAM_ID));
-        settlements.putSnapshot(BannerModSettlementSnapshot.create(siblingUuid, siblingChunk, OTHER_TEAM_ID));
+        SettlementManager settlements = SettlementManager.get(level);
+        settlements.putSnapshot(SettlementSnapshot.create(targetUuid, targetChunk, OWNER_TEAM_ID));
+        settlements.putSnapshot(SettlementSnapshot.create(siblingUuid, siblingChunk, OTHER_TEAM_ID));
 
         CropArea siblingArea = BannerModGameTestSupport.spawnOwnedCropArea(helper, otherOwner, siblingPos);
         siblingArea.setTeamStringID(OTHER_TEAM_ID);

@@ -1,6 +1,6 @@
 package com.talhanation.bannermod.settlement.workorder;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
+import com.talhanation.bannermod.settlement.SettlementBuildingRecord;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -13,8 +13,8 @@ class SettlementWorkOrderPublisherRegistryTest {
 
     @Test
     void matchesBuildingTypeAcceptsBareAndNamespacedIds() {
-        BannerModSettlementBuildingRecord namespaced = building("bannermod:crop_area");
-        BannerModSettlementBuildingRecord bare = building("crop_area");
+        SettlementBuildingRecord namespaced = building("bannermod:crop_area");
+        SettlementBuildingRecord bare = building("crop_area");
 
         assertTrue(SettlementWorkOrderPublisherRegistry.matchesBuildingType(namespaced, "crop_area"));
         assertTrue(SettlementWorkOrderPublisherRegistry.matchesBuildingType(bare, "crop_area"));
@@ -22,15 +22,15 @@ class SettlementWorkOrderPublisherRegistryTest {
 
     @Test
     void matchesBuildingTypeRejectsDifferentTypeOrInvalidInput() {
-        BannerModSettlementBuildingRecord building = building("bannermod:mining_area");
+        SettlementBuildingRecord building = building("bannermod:mining_area");
 
         assertFalse(SettlementWorkOrderPublisherRegistry.matchesBuildingType(building, "crop_area"));
         assertFalse(SettlementWorkOrderPublisherRegistry.matchesBuildingType(null, "crop_area"));
         assertFalse(SettlementWorkOrderPublisherRegistry.matchesBuildingType(building, null));
     }
 
-    private static BannerModSettlementBuildingRecord building(String typeId) {
-        return new BannerModSettlementBuildingRecord(
+    private static SettlementBuildingRecord building(String typeId) {
+        return new SettlementBuildingRecord(
                 UUID.randomUUID(),
                 typeId,
                 null,

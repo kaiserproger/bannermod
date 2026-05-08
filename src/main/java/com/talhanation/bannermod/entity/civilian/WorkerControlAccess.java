@@ -2,8 +2,8 @@ package com.talhanation.bannermod.entity.civilian;
 
 import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.governance.BannerModGovernorManager;
-import com.talhanation.bannermod.settlement.BannerModSettlementManager;
-import com.talhanation.bannermod.settlement.BannerModSettlementService;
+import com.talhanation.bannermod.settlement.SettlementManager;
+import com.talhanation.bannermod.settlement.SettlementService;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
@@ -65,10 +65,10 @@ final class WorkerControlAccess {
         if (!(this.worker.level() instanceof ServerLevel serverLevel) || ClaimEvents.claimManager() == null) {
             return;
         }
-        BannerModSettlementService.refreshClaimAt(
+        SettlementService.refreshClaimAt(
                 serverLevel,
                 ClaimEvents.claimManager(),
-                BannerModSettlementManager.get(serverLevel),
+                SettlementManager.get(serverLevel),
                 BannerModGovernorManager.get(serverLevel),
                 this.worker.blockPosition()
         );

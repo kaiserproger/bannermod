@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.settlement.goal.impl;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentScheduleWindowSeed;
+import com.talhanation.bannermod.settlement.SettlementResidentScheduleWindowSeed;
 import com.talhanation.bannermod.settlement.goal.ResidentGoal;
 import com.talhanation.bannermod.settlement.goal.ResidentGoalContext;
 import com.talhanation.bannermod.settlement.goal.ResidentTask;
@@ -26,8 +26,8 @@ public final class SocialiseResidentGoal implements ResidentGoal {
         if (!ctx.isActivePhase()) {
             return 0;
         }
-        return ctx.window() == BannerModSettlementResidentScheduleWindowSeed.CIVIC_DAY
-                || ctx.window() == BannerModSettlementResidentScheduleWindowSeed.DAYLIGHT_FLEX
+        return ctx.window() == SettlementResidentScheduleWindowSeed.CIVIC_DAY
+                || ctx.window() == SettlementResidentScheduleWindowSeed.DAYLIGHT_FLEX
                 ? SOCIALISE_PRIORITY
                 : 0;
     }

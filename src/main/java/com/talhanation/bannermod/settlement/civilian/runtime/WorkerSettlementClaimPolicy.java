@@ -15,10 +15,10 @@ import com.talhanation.bannermod.entity.civilian.workarea.WorkAreaIndex;
 import com.talhanation.bannermod.entity.military.RecruitPoliticalContext;
 import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingCategory;
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementManager;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementBuildingCategory;
+import com.talhanation.bannermod.settlement.SettlementBuildingRecord;
+import com.talhanation.bannermod.settlement.SettlementManager;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
 import com.talhanation.bannermod.settlement.civilian.WorkerSettlementSpawnRules;
 import com.talhanation.bannermod.settlement.civilian.WorkerSettlementSpawner;
 import com.talhanation.bannermod.settlement.household.BannerModHomeAssignmentRuntime;
@@ -205,13 +205,13 @@ public final class WorkerSettlementClaimPolicy {
         if (level == null || claim == null) {
             return 0;
         }
-        BannerModSettlementSnapshot snapshot = BannerModSettlementManager.get(level).getSnapshot(claim.getUUID());
+        SettlementSnapshot snapshot = SettlementManager.get(level).getSnapshot(claim.getUUID());
         if (snapshot == null) {
             return 0;
         }
         BannerModHomeAssignmentRuntime runtime = BannerModHomeAssignmentSavedData.get(level).runtime();
         int slack = 0;
-        for (BannerModSettlementBuildingRecord building : snapshot.buildings()) {
+        for (SettlementBuildingRecord building : snapshot.buildings()) {
             if (!isHousingCategory(building.buildingCategory())) {
                 continue;
             }
@@ -272,12 +272,12 @@ public final class WorkerSettlementClaimPolicy {
         if (level == null || claim == null || residentUuid == null) {
             return;
         }
-        BannerModSettlementSnapshot snapshot = BannerModSettlementManager.get(level).getSnapshot(claim.getUUID());
+        SettlementSnapshot snapshot = SettlementManager.get(level).getSnapshot(claim.getUUID());
         if (snapshot == null) {
             return;
         }
         BannerModHomeAssignmentRuntime runtime = BannerModHomeAssignmentSavedData.get(level).runtime();
-        for (BannerModSettlementBuildingRecord building : snapshot.buildings()) {
+        for (SettlementBuildingRecord building : snapshot.buildings()) {
             if (!isHousingCategory(building.buildingCategory())) {
                 continue;
             }
@@ -295,8 +295,8 @@ public final class WorkerSettlementClaimPolicy {
         }
     }
 
-    private static boolean isHousingCategory(BannerModSettlementBuildingCategory category) {
-        return category == BannerModSettlementBuildingCategory.GENERAL;
+    private static boolean isHousingCategory(SettlementBuildingCategory category) {
+        return category == SettlementBuildingCategory.GENERAL;
     }
 
     @Nullable

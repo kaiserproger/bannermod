@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class BannerModSettlementOrchestratorTest {
+class SettlementOrchestratorTest {
 
     private static final UUID CLAIM = UUID.fromString("00000000-0000-0000-0000-0000000000f1");
     private static final UUID RESIDENT = UUID.fromString("00000000-0000-0000-0000-0000000000a1");
@@ -35,17 +35,17 @@ class BannerModSettlementOrchestratorTest {
         RecordingJobHandler handler = new RecordingJobHandler();
         JobHandlerRegistry registry = new JobHandlerRegistry();
         registry.register(handler);
-        BannerModSettlementOrchestrator.LevelRuntimeState state = BannerModSettlementOrchestrator.detachedStateForTests(registry);
-        BannerModSettlementSnapshot snapshot = settlementSnapshot(NIGHT_TICK, true);
+        SettlementOrchestrator.LevelRuntimeState state = SettlementOrchestrator.detachedStateForTests(registry);
+        SettlementSnapshot snapshot = settlementSnapshot(NIGHT_TICK, true);
 
-        BannerModSettlementOrchestrator.tickSnapshot(state, snapshot, null, NIGHT_TICK);
+        SettlementOrchestrator.tickSnapshot(state, snapshot, null, NIGHT_TICK);
 
         assertEquals(HOME, state.homeRuntime.homeFor(RESIDENT).orElseThrow().homeBuildingUuid());
         assertTrue(state.sellerRuntime.phase(RESIDENT).isPresent(), "ready seller seed should start a live dispatch");
 
         List<PendingProject> queuedProjects = state.projectRuntime.snapshot(CLAIM);
         assertFalse(queuedProjects.isEmpty(), "growth scoring should feed the project runtime queue");
-        assertEquals(BannerModSettlementBuildingProfileSeed.GENERAL, queuedProjects.get(0).profileSeed());
+        assertEquals(SettlementBuildingProfileSeed.GENERAL, queuedProjects.get(0).profileSeed());
 
         Optional<ResidentTask> task = state.goalScheduler.currentTask(RESIDENT);
         assertTrue(task.isPresent(), "resident should receive a scheduled task");
@@ -59,12 +59,12 @@ class BannerModSettlementOrchestratorTest {
         RecordingJobHandler handler = new RecordingJobHandler(20);
         JobHandlerRegistry registry = new JobHandlerRegistry();
         registry.register(handler);
-        BannerModSettlementOrchestrator.LevelRuntimeState state = BannerModSettlementOrchestrator.detachedStateForTests(registry);
-        BannerModSettlementSnapshot snapshot = settlementSnapshot(DAY_TICK, false);
+        SettlementOrchestrator.LevelRuntimeState state = SettlementOrchestrator.detachedStateForTests(registry);
+        SettlementSnapshot snapshot = settlementSnapshot(DAY_TICK, false);
 
-        BannerModSettlementOrchestrator.tickSnapshot(state, snapshot, null, DAY_TICK);
-        BannerModSettlementOrchestrator.tickSnapshot(state, snapshot, null, DAY_TICK + 5);
-        BannerModSettlementOrchestrator.tickSnapshot(state, snapshot, null, DAY_TICK + 20);
+        SettlementOrchestrator.tickSnapshot(state, snapshot, null, DAY_TICK);
+        SettlementOrchestrator.tickSnapshot(state, snapshot, null, DAY_TICK + 5);
+        SettlementOrchestrator.tickSnapshot(state, snapshot, null, DAY_TICK + 20);
 
         Optional<ResidentTask> task = state.goalScheduler.currentTask(RESIDENT);
         assertTrue(task.isPresent(), "resident should receive a scheduled task");
@@ -76,27 +76,27 @@ class BannerModSettlementOrchestratorTest {
 
     @Test
     void tickSnapshotCancelsStaleLiveDispatchesAndRebindsSellerToCurrentSeed() {
-        BannerModSettlementOrchestrator.LevelRuntimeState state = BannerModSettlementOrchestrator.detachedStateForTests(JobHandlerRegistry.defaults());
+        SettlementOrchestrator.LevelRuntimeState state = SettlementOrchestrator.detachedStateForTests(JobHandlerRegistry.defaults());
 
-        BannerModSettlementOrchestrator.tickSnapshot(state, settlementSnapshot(NIGHT_TICK, true), null, NIGHT_TICK);
+        SettlementOrchestrator.tickSnapshot(state, settlementSnapshot(NIGHT_TICK, true), null, NIGHT_TICK);
 
         UUID otherMarket = UUID.fromString("00000000-0000-0000-0000-0000000000c2");
-        BannerModSettlementMarketState reboundMarketState = new BannerModSettlementMarketState(
+        SettlementMarketState reboundMarketState = new SettlementMarketState(
                 1,
                 1,
                 16,
                 8,
                 1,
                 1,
-                List.of(new BannerModSettlementMarketRecord(otherMarket, "Other Market", true, 16, 8)),
-                List.of(new BannerModSettlementSellerDispatchRecord(
+                List.of(new SettlementMarketRecord(otherMarket, "Other Market", true, 16, 8)),
+                List.of(new SettlementSellerDispatchRecord(
                         RESIDENT,
                         otherMarket,
                         "Other Market",
-                        BannerModSettlementSellerDispatchState.READY
+                        SettlementSellerDispatchState.READY
                 ))
         );
-        BannerModSettlementSnapshot reboundSnapshot = new BannerModSettlementSnapshot(
+        SettlementSnapshot reboundSnapshot = new SettlementSnapshot(
                 CLAIM,
                 0,
                 0,
@@ -108,17 +108,17 @@ class BannerModSettlementOrchestratorTest {
                 1,
                 1,
                 0,
-                BannerModSettlementStockpileSummary.empty(),
+                SettlementStockpileSummary.empty(),
                 reboundMarketState,
-                BannerModSettlementDesiredGoodsSnapshot.empty(),
-                BannerModSettlementProjectCandidateSnapshot.empty(),
-                BannerModSettlementTradeRouteHandoffSnapshot.empty(),
-                BannerModSettlementSupplySignalState.empty(),
+                SettlementDesiredGoodsSnapshot.empty(),
+                SettlementProjectCandidateSnapshot.empty(),
+                SettlementTradeRouteHandoffSnapshot.empty(),
+                SettlementSupplySignalState.empty(),
                 settlementSnapshot(NIGHT_TICK, true).residents(),
                 settlementSnapshot(NIGHT_TICK, true).buildings()
         );
 
-        BannerModSettlementOrchestrator.tickSnapshot(state, reboundSnapshot, null, NIGHT_TICK + 1);
+        SettlementOrchestrator.tickSnapshot(state, reboundSnapshot, null, NIGHT_TICK + 1);
 
         assertEquals(otherMarket, state.sellerRuntime.phase(RESIDENT).orElseThrow().marketRecordUuid());
         assertEquals(com.talhanation.bannermod.settlement.dispatch.SellerPhase.MOVING_TO_STALL, state.sellerRuntime.phase(RESIDENT).orElseThrow().phase());
@@ -126,9 +126,9 @@ class BannerModSettlementOrchestratorTest {
 
     @Test
     void tickSnapshotFeedsReservationAwareHintsIntoGrowthQueue() {
-        BannerModSettlementOrchestrator.LevelRuntimeState state = BannerModSettlementOrchestrator.detachedStateForTests(JobHandlerRegistry.defaults());
-        BannerModSettlementSnapshot base = settlementSnapshot(NIGHT_TICK, true);
-        BannerModSettlementSnapshot hintedSnapshot = new BannerModSettlementSnapshot(
+        SettlementOrchestrator.LevelRuntimeState state = SettlementOrchestrator.detachedStateForTests(JobHandlerRegistry.defaults());
+        SettlementSnapshot base = settlementSnapshot(NIGHT_TICK, true);
+        SettlementSnapshot hintedSnapshot = new SettlementSnapshot(
                 base.claimUuid(),
                 0,
                 0,
@@ -140,37 +140,37 @@ class BannerModSettlementOrchestratorTest {
                 1,
                 0,
                 0,
-                BannerModSettlementStockpileSummary.empty(),
+                SettlementStockpileSummary.empty(),
                 base.marketState(),
-                BannerModSettlementDesiredGoodsSnapshot.empty(),
-                BannerModSettlementProjectCandidateSnapshot.empty(),
-                new BannerModSettlementTradeRouteHandoffSnapshot(
+                SettlementDesiredGoodsSnapshot.empty(),
+                SettlementProjectCandidateSnapshot.empty(),
+                new SettlementTradeRouteHandoffSnapshot(
                         1,
                         1,
                         0,
                         0,
                         2,
                         12,
-                        List.of(new BannerModSettlementDesiredGoodSnapshot("market_goods", 0)),
+                        List.of(new SettlementDesiredGoodSnapshot("market_goods", 0)),
                         List.of(),
                         List.of()
                 ),
-                new BannerModSettlementSupplySignalState(
+                new SettlementSupplySignalState(
                         1,
                         0,
                         0,
                         8,
-                        List.of(new BannerModSettlementSupplySignal("market_goods", 0, 0, 0, 8))
+                        List.of(new SettlementSupplySignal("market_goods", 0, 0, 0, 8))
                 ),
                 base.residents(),
                 base.buildings()
         );
 
-        BannerModSettlementOrchestrator.tickSnapshot(state, hintedSnapshot, null, NIGHT_TICK);
+        SettlementOrchestrator.tickSnapshot(state, hintedSnapshot, null, NIGHT_TICK);
 
         List<PendingProject> queuedProjects = state.projectRuntime.snapshot(CLAIM);
         assertFalse(queuedProjects.isEmpty(), "reservation-aware hint snapshot should drive live project scoring");
-        assertEquals(BannerModSettlementBuildingProfileSeed.MARKET, queuedProjects.get(0).profileSeed());
+        assertEquals(SettlementBuildingProfileSeed.MARKET, queuedProjects.get(0).profileSeed());
     }
 
     @Test
@@ -178,11 +178,11 @@ class BannerModSettlementOrchestratorTest {
         UUID first = UUID.fromString("00000000-0000-0000-0000-000000000001");
         UUID second = UUID.fromString("00000000-0000-0000-0000-000000000002");
         UUID third = UUID.fromString("00000000-0000-0000-0000-000000000003");
-        BannerModSettlementManager manager = new BannerModSettlementManager();
-        BannerModSettlementSnapshot base = settlementSnapshot(DAY_TICK, false);
+        SettlementManager manager = new SettlementManager();
+        SettlementSnapshot base = settlementSnapshot(DAY_TICK, false);
         manager.putSnapshot(withClaim(base, third));
         manager.putSnapshot(withClaim(base, first));
-        BannerModSettlementOrchestrator.LevelRuntimeState state = BannerModSettlementOrchestrator.detachedStateForTests(JobHandlerRegistry.defaults());
+        SettlementOrchestrator.LevelRuntimeState state = SettlementOrchestrator.detachedStateForTests(JobHandlerRegistry.defaults());
 
         List<UUID> firstBatchOrder = state.snapshotOrderForBatch(manager, 0);
         manager.putSnapshot(withClaim(base, second));
@@ -199,35 +199,35 @@ class BannerModSettlementOrchestratorTest {
         RecordingJobHandler handler = new RecordingJobHandler();
         JobHandlerRegistry registry = new JobHandlerRegistry();
         registry.register(handler);
-        BannerModSettlementOrchestrator.LevelRuntimeState state = BannerModSettlementOrchestrator.detachedStateForTests(registry);
+        SettlementOrchestrator.LevelRuntimeState state = SettlementOrchestrator.detachedStateForTests(registry);
 
-        BannerModSettlementClaimTickService.tickSnapshot(state, settlementSnapshot(NIGHT_TICK, true), null, null, NIGHT_TICK);
+        SettlementClaimTickService.tickSnapshot(state, settlementSnapshot(NIGHT_TICK, true), null, null, NIGHT_TICK);
 
         assertEquals(HOME, state.homeRuntime.homeFor(RESIDENT).orElseThrow().homeBuildingUuid());
         assertTrue(state.sellerRuntime.phase(RESIDENT).isPresent());
         assertFalse(state.projectRuntime.snapshot(CLAIM).isEmpty());
     }
 
-    private static BannerModSettlementSnapshot settlementSnapshot(long gameTime, boolean includeSellerDispatch) {
-        BannerModSettlementResidentServiceContract serviceContract = new BannerModSettlementResidentServiceContract(
-                BannerModSettlementServiceActorState.LOCAL_BUILDING_SERVICE,
+    private static SettlementSnapshot settlementSnapshot(long gameTime, boolean includeSellerDispatch) {
+        SettlementResidentServiceContract serviceContract = new SettlementResidentServiceContract(
+                SettlementServiceActorState.LOCAL_BUILDING_SERVICE,
                 MARKET,
                 "market_area"
         );
-        BannerModSettlementResidentRecord resident = new BannerModSettlementResidentRecord(
+        SettlementResidentRecord resident = new SettlementResidentRecord(
                 RESIDENT,
-                BannerModSettlementResidentRole.CONTROLLED_WORKER,
-                BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK,
-                BannerModSettlementResidentRuntimeRoleState.LOCAL_LABOR,
+                SettlementResidentRole.CONTROLLED_WORKER,
+                SettlementResidentScheduleSeed.ASSIGNED_WORK,
+                SettlementResidentRuntimeRoleState.LOCAL_LABOR,
                 serviceContract,
-                BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
+                SettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
                 UUID.fromString("00000000-0000-0000-0000-0000000000d1"),
                 "teamA",
                 MARKET,
-                BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
+                SettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
         );
 
-        BannerModSettlementBuildingRecord home = new BannerModSettlementBuildingRecord(
+        SettlementBuildingRecord home = new SettlementBuildingRecord(
                 HOME,
                 "house",
                 BlockPos.ZERO,
@@ -238,7 +238,7 @@ class BannerModSettlementOrchestratorTest {
                 0,
                 List.of()
         );
-        BannerModSettlementBuildingRecord market = new BannerModSettlementBuildingRecord(
+        SettlementBuildingRecord market = new SettlementBuildingRecord(
                 MARKET,
                 "market_area",
                 new BlockPos(4, 64, 4),
@@ -250,25 +250,25 @@ class BannerModSettlementOrchestratorTest {
                 List.of()
         );
 
-        BannerModSettlementMarketState marketState = new BannerModSettlementMarketState(
+        SettlementMarketState marketState = new SettlementMarketState(
                 1,
                 1,
                 16,
                 8,
                 1,
                 1,
-                List.of(new BannerModSettlementMarketRecord(MARKET, "Market", true, 16, 8)),
+                List.of(new SettlementMarketRecord(MARKET, "Market", true, 16, 8)),
                 includeSellerDispatch
-                        ? List.of(new BannerModSettlementSellerDispatchRecord(
+                        ? List.of(new SettlementSellerDispatchRecord(
                         RESIDENT,
                         MARKET,
                         "Market",
-                        BannerModSettlementSellerDispatchState.READY
+                        SettlementSellerDispatchState.READY
                 ))
                         : List.of()
         );
 
-        return new BannerModSettlementSnapshot(
+        return new SettlementSnapshot(
                 CLAIM,
                 0,
                 0,
@@ -280,19 +280,19 @@ class BannerModSettlementOrchestratorTest {
                 1,
                 1,
                 0,
-                BannerModSettlementStockpileSummary.empty(),
+                SettlementStockpileSummary.empty(),
                 marketState,
-                BannerModSettlementDesiredGoodsSnapshot.empty(),
-                BannerModSettlementProjectCandidateSnapshot.empty(),
-                BannerModSettlementTradeRouteHandoffSnapshot.empty(),
-                BannerModSettlementSupplySignalState.empty(),
+                SettlementDesiredGoodsSnapshot.empty(),
+                SettlementProjectCandidateSnapshot.empty(),
+                SettlementTradeRouteHandoffSnapshot.empty(),
+                SettlementSupplySignalState.empty(),
                 List.of(resident),
                 List.of(home, market)
         );
     }
 
-    private static BannerModSettlementSnapshot withClaim(BannerModSettlementSnapshot base, UUID claimUuid) {
-        return new BannerModSettlementSnapshot(
+    private static SettlementSnapshot withClaim(SettlementSnapshot base, UUID claimUuid) {
+        return new SettlementSnapshot(
                 claimUuid,
                 base.anchorChunkX(),
                 base.anchorChunkZ(),
@@ -335,8 +335,8 @@ class BannerModSettlementOrchestratorTest {
         }
 
         @Override
-        public BannerModSettlementJobHandlerSeed handles() {
-            return BannerModSettlementJobHandlerSeed.LOCAL_BUILDING_LABOR;
+        public SettlementJobHandlerSeed handles() {
+            return SettlementJobHandlerSeed.LOCAL_BUILDING_LABOR;
         }
 
         @Override

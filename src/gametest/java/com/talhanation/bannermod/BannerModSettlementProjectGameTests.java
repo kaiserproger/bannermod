@@ -4,14 +4,14 @@ import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.entity.civilian.workarea.BuildArea;
 import com.talhanation.bannermod.entity.civilian.workarea.WorkAreaIndex;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingCategory;
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingProfileSeed;
+import com.talhanation.bannermod.settlement.SettlementBuildingCategory;
+import com.talhanation.bannermod.settlement.SettlementBuildingProfileSeed;
 import com.talhanation.bannermod.settlement.growth.PendingProject;
 import com.talhanation.bannermod.settlement.growth.ProjectBlocker;
 import com.talhanation.bannermod.settlement.growth.ProjectKind;
 import com.talhanation.bannermod.settlement.project.AssignmentPhase;
 import com.talhanation.bannermod.settlement.project.BannerModBuildAreaProjectBridge;
-import com.talhanation.bannermod.settlement.project.BannerModSettlementProjectRuntime;
+import com.talhanation.bannermod.settlement.project.SettlementProjectRuntime;
 import com.talhanation.bannermod.settlement.project.ProjectAssignment;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
@@ -65,16 +65,16 @@ public class BannerModSettlementProjectGameTests {
                 UUID.randomUUID(),
                 ProjectKind.NEW_BUILDING,
                 null,
-                BannerModSettlementBuildingCategory.GENERAL,
-                BannerModSettlementBuildingProfileSeed.GENERAL,
+                SettlementBuildingCategory.GENERAL,
+                SettlementBuildingProfileSeed.GENERAL,
                 100,
                 level.getGameTime(),
                 20,
                 ProjectBlocker.NONE
         );
 
-        BannerModSettlementProjectRuntime runtime = BannerModSettlementProjectRuntime.forServer(level);
-        ProjectAssignment assignment = BannerModSettlementProjectRuntime.tickClaim(
+        SettlementProjectRuntime runtime = SettlementProjectRuntime.forServer(level);
+        ProjectAssignment assignment = SettlementProjectRuntime.tickClaim(
                 level,
                 claim.getUUID(),
                 List.of(project)
@@ -118,15 +118,15 @@ public class BannerModSettlementProjectGameTests {
                 UUID.randomUUID(),
                 ProjectKind.NEW_BUILDING,
                 null,
-                BannerModSettlementBuildingCategory.GENERAL,
-                BannerModSettlementBuildingProfileSeed.GENERAL,
+                SettlementBuildingCategory.GENERAL,
+                SettlementBuildingProfileSeed.GENERAL,
                 100,
                 level.getGameTime(),
                 20,
                 ProjectBlocker.NONE
         );
 
-        Optional<ProjectAssignment> assignment = BannerModSettlementProjectRuntime.detachedForTests().tickClaim(
+        Optional<ProjectAssignment> assignment = SettlementProjectRuntime.detachedForTests().tickClaim(
                 level,
                 claim.getUUID(),
                 List.of(project),
@@ -161,15 +161,15 @@ public class BannerModSettlementProjectGameTests {
                 UUID.randomUUID(),
                 ProjectKind.NEW_BUILDING,
                 null,
-                BannerModSettlementBuildingCategory.GENERAL,
-                BannerModSettlementBuildingProfileSeed.GENERAL,
+                SettlementBuildingCategory.GENERAL,
+                SettlementBuildingProfileSeed.GENERAL,
                 100,
                 level.getGameTime(),
                 20,
                 ProjectBlocker.NONE
         );
 
-        BannerModSettlementProjectRuntime runtime = BannerModSettlementProjectRuntime.forServer(level);
+        SettlementProjectRuntime runtime = SettlementProjectRuntime.forServer(level);
         ProjectAssignment assignment = runtime.tickClaim(
                 level,
                 claim.getUUID(),

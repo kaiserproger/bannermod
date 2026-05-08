@@ -9,11 +9,11 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class BannerModSettlementBuildingRecordTest {
+class SettlementBuildingRecordTest {
 
     @Test
     void buildingRecordRoundTripsCategoryAndProfileSeed() {
-        BannerModSettlementBuildingRecord original = new BannerModSettlementBuildingRecord(
+        SettlementBuildingRecord original = new SettlementBuildingRecord(
                 UUID.randomUUID(),
                 "bannermod:market_area",
                 new BlockPos(12, 64, 12),
@@ -29,11 +29,11 @@ class BannerModSettlementBuildingRecordTest {
                 true,
                 true,
                 List.of("food", "materials"),
-                BannerModSettlementBuildingCategory.MARKET,
-                BannerModSettlementBuildingProfileSeed.MARKET
+                SettlementBuildingCategory.MARKET,
+                SettlementBuildingProfileSeed.MARKET
         );
 
-        BannerModSettlementBuildingRecord restored = BannerModSettlementBuildingRecord.fromTag(original.toTag());
+        SettlementBuildingRecord restored = SettlementBuildingRecord.fromTag(original.toTag());
 
         assertEquals(original, restored);
     }
@@ -48,9 +48,9 @@ class BannerModSettlementBuildingRecordTest {
         tag.putInt("WorkplaceSlots", 1);
         tag.putInt("AssignedWorkerCount", 0);
 
-        BannerModSettlementBuildingRecord restored = BannerModSettlementBuildingRecord.fromTag(tag);
+        SettlementBuildingRecord restored = SettlementBuildingRecord.fromTag(tag);
 
-        assertEquals(BannerModSettlementBuildingCategory.STORAGE, restored.buildingCategory());
-        assertEquals(BannerModSettlementBuildingProfileSeed.STORAGE, restored.buildingProfileSeed());
+        assertEquals(SettlementBuildingCategory.STORAGE, restored.buildingCategory());
+        assertEquals(SettlementBuildingProfileSeed.STORAGE, restored.buildingProfileSeed());
     }
 }

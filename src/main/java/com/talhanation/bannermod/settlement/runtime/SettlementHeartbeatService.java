@@ -3,9 +3,9 @@ package com.talhanation.bannermod.settlement.runtime;
 import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.governance.BannerModGovernorHeartbeat;
 import com.talhanation.bannermod.governance.BannerModGovernorManager;
-import com.talhanation.bannermod.settlement.BannerModSettlementManager;
-import com.talhanation.bannermod.settlement.BannerModSettlementOrchestrator;
-import com.talhanation.bannermod.settlement.BannerModSettlementService;
+import com.talhanation.bannermod.settlement.SettlementManager;
+import com.talhanation.bannermod.settlement.SettlementOrchestrator;
+import com.talhanation.bannermod.settlement.SettlementService;
 import com.talhanation.bannermod.util.AdaptiveRuntimeBudgets;
 import com.talhanation.bannermod.util.RuntimeProfilingCounters;
 import net.minecraft.server.level.ServerLevel;
@@ -46,7 +46,7 @@ public final class SettlementHeartbeatService {
 
     private void tickGovernorMaintenance(ServerLevel level) {
         BannerModGovernorManager governorManager = BannerModGovernorManager.get(level);
-        BannerModSettlementManager settlementManager = BannerModSettlementManager.get(level);
+        SettlementManager settlementManager = SettlementManager.get(level);
 
         if (governorMaintenanceStage == GOVERNOR_STAGE_HEARTBEAT) {
             long startNanos = System.nanoTime();
@@ -64,7 +64,7 @@ public final class SettlementHeartbeatService {
 
         if (governorMaintenanceStage == GOVERNOR_STAGE_REFRESH) {
             long startNanos = System.nanoTime();
-            SettlementClaimBindingService.BatchResult result = BannerModSettlementService.refreshClaimsBatch(
+            SettlementClaimBindingService.BatchResult result = SettlementService.refreshClaimsBatch(
                     level,
                     ClaimEvents.claimManager(),
                     settlementManager,
@@ -79,7 +79,7 @@ public final class SettlementHeartbeatService {
 
         if (governorMaintenanceStage == GOVERNOR_STAGE_ORCHESTRATOR) {
             long startNanos = System.nanoTime();
-            BannerModSettlementOrchestrator.BatchResult result = BannerModSettlementOrchestrator.tickBatch(
+            SettlementOrchestrator.BatchResult result = SettlementOrchestrator.tickBatch(
                     level,
                     settlementManager,
                     governorManager,

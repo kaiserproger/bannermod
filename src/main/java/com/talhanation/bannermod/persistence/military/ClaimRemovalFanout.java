@@ -4,7 +4,7 @@ import com.talhanation.bannermod.entity.civilian.AbstractWorkerEntity;
 import com.talhanation.bannermod.entity.civilian.workarea.AbstractWorkAreaEntity;
 import com.talhanation.bannermod.governance.BannerModGovernorManager;
 import com.talhanation.bannermod.governance.BannerModTreasuryManager;
-import com.talhanation.bannermod.settlement.BannerModSettlementManager;
+import com.talhanation.bannermod.settlement.SettlementManager;
 import com.talhanation.bannermod.war.WarRuntimeContext;
 import com.talhanation.bannermod.war.runtime.OccupationRuntime;
 import com.talhanation.bannermod.war.runtime.RevoltRuntime;
@@ -54,7 +54,7 @@ public final class ClaimRemovalFanout {
             return FanoutResult.empty();
         }
         BannerModTreasuryManager treasury = BannerModTreasuryManager.get(level);
-        BannerModSettlementManager settlements = BannerModSettlementManager.get(level);
+        SettlementManager settlements = SettlementManager.get(level);
         BannerModGovernorManager governors = BannerModGovernorManager.get(level);
         OccupationRuntime occupations = WarRuntimeContext.occupations(level);
         RevoltRuntime revolts = WarRuntimeContext.revolts(level);
@@ -71,7 +71,7 @@ public final class ClaimRemovalFanout {
     public static FanoutResult apply(@Nullable UUID claimUuid,
                                      @Nullable List<ChunkPos> claimChunks,
                                      @Nullable BannerModTreasuryManager treasury,
-                                     @Nullable BannerModSettlementManager settlements,
+                                     @Nullable SettlementManager settlements,
                                      @Nullable BannerModGovernorManager governors,
                                      @Nullable OccupationRuntime occupations,
                                      @Nullable RevoltRuntime revolts,
@@ -87,7 +87,7 @@ public final class ClaimRemovalFanout {
         List<UUID> removedRevolts = List.of();
 
         // Detach worker bindings FIRST. The unbind path triggers a settlement-snapshot
-        // refresh through BannerModSettlementService, which would otherwise re-seed the
+        // refresh through SettlementService, which would otherwise re-seed the
         // snapshot we are about to drop. Doing this before the snapshot/treasury wipes
         // keeps every removal visible in the same tick.
         if (workers != null && claimChunks != null && !claimChunks.isEmpty()) {

@@ -6,8 +6,8 @@ import com.talhanation.bannermod.governance.BannerModTreasuryManager;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.persistence.military.RecruitsClaimSaveData;
 import com.talhanation.bannermod.persistence.military.RecruitsPlayerInfo;
-import com.talhanation.bannermod.settlement.BannerModSettlementManager;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementManager;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -48,7 +48,7 @@ import java.util.UUID;
  *       roundtrip test ({@code claimRoundtripTagIsByteForByteIdentical}).</li>
  *   <li>Settlement snapshot's serialized tag via {@code toTag}/{@code equals}
  *       — covered both at the record level and through the
- *       {@link BannerModSettlementManager} SavedData.</li>
+ *       {@link SettlementManager} SavedData.</li>
  *   <li>Treasury ledger — covered by the
  *       {@link BannerModTreasuryManager} roundtrip test.</li>
  *   <li>Per-chunk SavedData — the three SavedData entries above are the
@@ -67,7 +67,7 @@ public class ChunkUnloadReloadRoundtripGameTests {
     @GameTest(template = "harness_empty")
     public static void settlementSnapshotTagIsByteForByteIdenticalAfterRoundtrip(GameTestHelper helper) {
         UUID claimUuid = UUID.fromString("11111111-2222-3333-4444-555555555555");
-        BannerModSettlementSnapshot snapshot = BannerModSettlementSnapshot.create(
+        SettlementSnapshot snapshot = SettlementSnapshot.create(
                 claimUuid,
                 ANCHOR_CHUNK,
                 "test-faction"
@@ -77,7 +77,7 @@ public class ChunkUnloadReloadRoundtripGameTests {
         CompoundTag preUnloadTag = snapshot.toTag();
 
         // Simulated unload + reload: re-hydrate via the production fromTag entry.
-        BannerModSettlementSnapshot reloaded = BannerModSettlementSnapshot.fromTag(preUnloadTag);
+        SettlementSnapshot reloaded = SettlementSnapshot.fromTag(preUnloadTag);
 
         // Post-reload: re-serialize through the same toTag entry point.
         CompoundTag postReloadTag = reloaded.toTag();
@@ -199,12 +199,12 @@ public class ChunkUnloadReloadRoundtripGameTests {
         RecruitsClaimSaveData claimData = new RecruitsClaimSaveData();
         claimData.setAllClaims(List.of(claim));
 
-        BannerModSettlementSnapshot snapshot = BannerModSettlementSnapshot.create(
+        SettlementSnapshot snapshot = SettlementSnapshot.create(
                 coherentClaimUuid,
                 ANCHOR_CHUNK,
                 "test-faction"
         );
-        BannerModSettlementManager settlementManager = new BannerModSettlementManager();
+        SettlementManager settlementManager = new SettlementManager();
         settlementManager.putSnapshot(snapshot);
 
         BannerModTreasuryLedgerSnapshot ledger = BannerModTreasuryLedgerSnapshot
@@ -222,8 +222,8 @@ public class ChunkUnloadReloadRoundtripGameTests {
         // ----- Simulated chunk unload/reload: production load() then save() again.
         RecruitsClaimSaveData claimReloaded =
                 RecruitsClaimSaveData.load(claimPreTag, registries);
-        BannerModSettlementManager settlementReloaded =
-                BannerModSettlementManager.load(settlementPreTag, registries);
+        SettlementManager settlementReloaded =
+                SettlementManager.load(settlementPreTag, registries);
         BannerModTreasuryManager treasuryReloaded =
                 BannerModTreasuryManager.load(treasuryPreTag, registries);
 
@@ -236,7 +236,7 @@ public class ChunkUnloadReloadRoundtripGameTests {
         helper.assertTrue(reloadedClaim.containsChunk(ANCHOR_CHUNK),
                 "Claim chunk coord must survive unload/reload");
 
-        BannerModSettlementSnapshot reloadedSnapshot = settlementReloaded.getSnapshot(coherentClaimUuid);
+        SettlementSnapshot reloadedSnapshot = settlementReloaded.getSnapshot(coherentClaimUuid);
         helper.assertTrue(reloadedSnapshot != null,
                 "Settlement snapshot must be reachable by claim UUID after reload");
         helper.assertTrue(snapshotPreTag.equals(reloadedSnapshot.toTag()),

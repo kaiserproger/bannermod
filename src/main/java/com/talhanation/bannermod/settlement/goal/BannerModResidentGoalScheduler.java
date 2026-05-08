@@ -1,6 +1,6 @@
 package com.talhanation.bannermod.settlement.goal;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementMarketState;
+import com.talhanation.bannermod.settlement.SettlementMarketState;
 import com.talhanation.bannermod.settlement.dispatch.BannerModSellerDispatchRuntime;
 import com.talhanation.bannermod.settlement.dispatch.SellerResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.DeliverResidentGoal;
@@ -67,7 +67,7 @@ public final class BannerModResidentGoalScheduler {
      */
     public static BannerModResidentGoalScheduler withDefaultGoals(
             BannerModHomeAssignmentRuntime homeAssignmentRuntime,
-            Supplier<BannerModSettlementMarketState> marketStateSupplier,
+            Supplier<SettlementMarketState> marketStateSupplier,
             BannerModSellerDispatchRuntime sellerDispatchRuntime
     ) {
         if (homeAssignmentRuntime == null) {

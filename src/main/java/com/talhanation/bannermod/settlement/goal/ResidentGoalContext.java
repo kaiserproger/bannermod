@@ -1,16 +1,16 @@
 package com.talhanation.bannermod.settlement.goal;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentSchedulePolicy;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentScheduleWindowSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementResidentRecord;
+import com.talhanation.bannermod.settlement.SettlementResidentSchedulePolicy;
+import com.talhanation.bannermod.settlement.SettlementResidentScheduleWindowSeed;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.UUID;
 
 public record ResidentGoalContext(
-        BannerModSettlementResidentRecord resident,
-        @Nullable BannerModSettlementSnapshot settlement,
+        SettlementResidentRecord resident,
+        @Nullable SettlementSnapshot settlement,
         long gameTime
 ) {
 
@@ -18,11 +18,11 @@ public record ResidentGoalContext(
         return this.resident.residentUuid();
     }
 
-    public BannerModSettlementResidentSchedulePolicy policy() {
+    public SettlementResidentSchedulePolicy policy() {
         return this.resident.schedulePolicy();
     }
 
-    public BannerModSettlementResidentScheduleWindowSeed window() {
+    public SettlementResidentScheduleWindowSeed window() {
         return this.resident.scheduleWindowSeed();
     }
 
@@ -38,14 +38,14 @@ public record ResidentGoalContext(
     /** True when within the policy-defined active window of the current day. */
     public boolean isActivePhase() {
         int t = this.dayTime();
-        BannerModSettlementResidentScheduleWindowSeed w = this.window();
+        SettlementResidentScheduleWindowSeed w = this.window();
         return t >= w.activeStartTick() && t < w.activeEndTick();
     }
 
     /** True when within the policy-defined rest window of the current day. */
     public boolean isRestPhase() {
         int t = this.dayTime();
-        BannerModSettlementResidentScheduleWindowSeed w = this.window();
+        SettlementResidentScheduleWindowSeed w = this.window();
         return t >= w.restStartTick() || t < w.activeStartTick();
     }
 }

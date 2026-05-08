@@ -1,14 +1,14 @@
 package com.talhanation.bannermod.settlement.job;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementJobHandlerSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentAssignmentState;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentMode;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRole;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRuntimeRoleState;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentScheduleSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentServiceContract;
-import com.talhanation.bannermod.settlement.BannerModSettlementServiceActorState;
+import com.talhanation.bannermod.settlement.SettlementJobHandlerSeed;
+import com.talhanation.bannermod.settlement.SettlementResidentAssignmentState;
+import com.talhanation.bannermod.settlement.SettlementResidentMode;
+import com.talhanation.bannermod.settlement.SettlementResidentRecord;
+import com.talhanation.bannermod.settlement.SettlementResidentRole;
+import com.talhanation.bannermod.settlement.SettlementResidentRuntimeRoleState;
+import com.talhanation.bannermod.settlement.SettlementResidentScheduleSeed;
+import com.talhanation.bannermod.settlement.SettlementResidentServiceContract;
+import com.talhanation.bannermod.settlement.SettlementServiceActorState;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrder;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderRuntime;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderStatus;
@@ -43,13 +43,13 @@ class JobHandlerRegistryTest {
     void lookupBySeedReturnsHandlerWhoseHandlesMatches() {
         JobHandlerRegistry registry = JobHandlerRegistry.defaults();
 
-        Optional<JobHandler> harvest = registry.lookup(BannerModSettlementJobHandlerSeed.FLOATING_LABOR_POOL);
-        Optional<JobHandler> build = registry.lookup(BannerModSettlementJobHandlerSeed.LOCAL_BUILDING_LABOR);
+        Optional<JobHandler> harvest = registry.lookup(SettlementJobHandlerSeed.FLOATING_LABOR_POOL);
+        Optional<JobHandler> build = registry.lookup(SettlementJobHandlerSeed.LOCAL_BUILDING_LABOR);
 
         assertTrue(harvest.isPresent());
         assertTrue(build.isPresent());
-        assertEquals(BannerModSettlementJobHandlerSeed.FLOATING_LABOR_POOL, harvest.get().handles());
-        assertEquals(BannerModSettlementJobHandlerSeed.LOCAL_BUILDING_LABOR, build.get().handles());
+        assertEquals(SettlementJobHandlerSeed.FLOATING_LABOR_POOL, harvest.get().handles());
+        assertEquals(SettlementJobHandlerSeed.LOCAL_BUILDING_LABOR, build.get().handles());
     }
 
     @Test
@@ -57,13 +57,13 @@ class JobHandlerRegistryTest {
         JobHandlerRegistry registry = new JobHandlerRegistry();
         JobHandler custom = new TestJobHandler(
                 ResourceLocation.fromNamespaceAndPath("bannermod", "custom_governance"),
-                BannerModSettlementJobHandlerSeed.GOVERNANCE
+                SettlementJobHandlerSeed.GOVERNANCE
         );
 
         registry.register(custom);
 
         assertSame(custom, registry.lookupById(ResourceLocation.fromNamespaceAndPath("bannermod", "custom_governance")).orElse(null));
-        assertSame(custom, registry.lookup(BannerModSettlementJobHandlerSeed.GOVERNANCE).orElse(null));
+        assertSame(custom, registry.lookup(SettlementJobHandlerSeed.GOVERNANCE).orElse(null));
     }
 
     @Test
@@ -71,18 +71,18 @@ class JobHandlerRegistryTest {
         JobHandlerRegistry registry = new JobHandlerRegistry();
         JobHandler first = new TestJobHandler(
                 ResourceLocation.fromNamespaceAndPath("bannermod", "first"),
-                BannerModSettlementJobHandlerSeed.VILLAGE_LIFE
+                SettlementJobHandlerSeed.VILLAGE_LIFE
         );
         JobHandler second = new TestJobHandler(
                 ResourceLocation.fromNamespaceAndPath("bannermod", "second"),
-                BannerModSettlementJobHandlerSeed.VILLAGE_LIFE
+                SettlementJobHandlerSeed.VILLAGE_LIFE
         );
 
         registry.register(first);
         registry.register(second);
 
         // Seed binding reflects the most recent registration.
-        assertSame(second, registry.lookup(BannerModSettlementJobHandlerSeed.VILLAGE_LIFE).orElse(null));
+        assertSame(second, registry.lookup(SettlementJobHandlerSeed.VILLAGE_LIFE).orElse(null));
         // Both remain reachable by their distinct ids; we do not evict the older handler from
         // the id index because its id was not reused.
         assertSame(first, registry.lookupById(ResourceLocation.fromNamespaceAndPath("bannermod", "first")).orElse(null));
@@ -94,8 +94,8 @@ class JobHandlerRegistryTest {
     void lookupForUnregisteredSeedReturnsEmpty() {
         JobHandlerRegistry registry = new JobHandlerRegistry();
 
-        assertFalse(registry.lookup(BannerModSettlementJobHandlerSeed.ORPHANED_LABOR_RECOVERY).isPresent());
-        assertFalse(registry.lookup(BannerModSettlementJobHandlerSeed.NONE).isPresent());
+        assertFalse(registry.lookup(SettlementJobHandlerSeed.ORPHANED_LABOR_RECOVERY).isPresent());
+        assertFalse(registry.lookup(SettlementJobHandlerSeed.NONE).isPresent());
         assertFalse(registry.lookup(null).isPresent());
         assertFalse(registry.lookupById(null).isPresent());
         assertFalse(registry.lookupById(ResourceLocation.fromNamespaceAndPath("bannermod", "missing")).isPresent());
@@ -110,7 +110,7 @@ class JobHandlerRegistryTest {
 
         assertEquals(0, registry.size());
         assertTrue(registry.all().isEmpty());
-        assertFalse(registry.lookup(BannerModSettlementJobHandlerSeed.FLOATING_LABOR_POOL).isPresent());
+        assertFalse(registry.lookup(SettlementJobHandlerSeed.FLOATING_LABOR_POOL).isPresent());
         assertFalse(registry.lookupById(HarvestJobHandler.ID).isPresent());
     }
 
@@ -124,8 +124,8 @@ class JobHandlerRegistryTest {
                 UUID.randomUUID()
         );
 
-        JobHandler harvest = registry.lookup(BannerModSettlementJobHandlerSeed.FLOATING_LABOR_POOL).orElseThrow();
-        JobHandler build = registry.lookup(BannerModSettlementJobHandlerSeed.LOCAL_BUILDING_LABOR).orElseThrow();
+        JobHandler harvest = registry.lookup(SettlementJobHandlerSeed.FLOATING_LABOR_POOL).orElseThrow();
+        JobHandler build = registry.lookup(SettlementJobHandlerSeed.LOCAL_BUILDING_LABOR).orElseThrow();
 
         assertTrue(harvest.canHandle(ctx));
         assertTrue(build.canHandle(ctx));
@@ -149,7 +149,7 @@ class JobHandlerRegistryTest {
     @Test
     void harvestHandlerClaimsHaulResourceOrderForFloatingLaborResident() {
         SettlementWorkOrderRuntime runtime = new SettlementWorkOrderRuntime();
-        BannerModSettlementResidentRecord resident = sampleProjectedWorker();
+        SettlementResidentRecord resident = sampleProjectedWorker();
         UUID claimUuid = UUID.randomUUID();
         UUID buildingUuid = resident.boundWorkAreaUuid();
         SettlementWorkOrder published = runtime.publish(SettlementWorkOrder.pendingTransport(
@@ -177,7 +177,7 @@ class JobHandlerRegistryTest {
     @Test
     void harvestHandlerClaimsFetchInputOrderForFloatingLaborResident() {
         SettlementWorkOrderRuntime runtime = new SettlementWorkOrderRuntime();
-        BannerModSettlementResidentRecord resident = sampleProjectedWorker();
+        SettlementResidentRecord resident = sampleProjectedWorker();
         UUID claimUuid = UUID.randomUUID();
         UUID buildingUuid = resident.boundWorkAreaUuid();
         SettlementWorkOrder published = runtime.publish(SettlementWorkOrder.pendingTransport(
@@ -205,7 +205,7 @@ class JobHandlerRegistryTest {
     @Test
     void jobTaskDefinitionRejectsInvalidValues() {
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath("bannermod", "t");
-        BannerModSettlementJobHandlerSeed seed = BannerModSettlementJobHandlerSeed.FLOATING_LABOR_POOL;
+        SettlementJobHandlerSeed seed = SettlementJobHandlerSeed.FLOATING_LABOR_POOL;
 
         JobTaskDefinition ok = new JobTaskDefinition(id, seed, 0, 1, true, false);
         assertNotNull(ok);
@@ -224,57 +224,57 @@ class JobHandlerRegistryTest {
         }
     }
 
-    private static BannerModSettlementResidentRecord sampleProjectedWorker() {
+    private static SettlementResidentRecord sampleProjectedWorker() {
         UUID residentUuid = UUID.randomUUID();
         UUID buildingUuid = UUID.randomUUID();
-        return new BannerModSettlementResidentRecord(
+        return new SettlementResidentRecord(
                 residentUuid,
-                BannerModSettlementResidentRole.CONTROLLED_WORKER,
-                BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK,
-                BannerModSettlementResidentRuntimeRoleState.LOCAL_LABOR,
-                new BannerModSettlementResidentServiceContract(
-                        BannerModSettlementServiceActorState.LOCAL_BUILDING_SERVICE,
+                SettlementResidentRole.CONTROLLED_WORKER,
+                SettlementResidentScheduleSeed.ASSIGNED_WORK,
+                SettlementResidentRuntimeRoleState.LOCAL_LABOR,
+                new SettlementResidentServiceContract(
+                        SettlementServiceActorState.LOCAL_BUILDING_SERVICE,
                         buildingUuid,
                         "bannermod:crop_area"
                 ),
-                BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
+                SettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
                 UUID.randomUUID(),
                 "team",
                 buildingUuid,
-                BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
+                SettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
         );
     }
 
-    private static BannerModSettlementResidentRecord sampleSettlementResident() {
+    private static SettlementResidentRecord sampleSettlementResident() {
         UUID residentUuid = UUID.randomUUID();
-        return new BannerModSettlementResidentRecord(
+        return new SettlementResidentRecord(
                 residentUuid,
-                BannerModSettlementResidentRole.VILLAGER,
-                BannerModSettlementResidentScheduleSeed.SETTLEMENT_IDLE,
-                BannerModSettlementResidentRuntimeRoleState.VILLAGE_LIFE,
-                BannerModSettlementResidentServiceContract.defaultFor(
-                        BannerModSettlementResidentRole.VILLAGER,
-                        BannerModSettlementResidentMode.SETTLEMENT_RESIDENT,
-                        BannerModSettlementResidentAssignmentState.NOT_APPLICABLE,
+                SettlementResidentRole.VILLAGER,
+                SettlementResidentScheduleSeed.SETTLEMENT_IDLE,
+                SettlementResidentRuntimeRoleState.VILLAGE_LIFE,
+                SettlementResidentServiceContract.defaultFor(
+                        SettlementResidentRole.VILLAGER,
+                        SettlementResidentMode.SETTLEMENT_RESIDENT,
+                        SettlementResidentAssignmentState.NOT_APPLICABLE,
                         null,
                         null
                 ),
-                BannerModSettlementResidentMode.SETTLEMENT_RESIDENT,
+                SettlementResidentMode.SETTLEMENT_RESIDENT,
                 null,
                 null,
                 null,
-                BannerModSettlementResidentAssignmentState.NOT_APPLICABLE
+                SettlementResidentAssignmentState.NOT_APPLICABLE
         );
     }
 
-    private record TestJobHandler(ResourceLocation id, BannerModSettlementJobHandlerSeed seed) implements JobHandler {
+    private record TestJobHandler(ResourceLocation id, SettlementJobHandlerSeed seed) implements JobHandler {
         @Override
         public ResourceLocation id() {
             return id;
         }
 
         @Override
-        public BannerModSettlementJobHandlerSeed handles() {
+        public SettlementJobHandlerSeed handles() {
             return seed;
         }
 

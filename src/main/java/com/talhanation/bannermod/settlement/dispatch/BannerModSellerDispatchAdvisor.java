@@ -1,8 +1,8 @@
 package com.talhanation.bannermod.settlement.dispatch;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementMarketState;
-import com.talhanation.bannermod.settlement.BannerModSettlementSellerDispatchRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementSellerDispatchState;
+import com.talhanation.bannermod.settlement.SettlementMarketState;
+import com.talhanation.bannermod.settlement.SettlementSellerDispatchRecord;
+import com.talhanation.bannermod.settlement.SettlementSellerDispatchState;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -13,14 +13,14 @@ import java.util.UUID;
  * pulled into a dispatch, or {@link Optional#empty()} if nothing is eligible.
  *
  * <p>Deterministic by construction: iteration order is the order returned by
- * {@link BannerModSettlementMarketState#sellerDispatches()} (itself a
+ * {@link SettlementMarketState#sellerDispatches()} (itself a
  * {@link java.util.List}, so insertion order is preserved through
  * {@link java.util.List#copyOf(java.util.Collection)}).
  *
  * <p>Note on the parameter name: slice A's spec labels the persisted seed
  * "SellerDispatchState" as a bag of records, but in the shipped code that
  * name is already taken by an enum (READY / MARKET_CLOSED). The bag of
- * records actually lives on {@link BannerModSettlementMarketState}, so that
+ * records actually lives on {@link SettlementMarketState}, so that
  * is what this advisor consumes. The enum is used only to filter the list.
  */
 public final class BannerModSellerDispatchAdvisor {
@@ -33,11 +33,11 @@ public final class BannerModSellerDispatchAdvisor {
      * @param runtime     in-memory phase tracker
      * @param gameTime    current game time (ticks); unused today, taken for forward-compat
      *                   so callers don't have to re-thread state when future scoring lands
-     * @return the first {@link BannerModSettlementSellerDispatchState#READY} resident UUID
+     * @return the first {@link SettlementSellerDispatchState#READY} resident UUID
      *         that is not currently active in {@code runtime}, or empty
      */
     public static Optional<UUID> pickReadySeller(
-            BannerModSettlementMarketState marketState,
+            SettlementMarketState marketState,
             BannerModSellerDispatchRuntime runtime,
             long gameTime
     ) {
@@ -49,11 +49,11 @@ public final class BannerModSellerDispatchAdvisor {
         if (gameTime < Long.MIN_VALUE) {
             return Optional.empty();
         }
-        for (BannerModSettlementSellerDispatchRecord record : marketState.sellerDispatches()) {
+        for (SettlementSellerDispatchRecord record : marketState.sellerDispatches()) {
             if (record == null) {
                 continue;
             }
-            if (record.dispatchState() != BannerModSettlementSellerDispatchState.READY) {
+            if (record.dispatchState() != SettlementSellerDispatchState.READY) {
                 continue;
             }
             UUID residentUuid = record.residentUuid();

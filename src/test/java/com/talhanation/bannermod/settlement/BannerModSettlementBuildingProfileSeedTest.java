@@ -4,49 +4,49 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class BannerModSettlementBuildingProfileSeedTest {
+class SettlementBuildingProfileSeedTest {
 
     @Test
     void categoryMatchesExpectedEnumBuckets() {
-        assertEquals(BannerModSettlementBuildingCategory.FOOD, BannerModSettlementBuildingProfileSeed.FOOD_PRODUCTION.category());
-        assertEquals(BannerModSettlementBuildingCategory.MATERIAL, BannerModSettlementBuildingProfileSeed.MATERIAL_PRODUCTION.category());
-        assertEquals(BannerModSettlementBuildingCategory.STORAGE, BannerModSettlementBuildingProfileSeed.STORAGE.category());
-        assertEquals(BannerModSettlementBuildingCategory.MARKET, BannerModSettlementBuildingProfileSeed.MARKET.category());
-        assertEquals(BannerModSettlementBuildingCategory.CONSTRUCTION, BannerModSettlementBuildingProfileSeed.CONSTRUCTION.category());
-        assertEquals(BannerModSettlementBuildingCategory.GENERAL, BannerModSettlementBuildingProfileSeed.GENERAL.category());
+        assertEquals(SettlementBuildingCategory.FOOD, SettlementBuildingProfileSeed.FOOD_PRODUCTION.category());
+        assertEquals(SettlementBuildingCategory.MATERIAL, SettlementBuildingProfileSeed.MATERIAL_PRODUCTION.category());
+        assertEquals(SettlementBuildingCategory.STORAGE, SettlementBuildingProfileSeed.STORAGE.category());
+        assertEquals(SettlementBuildingCategory.MARKET, SettlementBuildingProfileSeed.MARKET.category());
+        assertEquals(SettlementBuildingCategory.CONSTRUCTION, SettlementBuildingProfileSeed.CONSTRUCTION.category());
+        assertEquals(SettlementBuildingCategory.GENERAL, SettlementBuildingProfileSeed.GENERAL.category());
     }
 
     @Test
     void fromBuildingTypeIdMapsKnownPathsAndFallsBackToGeneral() {
-        assertEquals(BannerModSettlementBuildingProfileSeed.GENERAL,
-                BannerModSettlementBuildingProfileSeed.fromBuildingTypeId(null));
-        assertEquals(BannerModSettlementBuildingProfileSeed.GENERAL,
-                BannerModSettlementBuildingProfileSeed.fromBuildingTypeId(" "));
-        assertEquals(BannerModSettlementBuildingProfileSeed.FOOD_PRODUCTION,
-                BannerModSettlementBuildingProfileSeed.fromBuildingTypeId("bannermod:crop_area"));
-        assertEquals(BannerModSettlementBuildingProfileSeed.FOOD_PRODUCTION,
-                BannerModSettlementBuildingProfileSeed.fromBuildingTypeId("animal_pen_area"));
-        assertEquals(BannerModSettlementBuildingProfileSeed.MATERIAL_PRODUCTION,
-                BannerModSettlementBuildingProfileSeed.fromBuildingTypeId("bannermod:mining_area"));
-        assertEquals(BannerModSettlementBuildingProfileSeed.STORAGE,
-                BannerModSettlementBuildingProfileSeed.fromBuildingTypeId("storage_area"));
-        assertEquals(BannerModSettlementBuildingProfileSeed.MARKET,
-                BannerModSettlementBuildingProfileSeed.fromBuildingTypeId("market_area"));
-        assertEquals(BannerModSettlementBuildingProfileSeed.CONSTRUCTION,
-                BannerModSettlementBuildingProfileSeed.fromBuildingTypeId("build_area"));
-        assertEquals(BannerModSettlementBuildingProfileSeed.GENERAL,
-                BannerModSettlementBuildingProfileSeed.fromBuildingTypeId("bannermod:watchtower"));
+        assertEquals(SettlementBuildingProfileSeed.GENERAL,
+                SettlementBuildingProfileSeed.fromBuildingTypeId(null));
+        assertEquals(SettlementBuildingProfileSeed.GENERAL,
+                SettlementBuildingProfileSeed.fromBuildingTypeId(" "));
+        assertEquals(SettlementBuildingProfileSeed.FOOD_PRODUCTION,
+                SettlementBuildingProfileSeed.fromBuildingTypeId("bannermod:crop_area"));
+        assertEquals(SettlementBuildingProfileSeed.FOOD_PRODUCTION,
+                SettlementBuildingProfileSeed.fromBuildingTypeId("animal_pen_area"));
+        assertEquals(SettlementBuildingProfileSeed.MATERIAL_PRODUCTION,
+                SettlementBuildingProfileSeed.fromBuildingTypeId("bannermod:mining_area"));
+        assertEquals(SettlementBuildingProfileSeed.STORAGE,
+                SettlementBuildingProfileSeed.fromBuildingTypeId("storage_area"));
+        assertEquals(SettlementBuildingProfileSeed.MARKET,
+                SettlementBuildingProfileSeed.fromBuildingTypeId("market_area"));
+        assertEquals(SettlementBuildingProfileSeed.CONSTRUCTION,
+                SettlementBuildingProfileSeed.fromBuildingTypeId("build_area"));
+        assertEquals(SettlementBuildingProfileSeed.GENERAL,
+                SettlementBuildingProfileSeed.fromBuildingTypeId("bannermod:watchtower"));
     }
 
     @Test
     void fromTagNameFallsBackToGeneralForBlankOrUnknownValues() {
-        assertEquals(BannerModSettlementBuildingProfileSeed.GENERAL,
-                BannerModSettlementBuildingProfileSeed.fromTagName(null));
-        assertEquals(BannerModSettlementBuildingProfileSeed.GENERAL,
-                BannerModSettlementBuildingProfileSeed.fromTagName(""));
-        assertEquals(BannerModSettlementBuildingProfileSeed.GENERAL,
-                BannerModSettlementBuildingProfileSeed.fromTagName("NOT_REAL"));
-        assertEquals(BannerModSettlementBuildingProfileSeed.MARKET,
-                BannerModSettlementBuildingProfileSeed.fromTagName("MARKET"));
+        assertEquals(SettlementBuildingProfileSeed.GENERAL,
+                SettlementBuildingProfileSeed.fromTagName(null));
+        assertEquals(SettlementBuildingProfileSeed.GENERAL,
+                SettlementBuildingProfileSeed.fromTagName(""));
+        assertEquals(SettlementBuildingProfileSeed.GENERAL,
+                SettlementBuildingProfileSeed.fromTagName("NOT_REAL"));
+        assertEquals(SettlementBuildingProfileSeed.MARKET,
+                SettlementBuildingProfileSeed.fromTagName("MARKET"));
     }
 }

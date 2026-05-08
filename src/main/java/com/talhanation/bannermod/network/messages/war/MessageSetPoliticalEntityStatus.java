@@ -1,6 +1,6 @@
 package com.talhanation.bannermod.network.messages.war;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementManager;
+import com.talhanation.bannermod.settlement.SettlementManager;
 import com.talhanation.bannermod.war.WarRuntimeContext;
 import com.talhanation.bannermod.war.registry.PoliticalEntityAuthority;
 import com.talhanation.bannermod.war.registry.PoliticalEntityRecord;
@@ -57,7 +57,7 @@ public class MessageSetPoliticalEntityStatus implements BannerModMessage<Message
             PoliticalEntityStatus status = decodeStatus(this.statusOrdinal);
             if (status == PoliticalEntityStatus.STATE && record.status() != PoliticalEntityStatus.STATE) {
                 PoliticalStatePromotionPolicy.Result promotion = PoliticalStatePromotionPolicy.evaluate(
-                        BannerModSettlementManager.get(level).getAllSnapshots().stream()
+                        SettlementManager.get(level).getAllSnapshots().stream()
                                 .filter(snapshot -> record.id().toString().equals(snapshot.settlementFactionId()))
                                 .findFirst()
                                 .orElse(null));

@@ -10,8 +10,8 @@ import com.talhanation.bannermod.governance.BannerModTreasuryLedgerSnapshot;
 import com.talhanation.bannermod.governance.BannerModTreasuryManager;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.persistence.military.RecruitsPlayerInfo;
-import com.talhanation.bannermod.settlement.BannerModSettlementManager;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementManager;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
 import com.talhanation.bannermod.util.RuntimeProfilingCounters;
 import com.talhanation.bannermod.war.WarRuntimeContext;
 import com.talhanation.bannermod.war.runtime.WarDeclarationRecord;
@@ -42,8 +42,8 @@ public class BannerModAdminRecoveryCommandGameTests {
     @GameTest(template = "harness_empty")
     public static void settlementPruneRemovesSnapshotByClaimUuid(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        BannerModSettlementManager settlements = BannerModSettlementManager.get(level);
-        settlements.putSnapshot(BannerModSettlementSnapshot.create(SETTLEMENT_CLAIM_UUID, new ChunkPos(30, 30), "admincmds"));
+        SettlementManager settlements = SettlementManager.get(level);
+        settlements.putSnapshot(SettlementSnapshot.create(SETTLEMENT_CLAIM_UUID, new ChunkPos(30, 30), "admincmds"));
 
         int result = runCommand(level, "bannermod settlement prune " + SETTLEMENT_CLAIM_UUID);
 

@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.shared.settlement;
 
 import com.talhanation.bannermod.governance.BannerModGovernorSnapshot;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -43,7 +43,7 @@ public final class BannerModSettlementClientSnapshotContract {
 
     public record Payload(
             UUID claimUuid,
-            @Nullable BannerModSettlementSnapshot settlementSnapshot,
+            @Nullable SettlementSnapshot settlementSnapshot,
             @Nullable BannerModGovernorSnapshot governorSnapshot
     ) {
         public Payload {

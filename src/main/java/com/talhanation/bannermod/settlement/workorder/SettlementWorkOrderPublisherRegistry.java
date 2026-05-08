@@ -1,6 +1,6 @@
 package com.talhanation.bannermod.settlement.workorder;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
+import com.talhanation.bannermod.settlement.SettlementBuildingRecord;
 import com.talhanation.bannermod.settlement.workorder.publisher.BuildAreaWorkOrderPublisher;
 import com.talhanation.bannermod.settlement.workorder.publisher.AnimalPenWorkOrderPublisher;
 import com.talhanation.bannermod.settlement.workorder.publisher.CropAreaWorkOrderPublisher;
@@ -50,7 +50,7 @@ public final class SettlementWorkOrderPublisherRegistry {
         return publishers.size();
     }
 
-    public static boolean matchesBuildingType(BannerModSettlementBuildingRecord building, String bareTypeId) {
+    public static boolean matchesBuildingType(SettlementBuildingRecord building, String bareTypeId) {
         if (building == null || building.buildingTypeId() == null || bareTypeId == null || bareTypeId.isBlank()) {
             return false;
         }
@@ -66,7 +66,7 @@ public final class SettlementWorkOrderPublisherRegistry {
     }
 
     public void publishAll(SettlementWorkOrderPublishContext ctx) {
-        BannerModSettlementBuildingRecord building = ctx.building();
+        SettlementBuildingRecord building = ctx.building();
         for (SettlementWorkOrderPublisher publisher : publishers) {
             if (publisher.matches(building)) {
                 publisher.publish(ctx);

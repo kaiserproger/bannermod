@@ -12,7 +12,7 @@ import com.talhanation.bannermod.governance.BannerModTreasuryLedgerSnapshot;
 import com.talhanation.bannermod.governance.BannerModTreasuryManager;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.persistence.military.RecruitsPlayerInfo;
-import com.talhanation.bannermod.settlement.BannerModSettlementManager;
+import com.talhanation.bannermod.settlement.SettlementManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -91,7 +91,7 @@ public final class AdminRecoveryCommands {
     private static int pruneSettlement(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerLevel level = serverLevel(context.getSource());
         UUID claimUuid = claimUuid(context);
-        boolean removed = BannerModSettlementManager.get(level).removeSnapshot(claimUuid) != null;
+        boolean removed = SettlementManager.get(level).removeSnapshot(claimUuid) != null;
         context.getSource().sendSuccess(() -> Component.literal(
                 removed ? "Pruned settlement snapshot " + claimUuid : "No settlement snapshot found for " + claimUuid
         ), false);

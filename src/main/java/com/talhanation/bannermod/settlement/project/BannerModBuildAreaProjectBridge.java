@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Bridge between a {@link BannerModSettlementProjectScheduler} queue and the existing
+ * Bridge between a {@link SettlementProjectScheduler} queue and the existing
  * player-authored BuildArea subsystem.
  *
  * <p>The bridge is deliberately read-only with respect to {@link BuildArea}: it selects
@@ -132,7 +132,7 @@ public final class BannerModBuildAreaProjectBridge {
      * {@link Optional#empty()} is returned so the caller can retry next tick.
      */
     public Optional<ProjectAssignment> attemptAssignment(
-            BannerModSettlementProjectScheduler scheduler,
+            SettlementProjectScheduler scheduler,
             UUID claimUuid,
             long gameTime,
             BuildAreaResolver resolver

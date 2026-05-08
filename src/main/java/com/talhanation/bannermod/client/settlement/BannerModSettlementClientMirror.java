@@ -3,9 +3,9 @@ package com.talhanation.bannermod.client.settlement;
 import com.talhanation.bannermod.governance.BannerModGovernorPolicy;
 import com.talhanation.bannermod.governance.BannerModGovernorRecommendation;
 import com.talhanation.bannermod.governance.BannerModGovernorSnapshot;
-import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodSnapshot;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
-import com.talhanation.bannermod.settlement.BannerModSettlementStrategicSignals;
+import com.talhanation.bannermod.settlement.SettlementDesiredGoodSnapshot;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementStrategicSignals;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.Envelope;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.Payload;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.RefreshTrigger;
@@ -52,7 +52,7 @@ public final class BannerModSettlementClientMirror {
         }
 
         Payload payload = envelope.payload();
-        BannerModSettlementSnapshot settlement = payload.settlementSnapshot();
+        SettlementSnapshot settlement = payload.settlementSnapshot();
         BannerModGovernorSnapshot governor = payload.governorSnapshot();
         boolean stale = envelope.isStale();
         List<String> recommendations = governor == null ? List.of() : new ArrayList<>(governor.recommendationTokens());
@@ -88,7 +88,7 @@ public final class BannerModSettlementClientMirror {
         );
     }
 
-    private static List<String> buildLogisticsLines(@Nullable BannerModSettlementSnapshot settlement) {
+    private static List<String> buildLogisticsLines(@Nullable SettlementSnapshot settlement) {
         if (settlement == null) {
             return List.of("gui.bannermod.governor.logistics.none");
         }
@@ -101,9 +101,9 @@ public final class BannerModSettlementClientMirror {
         lines.add("gui.bannermod.governor.logistics.stockpile "
                 + settlement.stockpileSummary().containerCount() + " "
                 + settlement.stockpileSummary().slotCapacity());
-        BannerModSettlementStrategicSignals signals = BannerModSettlementStrategicSignals.fromSnapshot(settlement);
+        SettlementStrategicSignals signals = SettlementStrategicSignals.fromSnapshot(settlement);
         lines.add("gui.bannermod.governor.logistics.role " + signals.roleId());
-        List<BannerModSettlementDesiredGoodSnapshot> desiredGoods = settlement.desiredGoodsSnapshot().desiredGoods();
+        List<SettlementDesiredGoodSnapshot> desiredGoods = settlement.desiredGoodsSnapshot().desiredGoods();
         lines.add(desiredGoods.isEmpty()
                 ? "gui.bannermod.governor.logistics.goods_none"
                 : "gui.bannermod.governor.logistics.goods " + desiredGoods.get(0).desiredGoodId() + " " + desiredGoods.get(0).driverCount());
