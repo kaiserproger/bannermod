@@ -22,6 +22,8 @@ class MinerWorkGoalMigrationContractTest {
 
     private static final String MINER_ENTITY =
             "src/main/java/com/talhanation/bannermod/entity/civilian/MinerEntity.java";
+    private static final String ABSTRACT_WORKER_ENTITY =
+            "src/main/java/com/talhanation/bannermod/entity/civilian/AbstractWorkerEntity.java";
     private static final String LEGACY_MINER_GOAL =
             "src/main/java/com/talhanation/bannermod/ai/civilian/MinerWorkGoal.java";
     private static final String SETTLEMENT_GOAL =
@@ -32,11 +34,14 @@ class MinerWorkGoalMigrationContractTest {
     @Test
     void minerRegistersSettlementOrderWorkGoalOnly() throws IOException {
         String miner = read(MINER_ENTITY);
+        String worker = read(ABSTRACT_WORKER_ENTITY);
 
         assertFalse(Files.exists(ROOT.resolve(LEGACY_MINER_GOAL)),
                 "MinerWorkGoal must be deleted from src/main");
-        assertTrue(miner.contains("new SettlementOrderWorkGoal(this)"),
-                "MinerEntity must execute settlement work orders");
+        assertTrue(worker.contains("new SettlementOrderWorkGoal(this)"),
+                "AbstractWorkerEntity must execute settlement work orders for miners through super.registerGoals()");
+        assertFalse(miner.contains("new SettlementOrderWorkGoal(this)"),
+                "MinerEntity must not register a duplicate settlement-order goal");
         assertFalse(miner.contains("MinerWorkGoal"),
                 "MinerEntity must not reference the legacy miner goal");
     }
