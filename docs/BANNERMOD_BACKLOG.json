@@ -9335,7 +9335,7 @@
     {
       "id": "ADMINCMDS-001B",
       "title": "Admin worker recovery commands",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "Ops need safe commands to repair stuck or incorrectly bound workers independently from claim, war, and debug diagnostics.",
       "scope": [
@@ -9350,8 +9350,14 @@
         "GAMETESTBASE-001"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) /bannermod worker unbind <entityId> and /bannermod worker rehome <chunkX> <chunkZ> are registered under /bannermod via AdminRecoveryCommands.worker(), gated by source.hasPermission(2), call serverLevel(...) before mutating, validate loaded worker entity ids and loaded worker-containing chunks. compileJava passed. 2) Added happy-path GameTests workerUnbindClearsBoundWorkArea and workerRehomeAssignsHomeForWorkersInChunk in BannerModAdminRecoveryCommandGameTests; compileGametestJava and runGameTestServer passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "ADMINCMDS-001C",

@@ -19,6 +19,7 @@ public final class BannerModWarCommands {
                 .then(AdminRecoveryCommands.settlement())
                 .then(AdminRecoveryCommands.treasury())
                 .then(AdminRecoveryCommands.claim())
+                .then(AdminRecoveryCommands.worker())
                 .then(PoliticalRegistryCommands.build())
                 .then(WarDeclarationCommands.build()
                         .then(SiegeStandardCommands.build())
