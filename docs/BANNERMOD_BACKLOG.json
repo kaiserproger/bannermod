@@ -9453,7 +9453,7 @@
     {
       "id": "HOMEASSIGN-004C",
       "title": "Assign Home docs and runtime verification",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "The player-facing Assign Home workflow must be documented and proven against the server-authoritative home assignment path before the parent task can close.",
       "scope": [
@@ -9470,8 +9470,14 @@
         "HOMEASSIGN-004B"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) MULTIPLAYER_GUIDE_EN.md, MULTIPLAYER_GUIDE_RU.md, and docs/BANNERMOD_ALMANAC.html describe the Assign Home button, 30-second selector, Escape cancellation, timeout cancellation, bed target, and server owner/admin validation. 2) BannerModHomeAssignGameTests.assignHomeMessageAcceptsBedFromOwner exercises MessageAssignHome.handle with an owner-selected bed and asserts recruit homePos updates while stale prefab home linkage clears; verifyGameTestScenarioCoverage now requires this focused method. 3) ctx log -- ./gradlew compileJava passed with no missing localization-key report; ctx log -- ./gradlew verifyGameTestStage passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "GAMETESTBASE-001",
