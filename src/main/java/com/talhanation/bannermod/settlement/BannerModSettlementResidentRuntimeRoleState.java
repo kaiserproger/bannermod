@@ -25,13 +25,13 @@ public enum BannerModSettlementResidentRuntimeRoleState {
         return switch (role) {
             case GOVERNOR_RECRUIT -> GOVERNANCE;
             case VILLAGER -> VILLAGE_LIFE;
-            case CONTROLLED_WORKER -> defaultWorkerSeed(scheduleSeed, residentMode, assignmentState);
+            case CONTROLLED_WORKER -> defaultWorkerState(scheduleSeed, residentMode, assignmentState);
         };
     }
 
-    private static BannerModSettlementResidentRuntimeRoleState defaultWorkerSeed(BannerModSettlementResidentScheduleSeed scheduleSeed,
-                                                                                BannerModSettlementResidentMode residentMode,
-                                                                                BannerModSettlementResidentAssignmentState assignmentState) {
+    private static BannerModSettlementResidentRuntimeRoleState defaultWorkerState(BannerModSettlementResidentScheduleSeed scheduleSeed,
+                                                                                 BannerModSettlementResidentMode residentMode,
+                                                                                 BannerModSettlementResidentAssignmentState assignmentState) {
         if (assignmentState == BannerModSettlementResidentAssignmentState.ASSIGNED_MISSING_BUILDING) {
             return ORPHANED_LABOR_ASSIGNMENT;
         }

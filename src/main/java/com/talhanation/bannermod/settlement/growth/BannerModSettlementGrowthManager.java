@@ -200,16 +200,16 @@ public final class BannerModSettlementGrowthManager {
     }
 
     private static int tradeRouteDemandBonus(BannerModSettlementBuildingProfileSeed profile,
-                                             BannerModSettlementTradeRouteHandoffSnapshot handoffSeed) {
-        if (handoffSeed == null) {
+                                             BannerModSettlementTradeRouteHandoffSnapshot handoffSnapshot) {
+        if (handoffSnapshot == null) {
             return 0;
         }
         return switch (profile) {
             case STORAGE -> DESIRED_GOOD_PER_DRIVER_BONUS
-                    * Math.max(handoffSeed.activeReservationCount(), handoffSeed.routedStorageCount());
+                    * Math.max(handoffSnapshot.activeReservationCount(), handoffSnapshot.routedStorageCount());
             case MARKET -> DESIRED_GOOD_PER_DRIVER_BONUS
-                    * Math.max(handoffSeed.activeReservationCount(),
-                    handoffSeed.readySellerDispatchCount() + handoffSeed.portEntrypointCount());
+                    * Math.max(handoffSnapshot.activeReservationCount(),
+                    handoffSnapshot.readySellerDispatchCount() + handoffSnapshot.portEntrypointCount());
             default -> 0;
         };
     }

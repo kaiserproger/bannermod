@@ -16,7 +16,7 @@ import java.util.List;
 
 /**
  * Immutable input bundle for {@link BannerModSettlementGrowthManager}. Holds
- * just the seeds and signals needed to score growth candidates. Use
+ * just the snapshots and signals needed to score growth candidates. Use
  * {@link #fromSnapshot} for the common case; the canonical record constructor
  * is left accessible for tests that want a minimal input.
  */
