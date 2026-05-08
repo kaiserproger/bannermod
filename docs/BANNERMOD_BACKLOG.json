@@ -9253,7 +9253,9 @@
         "Each listed command exists under /bannermod, requires op permission level 2, validates UUID and amount inputs, and executes only server-side.",
         "Each listed command has at least one GameTest covering a happy path."
       ],
-      "dependencies": [],
+      "dependencies": [
+        "GAMETESTBASE-001"
+      ],
       "progress": [],
       "verification": [],
       "evidence": []
@@ -9272,7 +9274,9 @@
         "Each listed command exists under /bannermod, requires op permission level 2, validates entity/chunk inputs, and executes only server-side.",
         "Each listed command has at least one GameTest covering a happy path."
       ],
-      "dependencies": [],
+      "dependencies": [
+        "GAMETESTBASE-001"
+      ],
       "progress": [],
       "verification": [],
       "evidence": []
@@ -9290,7 +9294,9 @@
         "The command exists under /bannermod, requires op permission level 2, validates warId input, and executes only server-side.",
         "The command has at least one GameTest covering a happy path."
       ],
-      "dependencies": [],
+      "dependencies": [
+        "GAMETESTBASE-001"
+      ],
       "progress": [],
       "verification": [],
       "evidence": []
@@ -9311,7 +9317,9 @@
         "Each listed command exists under /bannermod, requires op permission level 2, validates enum/chunk inputs where applicable, and executes only server-side.",
         "Each listed command has at least one GameTest covering a happy path."
       ],
-      "dependencies": [],
+      "dependencies": [
+        "GAMETESTBASE-001"
+      ],
       "progress": [],
       "verification": [],
       "evidence": []
