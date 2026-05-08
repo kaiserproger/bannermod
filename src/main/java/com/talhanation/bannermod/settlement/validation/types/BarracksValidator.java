@@ -26,7 +26,9 @@ public final class BarracksValidator implements BuildingTypeValidator {
             context.blocking().add(new ValidationIssue("barracks_roof_too_open", "Barracks requires at least 70% roof coverage.", ValidationSeverity.BLOCKING));
         }
         int beds = BuildingValidationSupport.countBeds(context.level(), sleeping);
-        if (beds < 2) beds = Math.max(beds, BuildingValidationSupport.countBedsNearZone(context.level(), sleeping, 1));
+        if (beds < 2) {
+            beds = Math.max(beds, BuildingValidationSupport.countBedsNearZone(context.level(), sleeping, 1));
+        }
         if (beds < 2) {
             context.blocking().add(new ValidationIssue("barracks_beds_missing", "Barracks requires at least two beds or bunks in the sleeping zone.", ValidationSeverity.BLOCKING));
         }

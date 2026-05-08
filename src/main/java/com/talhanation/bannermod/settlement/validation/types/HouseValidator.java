@@ -25,10 +25,18 @@ public final class HouseValidator implements BuildingTypeValidator {
         if (stats.roofCoverage() < 0.70D) {
             context.blocking().add(new ValidationIssue("house_roof_too_open", "House requires at least 70% roof coverage.", ValidationSeverity.BLOCKING));
         }
-        if (validBeds < 1) validBeds = BuildingValidationSupport.countBedsNearZone(context.level(), sleeping, 1);
-        if (validBeds < 1) validBeds = BuildingValidationSupport.countBeds(context.level(), interior);
-        if (validBeds < 1) validBeds = BuildingValidationSupport.countBedsNearZone(context.level(), interior, 1);
-        if (validBeds < 1 && BuildingValidationSupport.findNearestBed(context.level(), request.anchorPos(), 12) != null) validBeds = 1;
+        if (validBeds < 1) {
+            validBeds = BuildingValidationSupport.countBedsNearZone(context.level(), sleeping, 1);
+        }
+        if (validBeds < 1) {
+            validBeds = BuildingValidationSupport.countBeds(context.level(), interior);
+        }
+        if (validBeds < 1) {
+            validBeds = BuildingValidationSupport.countBedsNearZone(context.level(), interior, 1);
+        }
+        if (validBeds < 1 && BuildingValidationSupport.findNearestBed(context.level(), request.anchorPos(), 12) != null) {
+            validBeds = 1;
+        }
         if (validBeds < 1) {
             context.blocking().add(new ValidationIssue("house_bed_missing", "House requires at least one bed in sleeping zone.", ValidationSeverity.BLOCKING));
         }
