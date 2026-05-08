@@ -3,7 +3,6 @@ package com.talhanation.bannermod.entity.civilian;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.ai.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.bannermod.config.WorkersServerConfig;
-import com.talhanation.bannermod.ai.civilian.AnimalFarmerWorkGoal;
 import com.talhanation.bannermod.entity.civilian.workarea.AnimalPenArea;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -31,12 +30,6 @@ import java.util.function.Predicate;
 public class AnimalFarmerEntity extends AbstractWorkerEntity{
     public AnimalFarmerEntity(EntityType<? extends AbstractWorkerEntity> entityType, Level world) {
         super(entityType, world);
-    }
-
-    @Override
-    protected void registerGoals() {
-        super.registerGoals();
-        this.goalSelector.addGoal(0, new AnimalFarmerWorkGoal(this));
     }
 
     public static AttributeSupplier.Builder setAttributes() {

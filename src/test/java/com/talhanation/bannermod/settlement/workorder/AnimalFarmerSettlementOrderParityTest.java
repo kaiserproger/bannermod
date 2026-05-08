@@ -76,7 +76,6 @@ class AnimalFarmerSettlementOrderParityTest {
     @Test
     void settlementOrderWorkGoalExecutesAnimalHusbandryTypes() throws IOException {
         String goal = Files.readString(Path.of("src/main/java/com/talhanation/bannermod/ai/civilian/SettlementOrderWorkGoal.java"));
-        String animalFarmer = Files.readString(Path.of("src/main/java/com/talhanation/bannermod/ai/civilian/AnimalFarmerWorkGoal.java"));
 
         assertTrue(goal.contains("case ANIMAL_BREED -> executeAnimalBreed"));
         assertTrue(goal.contains("case ANIMAL_SPECIAL_TASK -> executeAnimalSpecialTask"));
@@ -84,9 +83,18 @@ class AnimalFarmerSettlementOrderParityTest {
         assertTrue(goal.contains("ANIMAL_BREED,"));
         assertTrue(goal.contains("ANIMAL_SPECIAL_TASK,"));
         assertTrue(goal.contains("ANIMAL_SLAUGHTER,"));
-        assertFalse(animalFarmer.contains("SettlementWorkOrderType.ANIMAL_BREED"));
-        assertFalse(animalFarmer.contains("SettlementWorkOrderType.ANIMAL_SPECIAL_TASK"));
-        assertFalse(animalFarmer.contains("SettlementWorkOrderType.ANIMAL_SLAUGHTER"));
+    }
+
+    @Test
+    void animalFarmerUsesInheritedSettlementOrderGoalOnly() throws IOException {
+        Path legacyGoal = Path.of("src/main/java/com/talhanation/bannermod/ai/civilian/AnimalFarmerWorkGoal.java");
+        String animalFarmer = Files.readString(Path.of("src/main/java/com/talhanation/bannermod/entity/civilian/AnimalFarmerEntity.java"));
+        String abstractWorker = Files.readString(Path.of("src/main/java/com/talhanation/bannermod/entity/civilian/AbstractWorkerEntity.java"));
+
+        assertFalse(Files.exists(legacyGoal));
+        assertFalse(animalFarmer.contains("AnimalFarmerWorkGoal"));
+        assertFalse(animalFarmer.contains("protected void registerGoals()"));
+        assertTrue(abstractWorker.contains("new SettlementOrderWorkGoal(this)"));
     }
 
     private static List<AnimalFarmerLoopProgress.Action> legacyAnimalOutput() {
