@@ -871,21 +871,13 @@ public final class BannerModSettlementService {
         int shortageUnitCount = 0;
         int reservationHintUnitCount = 0;
         for (BannerModSettlementDesiredGoodSeed desiredGood : desiredGoodsSeed.desiredGoods()) {
-            int coverageUnits = serviceCoverageByGood.getOrDefault(desiredGood.desiredGoodId(), 0);
-            String desiredGoodId = desiredGood.desiredGoodId();
-            if (desiredGoodId != null && !desiredGoodId.isBlank()) {
-                coverageUnits = SettlementSeaTradeAnalyzer.addCoverageUnits(desiredGoodId, coverageUnits, seaTradeSummary);
-                if (desiredGoodId.startsWith("storage_type:")) {
-                    String storageTypeId = desiredGoodId.substring("storage_type:".length());
-                    if (stockpileSummary.authoredStorageTypeIds().contains(storageTypeId)) {
-                        coverageUnits++;
-                    }
-                } else if ("market_goods".equals(desiredGoodId)) {
-                    coverageUnits += marketState.readySellerDispatchCount();
-                } else if ("trade_stock".equals(desiredGoodId)) {
-                    coverageUnits += marketState.openMarketCount() + stockpileSummary.portEntrypointCount();
-                }
-            }
+            int coverageUnits = resolveSupplyCoverageUnits(
+                    desiredGood.desiredGoodId(),
+                    stockpileSummary,
+                    marketState,
+                    serviceCoverageByGood,
+                    seaTradeSummary
+            );
             int shortageUnits = Math.max(0, desiredGood.driverCount() - coverageUnits);
             int reservationHintUnits = reservationSignalSeed.reservationHintUnitsByGood().getOrDefault(desiredGood.desiredGoodId(), 0);
             if (shortageUnits > 0) {
@@ -1168,6 +1160,32 @@ public final class BannerModSettlementService {
             return;
         }
         desiredGoods.merge(desiredGoodId, driverCount, Integer::sum);
+    }
+
+    private static int resolveSupplyCoverageUnits(String goodId,
+                                                  BannerModSettlementStockpileSummary stockpileSummary,
+                                                  BannerModSettlementMarketState marketState,
+                                                  Map<String, Integer> serviceCoverageByGood,
+                                                  BannerModSeaTradeSummary.Summary seaTradeSummary) {
+        int coverageUnits = serviceCoverageByGood.getOrDefault(goodId, 0);
+        if (goodId == null || goodId.isBlank()) {
+            return coverageUnits;
+        }
+
+        coverageUnits = SettlementSeaTradeAnalyzer.addCoverageUnits(goodId, coverageUnits, seaTradeSummary);
+        if (goodId.startsWith("storage_type:")) {
+            String storageTypeId = goodId.substring("storage_type:".length());
+            if (stockpileSummary.authoredStorageTypeIds().contains(storageTypeId)) {
+                coverageUnits++;
+            }
+            return coverageUnits;
+        }
+
+        return switch (goodId) {
+            case "market_goods" -> coverageUnits + marketState.readySellerDispatchCount();
+            case "trade_stock" -> coverageUnits + marketState.openMarketCount() + stockpileSummary.portEntrypointCount();
+            default -> coverageUnits;
+        };
     }
 
     private static String desiredGoodIdForProfile(BannerModSettlementBuildingProfileSeed profileSeed) {
