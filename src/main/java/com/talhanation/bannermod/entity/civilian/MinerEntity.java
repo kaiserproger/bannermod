@@ -4,8 +4,6 @@ import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.ai.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.bannermod.config.WorkersServerConfig;
 import com.talhanation.bannermod.entity.civilian.workarea.MiningArea;
-import com.talhanation.bannermod.settlement.BannerModSettlementOrchestrator;
-import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderRuntime;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -48,14 +46,9 @@ public class MinerEntity extends AbstractWorkerEntity{
         if (!(this.getCommandSenderWorld() instanceof ServerLevel level)) {
             return;
         }
-        if (this.needsToSleep() || !this.shouldWork() || this.needsToGetToChest() || this.getCurrentMiningArea() != null) {
+        if (!this.shouldWork() || this.getCurrentMiningArea() != null) {
             return;
         }
-        SettlementWorkOrderRuntime runtime = BannerModSettlementOrchestrator.workOrderRuntime(level);
-        if (runtime != null && runtime.currentClaim(this.getUUID()).isPresent()) {
-            return;
-        }
-
         this.reportIdleReason("miner_no_area", Component.literal(this.getName().getString() + ": Waiting for a mining area."));
     }
 

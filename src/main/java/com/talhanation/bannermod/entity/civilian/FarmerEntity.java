@@ -43,6 +43,16 @@ public class FarmerEntity extends AbstractWorkerEntity{
 
     }
 
+    @Override
+    public void tick() {
+        super.tick();
+        if (!this.getCommandSenderWorld().isClientSide()
+                && this.shouldWork()
+                && this.getCurrentCropArea() == null) {
+            this.reportIdleReason("farmer_no_area", Component.literal(this.getName().getString() + ": Waiting for a crop area."));
+        }
+    }
+
     public static AttributeSupplier.Builder setAttributes() {
         return Mob.createMobAttributes()
                 .add(Attributes.MAX_HEALTH, 20.0D)

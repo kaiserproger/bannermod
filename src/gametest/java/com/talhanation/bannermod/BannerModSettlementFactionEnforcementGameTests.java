@@ -207,12 +207,11 @@ public class BannerModSettlementFactionEnforcementGameTests {
         if (player.getTeam() == null || ClaimEvents.claimManager() == null) {
             return false;
         }
-        ChunkPos chunkPos = new ChunkPos(targetPos);
-        RecruitsClaim claim = ClaimEvents.claimManager().getClaim(chunkPos);
-        return claim != null
-                && claim.containsChunk(chunkPos)
-                && claim.getOwnerPoliticalEntityId() != null
-                && claim.getOwnerPoliticalEntityId().equals(com.talhanation.bannermod.war.registry.PoliticalMembership.entityIdFor(
-                com.talhanation.bannermod.war.WarRuntimeContext.registry(player.serverLevel()), player.getUUID()));
+        BannerModSettlementBinding.Binding binding = BannerModSettlementBinding.resolveFactionStatus(
+                ClaimEvents.claimManager(),
+                targetPos,
+                player.getTeam().getName()
+        );
+        return binding.isFriendly();
     }
 }
