@@ -29,10 +29,15 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import com.talhanation.bannermod.network.compat.BannerModNetworkHooks;
 
 import javax.annotation.Nullable;
+import java.util.UUID;
 import java.util.function.Predicate;
 
 public class AssassinLeaderEntity extends AbstractOrderAbleEntity {
     private static final EntityDataAccessor<Integer> COUNT = SynchedEntityData.defineId(AssassinLeaderEntity.class, EntityDataSerializers.INT);
+    private static final String CONTROL_OWNER_TAG = "ControlOwner";
+
+    @Nullable
+    private UUID controlOwnerUUID;
 
     private final Predicate<ItemEntity> ALLOWED_ITEMS = (item) ->
             (!item.hasPickUpDelay() && item.isAlive() && getInventory().canAddItem(item.getItem()) && this.wantsToPickUp(item.getItem()));
@@ -111,6 +116,7 @@ public class AssassinLeaderEntity extends AbstractOrderAbleEntity {
         this.navigation.stop();
 
         if (player instanceof ServerPlayer) {
+            assignControlOwnerIfAbsent(player);
             BannerModNetworkHooks.openScreen((ServerPlayer) player, new MenuProvider() {
                 @Override
                 public Component getDisplayName() {
@@ -153,12 +159,16 @@ public class AssassinLeaderEntity extends AbstractOrderAbleEntity {
     public void addAdditionalSaveData(CompoundTag nbt) {
         super.addAdditionalSaveData(nbt);
         nbt.putInt("Count", this.getCount());
+        if (this.controlOwnerUUID != null) {
+            nbt.putUUID(CONTROL_OWNER_TAG, this.controlOwnerUUID);
+        }
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag nbt) {
         super.readAdditionalSaveData(nbt);
         this.setCount(nbt.getInt("Count"));
+        this.controlOwnerUUID = nbt.hasUUID(CONTROL_OWNER_TAG) ? nbt.getUUID(CONTROL_OWNER_TAG) : null;
     }
 
     public void setCount(int x){
@@ -167,6 +177,25 @@ public class AssassinLeaderEntity extends AbstractOrderAbleEntity {
 
     public int getCount(){
         return entityData.get(COUNT);
+    }
+
+    /**
+     * Server-authoritative controller for count changes. The first server-side GUI
+     * open claims an unclaimed leader; client count packets may only check it.
+     */
+    public void assignControlOwnerIfAbsent(Player player) {
+        if (!this.level().isClientSide && this.controlOwnerUUID == null) {
+            this.controlOwnerUUID = player.getUUID();
+        }
+    }
+
+    public boolean isControlledBy(Player player) {
+        return this.controlOwnerUUID != null && this.controlOwnerUUID.equals(player.getUUID());
+    }
+
+    @Nullable
+    public UUID getControlOwnerUUID() {
+        return controlOwnerUUID;
     }
 
     public int getAssassinCosts(){
@@ -181,7 +210,6 @@ public class AssassinLeaderEntity extends AbstractOrderAbleEntity {
         return RecruitsServerConfig.MaxAssassinCount.get();
     }
 }
-
 
 
 
