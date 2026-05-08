@@ -8895,8 +8895,8 @@
     {
       "id": "PACKETAUTH-018",
       "title": "Verify recruit ownership in MessagePromoteRecruit",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "MessagePromoteRecruit resolves any recruit within 16 blocks by UUID and calls RecruitEvents.promoteRecruit, which discards the original entity and spawns a companion with setOwnerName(sender.getName()). There is no ownership / canDirectlyControl gate; a non-owner can effectively steal a foreign recruit by promoting it.",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessagePromoteRecruit.java executeServerSide and/or RecruitEvents.promoteRecruit; require canDirectlyControl(sender, recruit) before invoking promoteRecruit."
@@ -8906,14 +8906,20 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Handler now requires RecruitCommandAuthority.canDirectlyControl(sender, recruit) before RecruitEvents.promoteRecruit, so foreign nearby senders bail before promotion/discard/spawn; 2) focused MessagePromoteRecruitAuthorityTest passed and asserts the authority gate precedes the promotion call; 3) ./gradlew compileJava test with packet-authority focused tests passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "PACKETAUTH-019",
       "title": "Reject foreign-group target in MessageHire",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "MessageHire accepts any groupUUID from the wire and feeds it directly into RecruitsGroupsManager.getGroup + RecruitLifecycleService.hire. The hired recruit is added to that group's members list and (via RecruitLifecycleService.updateGroup) is later reassigned to the foreign group's owner. A sender can therefore pay to inject recruits into another player's group and bypass MessageAssignGroupToPlayer's audited transfer path.",
       "scope": [
         "src/main/java/com/talhanation/bannermod/network/messages/military/MessageHire.java executeServerSide; require RecruitCommandAuthority.ownedGroup(sender, groupUUID) (or null when not owned, falling back to no group) before passing the group into handleRecruiting."
@@ -8923,14 +8929,20 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) Handler now resolves requested groupUUID through RecruitCommandAuthority.ownedGroup(player, groupUUID), so foreign-group UUIDs become null before hire handling; 2) focused MessageHireAuthorityTest passed and asserts the unsafe direct group lookup is absent and the ownership gate precedes CommandEvents.handleRecruiting; 3) ./gradlew compileJava test with packet-authority focused tests passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "WORKERUNBIND-001",
       "title": "Auto-unbind worker when its work-area entity is removed",
-      "status": "open",
-      "updated": "2026-05-06",
+      "status": "done",
+      "updated": "2026-05-08",
       "why": "When a worker's bound AbstractWorkAreaEntity is killed/discarded, the worker keeps boundWorkAreaUUID set to the dead entity's id. AbstractWorkerEntity.getCurrentWorkArea() returns null (filters isRemoved/missing entity), but boundWorkAreaUUID never goes back to null and AI goals (e.g. FarmerWorkGoal SELECT_WORK_AREA) cannot reliably tell the area is gone. The symmetric ClaimRemovalFanout exists for full-claim deletion, but not for a single area entity disappearing while its parent claim survives.",
       "scope": [
         "Add an EntityLeaveLevelEvent (or AbstractWorkAreaEntity.remove(...) override) handler that, when an AbstractWorkAreaEntity leaves the level via discard/kill/death, finds workers whose CitizenCore.boundWorkAreaUUID equals the removed entity's UUID and calls setCurrentWorkArea(null) on them within at most ~20 ticks",
@@ -8943,8 +8955,14 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) WorkAreaIndexEvents now handles destructive AbstractWorkAreaEntity leave events and calls setCurrentWorkArea(null) for loaded workers whose boundWorkAreaUUID matches the removed area; 2) BannerModWorkerUnbindOnAreaRemovalGameTests#workerAutoUnbindsWithinTwentyTicksAfterCropAreaRemoval has @GameTest enabled and asserts boundWorkAreaUUID and getCurrentWorkArea() become null after crop-area discard; 3) ./gradlew compileJava passed; ./gradlew runGameTestServer completed 163 tests and the worker-unbind test was not among failures, but the overall task failed on unrelated fiverecruitformationholdsacrossdimensionteleport, starterbootstrapseedsrealworkerassignmentsandwaitingreasons, and friendlyclaimbindingallowsplacementandsettlementoperation."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "FUZZHARDEN-001",
