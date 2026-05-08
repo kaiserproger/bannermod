@@ -1,6 +1,7 @@
 package com.talhanation.bannermod;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.talhanation.bannermod.ai.pathfinding.GlobalPathfindingController;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.governance.BannerModTreasuryLedgerSnapshot;
@@ -9,6 +10,7 @@ import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.persistence.military.RecruitsPlayerInfo;
 import com.talhanation.bannermod.settlement.BannerModSettlementManager;
 import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
+import com.talhanation.bannermod.util.RuntimeProfilingCounters;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -97,6 +99,65 @@ public class BannerModAdminRecoveryCommandGameTests {
         helper.assertTrue(TRUSTED_UUID.equals(claim.getTrustedPlayers().getFirst().getUUID()),
                 "Expected trust prune to preserve the valid trusted UUID");
         ClaimEvents.claimManager().removeClaim(claim);
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void debugIndexRecruitsReportsChunk(GameTestHelper helper) {
+        int result = runCommand(helper.getLevel(), "bannermod debug index recruits 0,0");
+
+        helper.assertTrue(result >= 0, "Expected recruits index debug command to execute");
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void debugIndexWorkersReportsChunk(GameTestHelper helper) {
+        int result = runCommand(helper.getLevel(), "bannermod debug index workers 0,0");
+
+        helper.assertTrue(result >= 0, "Expected workers index debug command to execute");
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void debugIndexWorkareasReportsChunk(GameTestHelper helper) {
+        int result = runCommand(helper.getLevel(), "bannermod debug index workareas 0,0");
+
+        helper.assertTrue(result >= 0, "Expected workareas index debug command to execute");
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void debugPathfindingStatsReportsSnapshot(GameTestHelper helper) {
+        GlobalPathfindingController.resetProfiling();
+
+        int result = runCommand(helper.getLevel(), "bannermod debug pathfinding stats");
+
+        helper.assertTrue(result == 1, "Expected pathfinding stats debug command to execute");
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void debugCountersDumpReportsRuntimeCounters(GameTestHelper helper) {
+        RuntimeProfilingCounters.increment("gametest.admincmds.debug_counter");
+
+        int result = runCommand(helper.getLevel(), "bannermod debug counters dump");
+
+        helper.assertTrue(result >= 1, "Expected counters dump debug command to report at least one counter");
+        RuntimeProfilingCounters.reset();
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void debugSaveVersionsReportsKnownVersions(GameTestHelper helper) {
+        int result = runCommand(helper.getLevel(), "bannermod debug save-versions");
+
+        helper.assertTrue(result >= 1, "Expected save-versions debug command to report known SavedData versions");
         helper.succeed();
     }
 

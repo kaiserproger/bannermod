@@ -9376,7 +9376,7 @@
     {
       "id": "ADMINCMDS-001D",
       "title": "Admin debug diagnostic commands",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "Ops need read-only or low-risk diagnostic commands for indexes, pathfinding, counters, and save versions as a separate verifiable slice.",
       "scope": [
@@ -9393,8 +9393,14 @@
         "GAMETESTBASE-001"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) /bannermod debug index recruits|workers|workareas <chunk> is registered under /bannermod with permission level 2, parses x,z chunks server-side, and verifyGameTestStage passed debugIndexRecruitsReportsChunk/debugIndexWorkersReportsChunk/debugIndexWorkareasReportsChunk. 2) /bannermod debug pathfinding stats is registered under /bannermod with permission level 2, executes server-side, and verifyGameTestStage passed debugPathfindingStatsReportsSnapshot. 3) /bannermod debug counters dump is registered under /bannermod with permission level 2, executes server-side, and verifyGameTestStage passed debugCountersDumpReportsRuntimeCounters. 4) /bannermod debug save-versions is registered under /bannermod with permission level 2, executes server-side, and verifyGameTestStage passed debugSaveVersionsReportsKnownVersions. compileJava and compileGametestJava also passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "HOMEASSIGN-004A",
