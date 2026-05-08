@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.network.messages.military;
 
+import com.talhanation.bannermod.army.command.RecruitCommandAuthority;
 import com.talhanation.bannermod.events.RecruitEvents;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.network.payload.BannerModMessage;
@@ -35,7 +36,7 @@ public class MessagePromoteRecruit implements BannerModMessage<MessagePromoteRec
                 return;
             }
             AbstractRecruitEntity recruit = RecruitMessageEntityResolver.resolveRecruitWithinDistance(sender, this.recruit, 16D * 16D);
-            if (recruit != null) {
+            if (RecruitCommandAuthority.canDirectlyControl(sender, recruit)) {
                 RecruitEvents.promoteRecruit(recruit, profession, name, sender);
             }
         });
