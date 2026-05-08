@@ -27,23 +27,26 @@ final class BannerModSettlementSnapshotBuilder {
     static BannerModSettlementSnapshot buildSnapshot(ServerLevel level,
                                                      RecruitsClaim claim,
                                                      @Nullable BannerModGovernorManager governorManager) {
-        ChunkPos anchorChunk = BannerModSettlementService.resolveAnchorChunk(claim);
+        ChunkPos anchorChunk = BannerModSettlementSnapshotRuntime.resolveAnchorChunk(claim);
         BannerModGovernorSnapshot governorSnapshot = governorManager == null ? null : governorManager.getSnapshot(claim.getUUID());
-        String settlementFactionId = claim.getOwnerPoliticalEntityId() != null
-                ? claim.getOwnerPoliticalEntityId().toString()
-                : governorSnapshot == null ? null : governorSnapshot.settlementFactionId();
+        String settlementFactionId = null;
+        if (claim.getOwnerPoliticalEntityId() != null) {
+            settlementFactionId = claim.getOwnerPoliticalEntityId().toString();
+        } else if (governorSnapshot != null) {
+            settlementFactionId = governorSnapshot.settlementFactionId();
+        }
 
-        List<AbstractWorkAreaEntity> workAreas = BannerModSettlementService.collectWorkAreas(level, claim, AbstractWorkAreaEntity.class);
-        SettlementRecord settlementRecord = BannerModSettlementService.settlementRecordForClaim(level, claim);
-        List<ValidatedBuildingRecord> validatedBuildings = BannerModSettlementService.collectValidatedBuildings(level, settlementRecord);
-        BannerModSettlementService.repairClaimState(level, claim, workAreas, validatedBuildings);
+        List<AbstractWorkAreaEntity> workAreas = BannerModSettlementSnapshotRuntime.collectWorkAreas(level, claim, AbstractWorkAreaEntity.class);
+        SettlementRecord settlementRecord = BannerModSettlementSnapshotRuntime.settlementRecordForClaim(level, claim);
+        List<ValidatedBuildingRecord> validatedBuildings = BannerModSettlementSnapshotRuntime.collectValidatedBuildings(level, settlementRecord);
+        BannerModSettlementSnapshotRuntime.repairClaimState(level, claim, workAreas, validatedBuildings);
 
-        List<BannerModSettlementResidentRecord> residents = BannerModSettlementService.collectResidents(level, claim, governorSnapshot, settlementFactionId);
-        List<BannerModSettlementBuildingRecord> buildings = BannerModSettlementService.collectBuildings(level, claim);
-        BannerModSettlementMarketState marketState = BannerModSettlementService.collectMarketState(level, claim);
-        List<StorageArea> storageAreas = BannerModSettlementService.collectStorageAreas(level, claim);
-        List<BannerModSeaTradeEntrypoint> liveSeaTradeEntrypoints = BannerModSettlementService.collectLiveSeaTradeEntrypoints(storageAreas);
-        List<BannerModSeaTradeExecutionRecord> localSeaTradeExecutions = BannerModSettlementService.collectLocalSeaTradeExecutions(level, storageAreas);
+        List<BannerModSettlementResidentRecord> residents = BannerModSettlementSnapshotRuntime.collectResidents(level, claim, governorSnapshot, settlementFactionId);
+        List<BannerModSettlementBuildingRecord> buildings = BannerModSettlementSnapshotRuntime.collectBuildings(level, claim);
+        BannerModSettlementMarketState marketState = BannerModSettlementSnapshotRuntime.collectMarketState(level, claim);
+        List<StorageArea> storageAreas = BannerModSettlementSnapshotRuntime.collectStorageAreas(level, claim);
+        List<BannerModSeaTradeEntrypoint> liveSeaTradeEntrypoints = BannerModSettlementSnapshotRuntime.collectLiveSeaTradeEntrypoints(storageAreas);
+        List<BannerModSeaTradeExecutionRecord> localSeaTradeExecutions = BannerModSettlementSnapshotRuntime.collectLocalSeaTradeExecutions(level, storageAreas);
 
         Set<UUID> localBuildingUuids = new LinkedHashSet<>();
         for (BannerModSettlementBuildingRecord building : buildings) {
@@ -60,7 +63,7 @@ final class BannerModSettlementSnapshotBuilder {
                 staffing.residents(),
                 staffing.marketState(),
                 liveSeaTradeEntrypoints,
-                BannerModSettlementService.collectLocalLogisticsRoutes(storageAreas),
+                BannerModSettlementSnapshotRuntime.collectLocalLogisticsRoutes(storageAreas),
                 BannerModLogisticsRuntime.service().listReservations(),
                 localSeaTradeExecutions,
                 governorSnapshot != null && governorSnapshot.governorRecruitUuid() != null,

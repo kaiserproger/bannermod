@@ -13,19 +13,19 @@ final class BannerModSettlementResidentStaffingService {
                                 List<BannerModSettlementBuildingRecord> buildings,
                                 BannerModSettlementMarketState marketState,
                                 Set<UUID> localBuildingUuids) {
-        List<BannerModSettlementResidentRecord> staffedResidents = BannerModSettlementService.applyResidentAssignmentSemantics(
+        List<BannerModSettlementResidentRecord> staffedResidents = BannerModSettlementSnapshotRuntime.applyResidentAssignmentSemantics(
                 residents,
                 localBuildingUuids
         );
-        staffedResidents = BannerModSettlementService.applyResidentServiceContracts(staffedResidents, buildings);
-        staffedResidents = BannerModSettlementService.applyResidentJobDefinitions(staffedResidents, buildings);
-        List<BannerModSettlementBuildingRecord> staffedBuildings = BannerModSettlementService.applyAssignedResidents(buildings, staffedResidents);
-        BannerModSettlementMarketState staffedMarketState = BannerModSettlementService.applySellerDispatchSeed(
+        staffedResidents = BannerModSettlementSnapshotRuntime.applyResidentServiceContracts(staffedResidents, buildings);
+        staffedResidents = BannerModSettlementSnapshotRuntime.applyResidentJobDefinitions(staffedResidents, buildings);
+        List<BannerModSettlementBuildingRecord> staffedBuildings = BannerModSettlementSnapshotRuntime.applyAssignedResidents(buildings, staffedResidents);
+        BannerModSettlementMarketState staffedMarketState = BannerModSettlementSnapshotRuntime.applySellerDispatchSeed(
                 marketState,
                 staffedResidents,
                 staffedBuildings
         );
-        staffedResidents = BannerModSettlementService.applyResidentJobTargetSelectionStates(staffedResidents, staffedMarketState);
+        staffedResidents = BannerModSettlementSnapshotRuntime.applyResidentJobTargetSelectionStates(staffedResidents, staffedMarketState);
         return new StaffingResult(staffedResidents, staffedBuildings, staffedMarketState);
     }
 
