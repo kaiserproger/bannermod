@@ -24,9 +24,9 @@ public record BannerModSettlementSnapshot(
         int missingWorkAreaAssignmentCount,
         BannerModSettlementStockpileSummary stockpileSummary,
         BannerModSettlementMarketState marketState,
-        BannerModSettlementDesiredGoodsSeed desiredGoodsSeed,
-        BannerModSettlementProjectCandidateSeed projectCandidateSeed,
-        BannerModSettlementTradeRouteHandoffSeed tradeRouteHandoffSeed,
+        BannerModSettlementDesiredGoodsSnapshot desiredGoodsSnapshot,
+        BannerModSettlementProjectCandidateSnapshot projectCandidateSnapshot,
+        BannerModSettlementTradeRouteHandoffSnapshot tradeRouteHandoffSnapshot,
         BannerModSettlementSupplySignalState supplySignalState,
         List<BannerModSettlementResidentRecord> residents,
         List<BannerModSettlementBuildingRecord> buildings
@@ -40,9 +40,9 @@ public record BannerModSettlementSnapshot(
         missingWorkAreaAssignmentCount = Math.max(0, missingWorkAreaAssignmentCount);
         stockpileSummary = stockpileSummary == null ? BannerModSettlementStockpileSummary.empty() : stockpileSummary;
         marketState = marketState == null ? BannerModSettlementMarketState.empty() : marketState;
-        desiredGoodsSeed = desiredGoodsSeed == null ? BannerModSettlementDesiredGoodsSeed.empty() : desiredGoodsSeed;
-        projectCandidateSeed = projectCandidateSeed == null ? BannerModSettlementProjectCandidateSeed.empty() : projectCandidateSeed;
-        tradeRouteHandoffSeed = tradeRouteHandoffSeed == null ? BannerModSettlementTradeRouteHandoffSeed.empty() : tradeRouteHandoffSeed;
+        desiredGoodsSnapshot = desiredGoodsSnapshot == null ? BannerModSettlementDesiredGoodsSnapshot.empty() : desiredGoodsSnapshot;
+        projectCandidateSnapshot = projectCandidateSnapshot == null ? BannerModSettlementProjectCandidateSnapshot.empty() : projectCandidateSnapshot;
+        tradeRouteHandoffSnapshot = tradeRouteHandoffSnapshot == null ? BannerModSettlementTradeRouteHandoffSnapshot.empty() : tradeRouteHandoffSnapshot;
         supplySignalState = supplySignalState == null ? BannerModSettlementSupplySignalState.empty() : supplySignalState;
         residents = List.copyOf(residents == null ? List.of() : residents);
         buildings = List.copyOf(buildings == null ? List.of() : buildings);
@@ -69,9 +69,9 @@ public record BannerModSettlementSnapshot(
         tag.putInt("MissingWorkAreaAssignmentCount", this.missingWorkAreaAssignmentCount);
         tag.put("StockpileSummary", this.stockpileSummary.toTag());
         tag.put("MarketState", this.marketState.toTag());
-        tag.put("DesiredGoodsSeed", this.desiredGoodsSeed.toTag());
-        tag.put("ProjectCandidateSeed", this.projectCandidateSeed.toTag());
-        tag.put("TradeRouteHandoffSeed", this.tradeRouteHandoffSeed.toTag());
+        tag.put("DesiredGoodsSeed", this.desiredGoodsSnapshot.toTag());
+        tag.put("ProjectCandidateSeed", this.projectCandidateSnapshot.toTag());
+        tag.put("TradeRouteHandoffSeed", this.tradeRouteHandoffSnapshot.toTag());
         tag.put("SupplySignalState", this.supplySignalState.toTag());
         ListTag residentList = new ListTag();
         for (BannerModSettlementResidentRecord resident : this.residents) {
@@ -107,14 +107,14 @@ public record BannerModSettlementSnapshot(
                         ? BannerModSettlementMarketState.fromTag(tag.getCompound("MarketState"))
                         : BannerModSettlementMarketState.empty(),
                 tag.contains("DesiredGoodsSeed", Tag.TAG_COMPOUND)
-                        ? BannerModSettlementDesiredGoodsSeed.fromTag(tag.getCompound("DesiredGoodsSeed"))
-                        : BannerModSettlementDesiredGoodsSeed.empty(),
+                        ? BannerModSettlementDesiredGoodsSnapshot.fromTag(tag.getCompound("DesiredGoodsSeed"))
+                        : BannerModSettlementDesiredGoodsSnapshot.empty(),
                 tag.contains("ProjectCandidateSeed", Tag.TAG_COMPOUND)
-                        ? BannerModSettlementProjectCandidateSeed.fromTag(tag.getCompound("ProjectCandidateSeed"))
-                        : BannerModSettlementProjectCandidateSeed.empty(),
+                        ? BannerModSettlementProjectCandidateSnapshot.fromTag(tag.getCompound("ProjectCandidateSeed"))
+                        : BannerModSettlementProjectCandidateSnapshot.empty(),
                 tag.contains("TradeRouteHandoffSeed", Tag.TAG_COMPOUND)
-                        ? BannerModSettlementTradeRouteHandoffSeed.fromTag(tag.getCompound("TradeRouteHandoffSeed"))
-                        : BannerModSettlementTradeRouteHandoffSeed.empty(),
+                        ? BannerModSettlementTradeRouteHandoffSnapshot.fromTag(tag.getCompound("TradeRouteHandoffSeed"))
+                        : BannerModSettlementTradeRouteHandoffSnapshot.empty(),
                 tag.contains("SupplySignalState", Tag.TAG_COMPOUND)
                         ? BannerModSettlementSupplySignalState.fromTag(tag.getCompound("SupplySignalState"))
                         : BannerModSettlementSupplySignalState.empty(),
@@ -124,7 +124,7 @@ public record BannerModSettlementSnapshot(
     }
 
     public static BannerModSettlementSnapshot create(UUID claimUuid, ChunkPos anchorChunk, @Nullable String settlementFactionId) {
-        return new BannerModSettlementSnapshot(claimUuid, anchorChunk.x, anchorChunk.z, settlementFactionId, 0L, 0, 0, 0, 0, 0, 0, BannerModSettlementStockpileSummary.empty(), BannerModSettlementMarketState.empty(), BannerModSettlementDesiredGoodsSeed.empty(), BannerModSettlementProjectCandidateSeed.empty(), BannerModSettlementTradeRouteHandoffSeed.empty(), BannerModSettlementSupplySignalState.empty(), List.of(), List.of());
+        return new BannerModSettlementSnapshot(claimUuid, anchorChunk.x, anchorChunk.z, settlementFactionId, 0L, 0, 0, 0, 0, 0, 0, BannerModSettlementStockpileSummary.empty(), BannerModSettlementMarketState.empty(), BannerModSettlementDesiredGoodsSnapshot.empty(), BannerModSettlementProjectCandidateSnapshot.empty(), BannerModSettlementTradeRouteHandoffSnapshot.empty(), BannerModSettlementSupplySignalState.empty(), List.of(), List.of());
     }
 
     private static List<BannerModSettlementResidentRecord> readResidents(ListTag list) {

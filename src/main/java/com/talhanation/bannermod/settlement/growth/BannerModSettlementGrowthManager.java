@@ -2,10 +2,10 @@ package com.talhanation.bannermod.settlement.growth;
 
 import com.talhanation.bannermod.settlement.BannerModSettlementBuildingCategory;
 import com.talhanation.bannermod.settlement.BannerModSettlementBuildingProfileSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementProjectCandidateSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodSnapshot;
+import com.talhanation.bannermod.settlement.BannerModSettlementProjectCandidateSnapshot;
 import com.talhanation.bannermod.settlement.BannerModSettlementSupplySignal;
-import com.talhanation.bannermod.settlement.BannerModSettlementTradeRouteHandoffSeed;
+import com.talhanation.bannermod.settlement.BannerModSettlementTradeRouteHandoffSnapshot;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -84,7 +84,7 @@ public final class BannerModSettlementGrowthManager {
             BannerModSettlementGrowthContext ctx,
             Map<BannerModSettlementBuildingProfileSeed, ScoredCandidate> byProfile
     ) {
-        BannerModSettlementProjectCandidateSeed seed = ctx.projectCandidateSeed();
+        BannerModSettlementProjectCandidateSnapshot seed = ctx.projectCandidateSnapshot();
         if (seed == null || seed.targetBuildingProfileSeed() == null) {
             return;
         }
@@ -148,17 +148,17 @@ public final class BannerModSettlementGrowthManager {
                 continue;
             }
             int score = DESIRED_GOOD_BASE_SCORE + DESIRED_GOOD_PER_DRIVER_BONUS * entry.getValue()
-                    + tradeRouteDemandBonus(profile, ctx.tradeRouteHandoffSeed());
+                    + tradeRouteDemandBonus(profile, ctx.tradeRouteHandoffSnapshot());
             mergeOrInsert(byProfile, profile, score);
         }
     }
 
     private static Map<String, Integer> hintedDemandByGood(BannerModSettlementGrowthContext ctx) {
         Map<String, Integer> demandByGood = new LinkedHashMap<>();
-        for (BannerModSettlementDesiredGoodSeed good : ctx.desiredGoodsSeed().desiredGoods()) {
+        for (BannerModSettlementDesiredGoodSnapshot good : ctx.desiredGoodsSnapshot().desiredGoods()) {
             mergeDemand(demandByGood, good.desiredGoodId(), good.driverCount());
         }
-        for (BannerModSettlementDesiredGoodSeed good : ctx.tradeRouteHandoffSeed().desiredGoods()) {
+        for (BannerModSettlementDesiredGoodSnapshot good : ctx.tradeRouteHandoffSnapshot().desiredGoods()) {
             mergeDemand(demandByGood, good.desiredGoodId(), good.driverCount());
         }
         for (BannerModSettlementSupplySignal signal : ctx.supplySignalState().signals()) {
@@ -188,7 +188,7 @@ public final class BannerModSettlementGrowthManager {
             if (reservationUnits > 0) {
                 score = Math.max(score, SUPPLY_RESERVATION_BASE_SCORE + SUPPLY_RESERVATION_PER_UNIT_BONUS * reservationUnits);
             }
-            mergeOrInsert(byProfile, profile, score + tradeRouteDemandBonus(profile, ctx.tradeRouteHandoffSeed()));
+            mergeOrInsert(byProfile, profile, score + tradeRouteDemandBonus(profile, ctx.tradeRouteHandoffSnapshot()));
         }
     }
 
@@ -200,16 +200,16 @@ public final class BannerModSettlementGrowthManager {
     }
 
     private static int tradeRouteDemandBonus(BannerModSettlementBuildingProfileSeed profile,
-                                             BannerModSettlementTradeRouteHandoffSeed handoffSeed) {
-        if (handoffSeed == null) {
+                                             BannerModSettlementTradeRouteHandoffSnapshot handoffSnapshot) {
+        if (handoffSnapshot == null) {
             return 0;
         }
         return switch (profile) {
             case STORAGE -> DESIRED_GOOD_PER_DRIVER_BONUS
-                    * Math.max(handoffSeed.activeReservationCount(), handoffSeed.routedStorageCount());
+                    * Math.max(handoffSnapshot.activeReservationCount(), handoffSnapshot.routedStorageCount());
             case MARKET -> DESIRED_GOOD_PER_DRIVER_BONUS
-                    * Math.max(handoffSeed.activeReservationCount(),
-                    handoffSeed.readySellerDispatchCount() + handoffSeed.portEntrypointCount());
+                    * Math.max(handoffSnapshot.activeReservationCount(),
+                    handoffSnapshot.readySellerDispatchCount() + handoffSnapshot.portEntrypointCount());
             default -> 0;
         };
     }

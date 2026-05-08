@@ -3,11 +3,11 @@ package com.talhanation.bannermod.settlement;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 
-public record BannerModSettlementDesiredGoodSeed(
+public record BannerModSettlementDesiredGoodSnapshot(
         String desiredGoodId,
         int driverCount
 ) {
-    public BannerModSettlementDesiredGoodSeed {
+    public BannerModSettlementDesiredGoodSnapshot {
         desiredGoodId = desiredGoodId == null ? "" : desiredGoodId;
         driverCount = Math.max(0, driverCount);
     }
@@ -21,8 +21,8 @@ public record BannerModSettlementDesiredGoodSeed(
         return tag;
     }
 
-    public static BannerModSettlementDesiredGoodSeed fromTag(CompoundTag tag) {
-        return new BannerModSettlementDesiredGoodSeed(
+    public static BannerModSettlementDesiredGoodSnapshot fromTag(CompoundTag tag) {
+        return new BannerModSettlementDesiredGoodSnapshot(
                 tag.contains("DesiredGoodId", Tag.TAG_STRING) ? tag.getString("DesiredGoodId") : "",
                 tag.getInt("DriverCount")
         );

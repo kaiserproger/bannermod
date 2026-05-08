@@ -1,13 +1,13 @@
 package com.talhanation.bannermod.settlement;
 
-public enum BannerModSettlementResidentRuntimeRoleSeed {
+public enum BannerModSettlementResidentRuntimeRoleState {
     VILLAGE_LIFE,
     GOVERNANCE,
     LOCAL_LABOR,
     FLOATING_LABOR,
     ORPHANED_LABOR_ASSIGNMENT;
 
-    public static BannerModSettlementResidentRuntimeRoleSeed fromTagName(String name) {
+    public static BannerModSettlementResidentRuntimeRoleState fromTagName(String name) {
         if (name == null || name.isBlank()) {
             return VILLAGE_LIFE;
         }
@@ -18,20 +18,20 @@ public enum BannerModSettlementResidentRuntimeRoleSeed {
         }
     }
 
-    public static BannerModSettlementResidentRuntimeRoleSeed defaultFor(BannerModSettlementResidentRole role,
+    public static BannerModSettlementResidentRuntimeRoleState defaultFor(BannerModSettlementResidentRole role,
                                                                         BannerModSettlementResidentScheduleSeed scheduleSeed,
                                                                         BannerModSettlementResidentMode residentMode,
                                                                         BannerModSettlementResidentAssignmentState assignmentState) {
         return switch (role) {
             case GOVERNOR_RECRUIT -> GOVERNANCE;
             case VILLAGER -> VILLAGE_LIFE;
-            case CONTROLLED_WORKER -> defaultWorkerSeed(scheduleSeed, residentMode, assignmentState);
+            case CONTROLLED_WORKER -> defaultWorkerState(scheduleSeed, residentMode, assignmentState);
         };
     }
 
-    private static BannerModSettlementResidentRuntimeRoleSeed defaultWorkerSeed(BannerModSettlementResidentScheduleSeed scheduleSeed,
-                                                                                BannerModSettlementResidentMode residentMode,
-                                                                                BannerModSettlementResidentAssignmentState assignmentState) {
+    private static BannerModSettlementResidentRuntimeRoleState defaultWorkerState(BannerModSettlementResidentScheduleSeed scheduleSeed,
+                                                                                 BannerModSettlementResidentMode residentMode,
+                                                                                 BannerModSettlementResidentAssignmentState assignmentState) {
         if (assignmentState == BannerModSettlementResidentAssignmentState.ASSIGNED_MISSING_BUILDING) {
             return ORPHANED_LABOR_ASSIGNMENT;
         }

@@ -8,18 +8,18 @@ import net.minecraft.nbt.Tag;
 import java.util.ArrayList;
 import java.util.List;
 
-public record BannerModSettlementTradeRouteHandoffSeed(
+public record BannerModSettlementTradeRouteHandoffSnapshot(
         int sellerDispatchCount,
         int readySellerDispatchCount,
         int routedStorageCount,
         int portEntrypointCount,
         int activeReservationCount,
         int reservedUnitCount,
-        List<BannerModSettlementDesiredGoodSeed> desiredGoods,
+        List<BannerModSettlementDesiredGoodSnapshot> desiredGoods,
         List<BannerModSettlementSellerDispatchRecord> sellerDispatches,
         List<String> seaTradeStatusLines
 ) {
-    public BannerModSettlementTradeRouteHandoffSeed {
+    public BannerModSettlementTradeRouteHandoffSnapshot {
         sellerDispatchCount = Math.max(0, sellerDispatchCount);
         readySellerDispatchCount = Math.max(0, Math.min(readySellerDispatchCount, sellerDispatchCount));
         routedStorageCount = Math.max(0, routedStorageCount);
@@ -41,7 +41,7 @@ public record BannerModSettlementTradeRouteHandoffSeed(
         tag.putInt("ReservedUnitCount", this.reservedUnitCount);
 
         ListTag desiredGoodsList = new ListTag();
-        for (BannerModSettlementDesiredGoodSeed desiredGood : this.desiredGoods) {
+        for (BannerModSettlementDesiredGoodSnapshot desiredGood : this.desiredGoods) {
             desiredGoodsList.add(desiredGood.toTag());
         }
         tag.put("DesiredGoods", desiredGoodsList);
@@ -60,8 +60,8 @@ public record BannerModSettlementTradeRouteHandoffSeed(
         return tag;
     }
 
-    public static BannerModSettlementTradeRouteHandoffSeed fromTag(CompoundTag tag) {
-        return new BannerModSettlementTradeRouteHandoffSeed(
+    public static BannerModSettlementTradeRouteHandoffSnapshot fromTag(CompoundTag tag) {
+        return new BannerModSettlementTradeRouteHandoffSnapshot(
                 tag.getInt("SellerDispatchCount"),
                 tag.getInt("ReadySellerDispatchCount"),
                 tag.getInt("RoutedStorageCount"),
@@ -74,14 +74,14 @@ public record BannerModSettlementTradeRouteHandoffSeed(
         );
     }
 
-    public static BannerModSettlementTradeRouteHandoffSeed empty() {
-        return new BannerModSettlementTradeRouteHandoffSeed(0, 0, 0, 0, 0, 0, List.of(), List.of(), List.of());
+    public static BannerModSettlementTradeRouteHandoffSnapshot empty() {
+        return new BannerModSettlementTradeRouteHandoffSnapshot(0, 0, 0, 0, 0, 0, List.of(), List.of(), List.of());
     }
 
-    private static List<BannerModSettlementDesiredGoodSeed> readDesiredGoods(ListTag list) {
-        List<BannerModSettlementDesiredGoodSeed> desiredGoods = new ArrayList<>();
+    private static List<BannerModSettlementDesiredGoodSnapshot> readDesiredGoods(ListTag list) {
+        List<BannerModSettlementDesiredGoodSnapshot> desiredGoods = new ArrayList<>();
         for (Tag entry : list) {
-            desiredGoods.add(BannerModSettlementDesiredGoodSeed.fromTag((CompoundTag) entry));
+            desiredGoods.add(BannerModSettlementDesiredGoodSnapshot.fromTag((CompoundTag) entry));
         }
         return desiredGoods;
     }
