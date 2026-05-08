@@ -112,11 +112,6 @@ public class MerchantEntity extends AbstractWorkerEntity {
         return null;
     }
 
-    @Override
-    protected void registerGoals() {
-        super.registerGoals();
-    }
-
     @Nullable
     public MarketArea getCurrentMarketArea() {
         return getCurrentWorkArea() instanceof MarketArea ma ? ma : null;

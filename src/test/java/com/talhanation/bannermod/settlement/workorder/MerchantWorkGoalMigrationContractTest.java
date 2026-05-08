@@ -36,9 +36,8 @@ class MerchantWorkGoalMigrationContractTest {
                 "MerchantWorkGoal must be deleted from src/main");
         assertTrue(worker.contains("new SettlementOrderWorkGoal(this)"),
                 "AbstractWorkerEntity must execute settlement work orders for merchants through super.registerGoals()");
-        assertTrue(merchant.contains("protected void registerGoals()")
-                        && merchant.indexOf("super.registerGoals()", merchant.indexOf("protected void registerGoals()")) > 0,
-                "MerchantEntity must keep the inherited settlement-order goal path");
+        assertFalse(merchant.contains("protected void registerGoals()"),
+                "MerchantEntity must inherit the single settlement-order goal registration from AbstractWorkerEntity");
         assertFalse(merchant.contains("MerchantWorkGoal"),
                 "MerchantEntity must not reference the legacy merchant goal");
         assertFalse(merchant.contains("new SettlementOrderWorkGoal(this)"),
