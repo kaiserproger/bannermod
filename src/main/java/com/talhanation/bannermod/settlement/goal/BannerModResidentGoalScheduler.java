@@ -48,10 +48,26 @@ public final class BannerModResidentGoalScheduler {
     private static final int SWITCH_MARGIN = 12;
     private static final int ROUTINE_SWITCH_MARGIN = 18;
     private static final int HOME_LOOP_SWITCH_MARGIN = 24;
+    private static final int RECENT_FAILURE_MEMORY_TICKS = 240;
+    private static final int FAILURE_BASE_COOLDOWN_TICKS = 80;
+    private static final int FAILURE_REPEAT_BONUS_TICKS = 40;
+    private static final int FAILURE_PRIORITY_PENALTY = 10;
+    private static final int FAILURE_INTENT_PENALTY = 6;
+    private static final int CONTEXT_INVALID_EXTRA_BACKOFF_TICKS = 40;
+    private static final int CONTEXT_INVALID_EXTRA_PENALTY = 4;
+    private static final int RECOVERY_STICKINESS_BONUS = 8;
+    private static final int HOUSEHOLD_SOCIAL_STICKINESS_BONUS = 8;
+    private static final int MEAL_SUPPLY_RECOVERY_BONUS = 10;
+    private static final int RECOVERY_SWITCH_MARGIN = 12;
+    private static final int HOUSEHOLD_SOCIAL_SWITCH_MARGIN = 10;
+    private static final int SUPPLY_RECOVERY_SWITCH_MARGIN = 10;
 
     private final List<ResidentGoal> goals;
     private final Map<UUID, ResidentTask> activeTasks = new HashMap<>();
+    private final Map<UUID, ResidentTask> lastFinishedTasks = new HashMap<>();
     private final Map<UUID, Map<ResourceLocation, Long>> cooldownExpiries = new HashMap<>();
+    private final Map<UUID, Map<ResourceLocation, Integer>> failureCounts = new HashMap<>();
+    private final Map<UUID, ResidentTaskOutcome> recentOutcomes = new HashMap<>();
 
     public BannerModResidentGoalScheduler(List<ResidentGoal> goals) {
         if (goals == null) {
@@ -126,6 +142,10 @@ public final class BannerModResidentGoalScheduler {
         if (active != null && !active.isDone()) {
             active.advance();
             if (active.isDone()) {
+                if (this.shouldRefreshTimedOutTask(ctx, active)) {
+                    this.activeTasks.put(residentId, new ResidentTask(active.goalId(), ctx.gameTime(), active.maxTicks()));
+                    return;
+                }
                 this.onTaskFinished(residentId, active);
             }
             return;
@@ -138,7 +158,12 @@ public final class BannerModResidentGoalScheduler {
 
     /** Current task for a resident, or empty if nothing scheduled. */
     public Optional<ResidentTask> currentTask(UUID residentId) {
-        return Optional.ofNullable(this.activeTasks.get(residentId));
+        ResidentTask active = this.activeTasks.get(residentId);
+        return Optional.ofNullable(active != null ? active : this.lastFinishedTasks.get(residentId));
+    }
+
+    public Optional<ResidentTaskOutcome> lastOutcome(UUID residentId) {
+        return Optional.ofNullable(this.recentOutcomes.get(residentId));
     }
 
     /**
@@ -160,7 +185,10 @@ public final class BannerModResidentGoalScheduler {
     /** Drop all in-memory state. Intended for test isolation and reloads. */
     public void reset() {
         this.activeTasks.clear();
+        this.lastFinishedTasks.clear();
         this.cooldownExpiries.clear();
+        this.failureCounts.clear();
+        this.recentOutcomes.clear();
     }
 
     /** Read-only view of the registered goals, in registration order. */
@@ -219,6 +247,28 @@ public final class BannerModResidentGoalScheduler {
         this.activeTasks.put(ctx.residentId(), task);
     }
 
+    private boolean shouldRefreshTimedOutTask(ResidentGoalContext ctx, ResidentTask active) {
+        if (ctx == null || active == null || active.stopReason() != ResidentStopReason.TIMED_OUT) {
+            return false;
+        }
+        ResidentGoal goal = this.findGoal(active.goalId());
+        if (goal == null || !goal.canStart(ctx)) {
+            return false;
+        }
+        NpcIntent intent = NpcSocietyPhaseOneRuntime.intentForGoal(active.goalId());
+        if (intent == NpcIntent.GO_HOME || intent == NpcIntent.REST || intent == NpcIntent.EAT
+                || intent == NpcIntent.SEEK_SUPPLIES || intent == NpcIntent.HIDE) {
+            return ctx.shouldRefreshSafeRecoveryIntent();
+        }
+        if (intent == NpcIntent.WORK) {
+            return ctx.shouldRefreshWorkIntent();
+        }
+        if (intent == NpcIntent.SOCIALISE) {
+            return ctx.shouldRefreshHouseholdSocial() || ctx.shouldRefreshRoutineSocialIntent();
+        }
+        return false;
+    }
+
     @Nullable
     private ResidentGoal findPreviousGoal(ResidentGoalContext ctx) {
         if (ctx == null || ctx.societyProfile() == null || ctx.societyProfile().decisionSnapshot() == null) {
@@ -246,8 +296,98 @@ public final class BannerModResidentGoalScheduler {
         NpcIntent nextIntent = NpcSocietyPhaseOneRuntime.intentForGoal(goalId);
         if (previousIntent != null && previousIntent == nextIntent && nextIntent != NpcIntent.UNSPECIFIED) {
             adjusted += SAME_INTENT_STICKINESS_BONUS;
+            if (ctx.shouldHoldCurrentRecoveryIntent() && NpcSocietyIntentRules.isSafeRecoveryIntent(nextIntent)) {
+                adjusted += RECOVERY_STICKINESS_BONUS;
+            }
+        }
+        if (nextIntent == NpcIntent.SOCIALISE && ctx.shouldHoldHouseholdSocialIntent()) {
+            adjusted += HOUSEHOLD_SOCIAL_STICKINESS_BONUS;
+        }
+        if (nextIntent == NpcIntent.SEEK_SUPPLIES && ctx.shouldEscalateMealRecoveryToSupplies()) {
+            adjusted += MEAL_SUPPLY_RECOVERY_BONUS;
+        }
+        ResidentTaskOutcome recentOutcome = this.recentOutcomes.get(ctx.residentId());
+        if (recentOutcome != null
+                && recentOutcome.isFailure()
+                && goalId.equals(recentOutcome.goalId())
+                && ctx.gameTime() - recentOutcome.finishedGameTime() <= RECENT_FAILURE_MEMORY_TICKS) {
+            adjusted -= scaledFailurePenalty(recentOutcome, FAILURE_PRIORITY_PENALTY);
+        }
+        if (recentOutcome != null
+                && recentOutcome.isFailure()
+                && ctx.gameTime() - recentOutcome.finishedGameTime() <= RECENT_FAILURE_MEMORY_TICKS) {
+            NpcIntent failedIntent = NpcSocietyPhaseOneRuntime.intentForGoal(recentOutcome.goalId());
+            if (failedIntent != NpcIntent.UNSPECIFIED
+                    && failedIntent == nextIntent
+                    && !goalId.equals(recentOutcome.goalId())) {
+                adjusted -= scaledFailurePenalty(recentOutcome, FAILURE_INTENT_PENALTY);
+            }
+            if (NpcSocietyIntentRules.sharesFailureRetryFamily(failedIntent, nextIntent)
+                    && failedIntent != nextIntent
+                    && !goalId.equals(recentOutcome.goalId())) {
+                adjusted -= scaledFailurePenalty(recentOutcome, FAILURE_INTENT_PENALTY + 2);
+            }
+            adjusted += recoveryPriorityBonus(ctx, failedIntent, nextIntent);
         }
         return adjusted;
+    }
+
+    private static int scaledFailurePenalty(ResidentTaskOutcome recentOutcome, int basePenalty) {
+        if (recentOutcome == null || basePenalty <= 0) {
+            return 0;
+        }
+        int perFailure = basePenalty;
+        if (recentOutcome.stopReason() == ResidentStopReason.CONTEXT_INVALID) {
+            perFailure += CONTEXT_INVALID_EXTRA_PENALTY;
+        }
+        return Math.max(perFailure, recentOutcome.consecutiveFailureCount() * perFailure);
+    }
+
+    private static int recoveryPriorityBonus(ResidentGoalContext ctx, NpcIntent failedIntent, NpcIntent nextIntent) {
+        if (ctx == null || failedIntent == NpcIntent.UNSPECIFIED || nextIntent == NpcIntent.UNSPECIFIED) {
+            return 0;
+        }
+        int bonus = 0;
+        boolean failedRoutine = failedIntent == NpcIntent.WORK
+                || failedIntent == NpcIntent.SELL
+                || failedIntent == NpcIntent.FETCH
+                || failedIntent == NpcIntent.DELIVER
+                || failedIntent == NpcIntent.SOCIALISE
+                || failedIntent == NpcIntent.SEEK_SUPPLIES;
+        boolean failedDailyLife = failedRoutine || failedIntent == NpcIntent.EAT;
+        if (failedRoutine && nextIntent == NpcIntent.GO_HOME && ctx.hasHome()) {
+            bonus += ctx.hasFamilyTies() ? 10 : 6;
+            if (ctx.hasDependents()) {
+                bonus += 4;
+            }
+        }
+        if ((failedDailyLife || failedIntent == NpcIntent.GO_HOME)
+                && nextIntent == NpcIntent.REST
+                && ctx.hasHome()
+                && (ctx.isRestPhase() || ctx.fatigueNeed() >= 55)) {
+            bonus += ctx.hasFamilyTies() ? 10 : 6;
+        }
+        if ((failedIntent == NpcIntent.WORK || failedIntent == NpcIntent.SEEK_SUPPLIES || failedIntent == NpcIntent.SOCIALISE)
+                && nextIntent == NpcIntent.EAT
+                && ctx.hungerNeed() >= 45) {
+            bonus += 8;
+        }
+        if (failedIntent == NpcIntent.EAT
+                && nextIntent == NpcIntent.SEEK_SUPPLIES
+                && ctx.hungerNeed() >= 50
+                && ctx.hasSupplyAccess()) {
+            bonus += ctx.hasHome() ? 16 : 12;
+            if (ctx.shouldEscalateMealRecoveryToSupplies()) {
+                bonus += 6;
+            }
+            if (ctx.hasOnlyStockpileFoodAccess()) {
+                bonus += 4;
+            }
+        }
+        if (failedDailyLife && nextIntent == NpcIntent.HIDE && (ctx.safetyNeed() >= 45 || ctx.fearScore() >= 45)) {
+            bonus += ctx.hasDependents() ? 10 : 6;
+        }
+        return bonus;
     }
 
     private static int switchMargin(ResidentGoalContext ctx, @Nullable ResidentGoal previousGoal, @Nullable ResidentGoal nextGoal) {
@@ -275,20 +415,88 @@ public final class BannerModResidentGoalScheduler {
         if (previousIntent != NpcIntent.UNSPECIFIED && previousIntent == nextIntent) {
             margin += 4;
         }
-        return margin;
+        if (ctx != null) {
+            if (ctx.shouldHoldCurrentRecoveryIntent()
+                    && NpcSocietyIntentRules.isSafeRecoveryIntent(previousIntent)
+                    && NpcSocietyIntentRules.isRoutineDailyIntent(nextIntent)) {
+                margin += RECOVERY_SWITCH_MARGIN;
+            }
+            if (previousIntent == NpcIntent.SOCIALISE
+                    && ctx.shouldHoldHouseholdSocialIntent()
+                    && NpcSocietyIntentRules.isWorkFamilyIntent(nextIntent)) {
+                margin += HOUSEHOLD_SOCIAL_SWITCH_MARGIN;
+            }
+            if (previousIntent == NpcIntent.SEEK_SUPPLIES
+                    && ctx.shouldEscalateMealRecoveryToSupplies()
+                    && (nextIntent == NpcIntent.EAT || NpcSocietyIntentRules.isRoutineDailyIntent(nextIntent))) {
+                margin += SUPPLY_RECOVERY_SWITCH_MARGIN;
+            }
+            long currentAge = ctx.currentIntentAgeTicks();
+            if (currentAge > 0L && currentAge < 80L) {
+                margin += 6;
+            } else if (currentAge >= 220L && margin > 4) {
+                margin -= 4;
+            }
+        }
+        return Math.max(0, margin);
     }
 
     private void onTaskFinished(UUID residentId, ResidentTask task) {
+        if (residentId == null || task == null || task.stopReason() == null) {
+            return;
+        }
         ResidentGoal goal = this.findGoal(task.goalId());
+        long finishedAt = task.startGameTime() + Math.max(0, task.elapsedTicks());
         long expiresAt = 0L;
         if (goal != null && goal.cooldownTicks() > 0 && task.stopReason() == ResidentStopReason.COMPLETED) {
-            expiresAt = task.startGameTime() + task.elapsedTicks() + goal.cooldownTicks();
+            expiresAt = finishedAt + goal.cooldownTicks();
+        }
+        int failureCount = 0;
+        if (isFailure(task.stopReason())) {
+            failureCount = this.incrementFailureCount(residentId, task.goalId());
+            expiresAt = Math.max(expiresAt, finishedAt + failureBackoffTicks(task.goalId(), failureCount, task.stopReason()));
+        } else {
+            this.clearFailureCount(residentId, task.goalId());
         }
         if (expiresAt > 0L) {
             this.cooldownExpiries
                     .computeIfAbsent(residentId, k -> new HashMap<>())
                     .put(task.goalId(), expiresAt);
         }
+        this.activeTasks.remove(residentId);
+        this.lastFinishedTasks.put(residentId, task);
+        this.recentOutcomes.put(residentId, new ResidentTaskOutcome(task.goalId(), task.stopReason(), finishedAt, failureCount));
+    }
+
+    private int incrementFailureCount(UUID residentId, ResourceLocation goalId) {
+        Map<ResourceLocation, Integer> perGoal = this.failureCounts.computeIfAbsent(residentId, k -> new HashMap<>());
+        int next = Math.min(4, perGoal.getOrDefault(goalId, 0) + 1);
+        perGoal.put(goalId, next);
+        return next;
+    }
+
+    private void clearFailureCount(UUID residentId, ResourceLocation goalId) {
+        Map<ResourceLocation, Integer> perGoal = this.failureCounts.get(residentId);
+        if (perGoal == null) {
+            return;
+        }
+        perGoal.remove(goalId);
+        if (perGoal.isEmpty()) {
+            this.failureCounts.remove(residentId);
+        }
+    }
+
+    private static boolean isFailure(@Nullable ResidentStopReason reason) {
+        return reason == ResidentStopReason.TIMED_OUT || reason == ResidentStopReason.CONTEXT_INVALID;
+    }
+
+    private static int failureBackoffTicks(ResourceLocation goalId, int failureCount, @Nullable ResidentStopReason reason) {
+        NpcIntent intent = NpcSocietyPhaseOneRuntime.intentForGoal(goalId);
+        int bonus = NpcSocietyIntentRules.isAnchoredRoutineIntent(intent) || NpcSocietyIntentRules.isRestLikeIntent(intent) ? 30 : 0;
+        if (reason == ResidentStopReason.CONTEXT_INVALID) {
+            bonus += CONTEXT_INVALID_EXTRA_BACKOFF_TICKS;
+        }
+        return FAILURE_BASE_COOLDOWN_TICKS + Math.max(0, failureCount - 1) * FAILURE_REPEAT_BONUS_TICKS + bonus;
     }
 
     @Nullable
@@ -331,5 +539,9 @@ public final class BannerModResidentGoalScheduler {
 
     Map<UUID, Map<ResourceLocation, Long>> cooldownsForTests() {
         return Collections.unmodifiableMap(this.cooldownExpiries);
+    }
+
+    Map<UUID, ResidentTask> finishedTasksForTests() {
+        return Collections.unmodifiableMap(this.lastFinishedTasks);
     }
 }
