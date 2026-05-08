@@ -1,4 +1,4 @@
-package com.talhanation.bannermod.events;
+package com.talhanation.bannermod.api.event;
 
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import net.minecraft.server.level.ServerLevel;
