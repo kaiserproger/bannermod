@@ -46,12 +46,12 @@ class BannerModSettlementManagerTest {
                         List.of(new BannerModSettlementMarketRecord(workAreaUuid, "Harbor Square", true, 27, 9)),
                         List.of(new BannerModSettlementSellerDispatchRecord(workerUuid, workAreaUuid, "Harbor Square", BannerModSettlementSellerDispatchState.READY))
                 ),
-                new BannerModSettlementDesiredGoodsSeed(List.of(
-                        new BannerModSettlementDesiredGoodSeed("food", 1),
-                        new BannerModSettlementDesiredGoodSeed("market_goods", 1),
-                        new BannerModSettlementDesiredGoodSeed("storage_type:merchants", 1)
+                new BannerModSettlementDesiredGoodsSnapshot(List.of(
+                        new BannerModSettlementDesiredGoodSnapshot("food", 1),
+                        new BannerModSettlementDesiredGoodSnapshot("market_goods", 1),
+                        new BannerModSettlementDesiredGoodSnapshot("storage_type:merchants", 1)
                 )),
-                new BannerModSettlementProjectCandidateSeed(
+                new BannerModSettlementProjectCandidateSnapshot(
                         "storage_foundation",
                         BannerModSettlementBuildingProfileSeed.STORAGE,
                         4,
@@ -59,7 +59,7 @@ class BannerModSettlementManagerTest {
                         true,
                         List.of("storage_missing", "goods_pressure", "market_access_present")
                 ),
-                new BannerModSettlementTradeRouteHandoffSeed(
+                new BannerModSettlementTradeRouteHandoffSnapshot(
                         1,
                         1,
                         1,
@@ -67,9 +67,9 @@ class BannerModSettlementManagerTest {
                         1,
                         16,
                         List.of(
-                                new BannerModSettlementDesiredGoodSeed("food", 1),
-                                new BannerModSettlementDesiredGoodSeed("market_goods", 1),
-                                new BannerModSettlementDesiredGoodSeed("storage_type:merchants", 1)
+                                new BannerModSettlementDesiredGoodSnapshot("food", 1),
+                                new BannerModSettlementDesiredGoodSnapshot("market_goods", 1),
+                                new BannerModSettlementDesiredGoodSnapshot("storage_type:merchants", 1)
                         ),
                         List.of(new BannerModSettlementSellerDispatchRecord(workerUuid, workAreaUuid, "Harbor Square", BannerModSettlementSellerDispatchState.READY)),
                         List.of()
@@ -86,9 +86,9 @@ class BannerModSettlementManagerTest {
                         )
                 ),
                 List.of(
-                        new BannerModSettlementResidentRecord(UUID.randomUUID(), BannerModSettlementResidentRole.VILLAGER, BannerModSettlementResidentScheduleSeed.SETTLEMENT_IDLE, BannerModSettlementResidentScheduleWindowSeed.DAYLIGHT_FLEX, BannerModSettlementResidentRuntimeRoleSeed.VILLAGE_LIFE, BannerModSettlementResidentServiceContract.notServiceActor(), BannerModSettlementResidentMode.SETTLEMENT_RESIDENT, null, "blueguild", null, BannerModSettlementResidentAssignmentState.NOT_APPLICABLE),
-                        new BannerModSettlementResidentRecord(workerUuid, BannerModSettlementResidentRole.CONTROLLED_WORKER, BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK, BannerModSettlementResidentScheduleWindowSeed.LABOR_DAY, BannerModSettlementResidentRuntimeRoleSeed.LOCAL_LABOR, BannerModSettlementResidentServiceContract.defaultFor(BannerModSettlementResidentRole.CONTROLLED_WORKER, BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER, BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING, workAreaUuid, "bannermod:storage_area"), BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER, UUID.randomUUID(), "blueguild", workAreaUuid, BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING),
-                        new BannerModSettlementResidentRecord(UUID.randomUUID(), BannerModSettlementResidentRole.GOVERNOR_RECRUIT, BannerModSettlementResidentScheduleSeed.GOVERNING, BannerModSettlementResidentScheduleWindowSeed.CIVIC_DAY, BannerModSettlementResidentRuntimeRoleSeed.GOVERNANCE, BannerModSettlementResidentServiceContract.notServiceActor(), BannerModSettlementResidentMode.SETTLEMENT_RESIDENT, UUID.randomUUID(), "blueguild", null, BannerModSettlementResidentAssignmentState.NOT_APPLICABLE)
+                        new BannerModSettlementResidentRecord(UUID.randomUUID(), BannerModSettlementResidentRole.VILLAGER, BannerModSettlementResidentScheduleSeed.SETTLEMENT_IDLE, BannerModSettlementResidentScheduleWindowSeed.DAYLIGHT_FLEX, BannerModSettlementResidentRuntimeRoleState.VILLAGE_LIFE, BannerModSettlementResidentServiceContract.notServiceActor(), BannerModSettlementResidentMode.SETTLEMENT_RESIDENT, null, "blueguild", null, BannerModSettlementResidentAssignmentState.NOT_APPLICABLE),
+                        new BannerModSettlementResidentRecord(workerUuid, BannerModSettlementResidentRole.CONTROLLED_WORKER, BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK, BannerModSettlementResidentScheduleWindowSeed.LABOR_DAY, BannerModSettlementResidentRuntimeRoleState.LOCAL_LABOR, BannerModSettlementResidentServiceContract.defaultFor(BannerModSettlementResidentRole.CONTROLLED_WORKER, BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER, BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING, workAreaUuid, "bannermod:storage_area"), BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER, UUID.randomUUID(), "blueguild", workAreaUuid, BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING),
+                        new BannerModSettlementResidentRecord(UUID.randomUUID(), BannerModSettlementResidentRole.GOVERNOR_RECRUIT, BannerModSettlementResidentScheduleSeed.GOVERNING, BannerModSettlementResidentScheduleWindowSeed.CIVIC_DAY, BannerModSettlementResidentRuntimeRoleState.GOVERNANCE, BannerModSettlementResidentServiceContract.notServiceActor(), BannerModSettlementResidentMode.SETTLEMENT_RESIDENT, UUID.randomUUID(), "blueguild", null, BannerModSettlementResidentAssignmentState.NOT_APPLICABLE)
                 ),
                 List.of(
                         new BannerModSettlementBuildingRecord(workAreaUuid, "bannermod:storage_area", new BlockPos(12, 64, 12), UUID.randomUUID(), "blueguild", 4, 1, 1, List.of(workerUuid), true, 2, 54, true, false, List.of("farmers", "merchants"))
@@ -114,9 +114,9 @@ class BannerModSettlementManagerTest {
         assertEquals(original.missingWorkAreaAssignmentCount(), restored.missingWorkAreaAssignmentCount());
         assertEquals(original.stockpileSummary(), restored.stockpileSummary());
         assertEquals(original.marketState(), restored.marketState());
-        assertEquals(original.desiredGoodsSeed(), restored.desiredGoodsSeed());
-        assertEquals(original.projectCandidateSeed(), restored.projectCandidateSeed());
-        assertEquals(original.tradeRouteHandoffSeed(), restored.tradeRouteHandoffSeed());
+        assertEquals(original.desiredGoodsSnapshot(), restored.desiredGoodsSnapshot());
+        assertEquals(original.projectCandidateSnapshot(), restored.projectCandidateSnapshot());
+        assertEquals(original.tradeRouteHandoffSnapshot(), restored.tradeRouteHandoffSnapshot());
         assertEquals(original.supplySignalState(), restored.supplySignalState());
         assertEquals(original.residents(), restored.residents());
         assertEquals(original.buildings(), restored.buildings());

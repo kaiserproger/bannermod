@@ -144,9 +144,9 @@ class BannerModSettlementStrategicSignalsTest {
                 0,
                 stockpileSummary,
                 marketState,
-                BannerModSettlementDesiredGoodsSeed.empty(),
-                BannerModSettlementProjectCandidateSeed.empty(),
-                BannerModSettlementTradeRouteHandoffSeed.empty(),
+                BannerModSettlementDesiredGoodsSnapshot.empty(),
+                BannerModSettlementProjectCandidateSnapshot.empty(),
+                BannerModSettlementTradeRouteHandoffSnapshot.empty(),
                 BannerModSettlementSupplySignalState.empty(),
                 List.of(),
                 buildings

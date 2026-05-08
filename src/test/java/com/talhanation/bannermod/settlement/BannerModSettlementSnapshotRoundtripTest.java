@@ -36,9 +36,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *   <li>missingWorkAreaAssignmentCount</li>
  *   <li>stockpileSummary</li>
  *   <li>marketState</li>
- *   <li>desiredGoodsSeed</li>
- *   <li>projectCandidateSeed</li>
- *   <li>tradeRouteHandoffSeed</li>
+ *   <li>desiredGoodsSnapshot</li>
+ *   <li>projectCandidateSnapshot</li>
+ *   <li>tradeRouteHandoffSnapshot</li>
  *   <li>supplySignalState</li>
  *   <li>residents</li>
  *   <li>buildings</li>
@@ -63,9 +63,9 @@ class BannerModSettlementSnapshotRoundtripTest {
                 0,
                 BannerModSettlementStockpileSummary.empty(),
                 BannerModSettlementMarketState.empty(),
-                BannerModSettlementDesiredGoodsSeed.empty(),
-                BannerModSettlementProjectCandidateSeed.empty(),
-                BannerModSettlementTradeRouteHandoffSeed.empty(),
+                BannerModSettlementDesiredGoodsSnapshot.empty(),
+                BannerModSettlementProjectCandidateSnapshot.empty(),
+                BannerModSettlementTradeRouteHandoffSnapshot.empty(),
                 BannerModSettlementSupplySignalState.empty(),
                 List.of(),
                 List.of()
@@ -115,9 +115,9 @@ class BannerModSettlementSnapshotRoundtripTest {
                 0,
                 BannerModSettlementStockpileSummary.empty(),
                 BannerModSettlementMarketState.empty(),
-                BannerModSettlementDesiredGoodsSeed.empty(),
-                BannerModSettlementProjectCandidateSeed.empty(),
-                BannerModSettlementTradeRouteHandoffSeed.empty(),
+                BannerModSettlementDesiredGoodsSnapshot.empty(),
+                BannerModSettlementProjectCandidateSnapshot.empty(),
+                BannerModSettlementTradeRouteHandoffSnapshot.empty(),
                 BannerModSettlementSupplySignalState.empty(),
                 List.of(),
                 List.of(building)
@@ -144,15 +144,15 @@ class BannerModSettlementSnapshotRoundtripTest {
                 BannerModSettlementResidentRole.GOVERNOR_RECRUIT,
                 BannerModSettlementResidentScheduleSeed.GOVERNING,
                 BannerModSettlementResidentScheduleWindowSeed.CIVIC_DAY,
-                BannerModSettlementResidentRuntimeRoleSeed.GOVERNANCE,
+                BannerModSettlementResidentRuntimeRoleState.GOVERNANCE,
                 BannerModSettlementResidentServiceContract.notServiceActor(),
                 BannerModSettlementResidentJobDefinition.defaultFor(
                         BannerModSettlementResidentRole.GOVERNOR_RECRUIT,
-                        BannerModSettlementResidentRuntimeRoleSeed.GOVERNANCE,
+                        BannerModSettlementResidentRuntimeRoleState.GOVERNANCE,
                         BannerModSettlementResidentServiceContract.notServiceActor(),
                         null
                 ),
-                new BannerModSettlementResidentJobTargetSelectionSeed(
+                new BannerModSettlementResidentJobTargetSelectionState(
                         BannerModSettlementJobTargetSelectionMode.NONE, null, null
                 ),
                 BannerModSettlementResidentMode.SETTLEMENT_RESIDENT,
@@ -162,7 +162,7 @@ class BannerModSettlementSnapshotRoundtripTest {
                 BannerModSettlementResidentAssignmentState.NOT_APPLICABLE,
                 BannerModSettlementResidentRoleProfile.defaultFor(
                         BannerModSettlementResidentRole.GOVERNOR_RECRUIT,
-                        BannerModSettlementResidentRuntimeRoleSeed.GOVERNANCE,
+                        BannerModSettlementResidentRuntimeRoleState.GOVERNANCE,
                         BannerModSettlementResidentMode.SETTLEMENT_RESIDENT,
                         BannerModSettlementResidentAssignmentState.NOT_APPLICABLE
                 )
@@ -173,7 +173,7 @@ class BannerModSettlementSnapshotRoundtripTest {
                 BannerModSettlementResidentRole.CONTROLLED_WORKER,
                 BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK,
                 BannerModSettlementResidentScheduleWindowSeed.LABOR_DAY,
-                BannerModSettlementResidentRuntimeRoleSeed.LOCAL_LABOR,
+                BannerModSettlementResidentRuntimeRoleState.LOCAL_LABOR,
                 new BannerModSettlementResidentServiceContract(
                         BannerModSettlementServiceActorState.LOCAL_BUILDING_SERVICE,
                         workAreaUuid,
@@ -186,7 +186,7 @@ class BannerModSettlementSnapshotRoundtripTest {
                         BannerModSettlementBuildingCategory.FOOD,
                         BannerModSettlementBuildingProfileSeed.FOOD_PRODUCTION
                 ),
-                new BannerModSettlementResidentJobTargetSelectionSeed(
+                new BannerModSettlementResidentJobTargetSelectionState(
                         BannerModSettlementJobTargetSelectionMode.SERVICE_BUILDING, null, null
                 ),
                 BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
@@ -196,7 +196,7 @@ class BannerModSettlementSnapshotRoundtripTest {
                 BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING,
                 BannerModSettlementResidentRoleProfile.defaultFor(
                         BannerModSettlementResidentRole.CONTROLLED_WORKER,
-                        BannerModSettlementResidentRuntimeRoleSeed.LOCAL_LABOR,
+                        BannerModSettlementResidentRuntimeRoleState.LOCAL_LABOR,
                         BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
                         BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
                 )
@@ -277,13 +277,13 @@ class BannerModSettlementSnapshotRoundtripTest {
                         workerUuid, marketBuildingUuid, "Central Market", BannerModSettlementSellerDispatchState.READY
                 ))
         );
-        BannerModSettlementDesiredGoodsSeed desiredGoodsSeed = new BannerModSettlementDesiredGoodsSeed(
+        BannerModSettlementDesiredGoodsSnapshot desiredGoodsSnapshot = new BannerModSettlementDesiredGoodsSnapshot(
                 List.of(
-                        new BannerModSettlementDesiredGoodSeed("food", 3),
-                        new BannerModSettlementDesiredGoodSeed("wood", 1)
+                        new BannerModSettlementDesiredGoodSnapshot("food", 3),
+                        new BannerModSettlementDesiredGoodSnapshot("wood", 1)
                 )
         );
-        BannerModSettlementProjectCandidateSeed projectCandidateSeed = new BannerModSettlementProjectCandidateSeed(
+        BannerModSettlementProjectCandidateSnapshot projectCandidateSnapshot = new BannerModSettlementProjectCandidateSnapshot(
                 "expand_storage",
                 BannerModSettlementBuildingProfileSeed.STORAGE,
                 5,
@@ -291,14 +291,14 @@ class BannerModSettlementSnapshotRoundtripTest {
                 true,
                 List.of("supply_pressure", "governor_priority")
         );
-        BannerModSettlementTradeRouteHandoffSeed tradeRouteHandoffSeed = new BannerModSettlementTradeRouteHandoffSeed(
+        BannerModSettlementTradeRouteHandoffSnapshot tradeRouteHandoffSnapshot = new BannerModSettlementTradeRouteHandoffSnapshot(
                 1,
                 1,
                 1,
                 1,
                 2,
                 7,
-                List.of(new BannerModSettlementDesiredGoodSeed("food", 3)),
+                List.of(new BannerModSettlementDesiredGoodSnapshot("food", 3)),
                 List.of(new BannerModSettlementSellerDispatchRecord(
                         workerUuid, marketBuildingUuid, "Central Market", BannerModSettlementSellerDispatchState.READY
                 )),
@@ -329,9 +329,9 @@ class BannerModSettlementSnapshotRoundtripTest {
                 1,
                 stockpile,
                 marketState,
-                desiredGoodsSeed,
-                projectCandidateSeed,
-                tradeRouteHandoffSeed,
+                desiredGoodsSnapshot,
+                projectCandidateSnapshot,
+                tradeRouteHandoffSnapshot,
                 supplySignalState,
                 List.of(governor, worker),
                 List.of(storage, market, crop)
@@ -365,8 +365,8 @@ class BannerModSettlementSnapshotRoundtripTest {
         tag.putInt("AssignedResidentCount", 2);
         tag.putInt("UnassignedWorkerCount", 1);
         tag.putInt("MissingWorkAreaAssignmentCount", 0);
-        // Optional sub-tags (StockpileSummary, MarketState, DesiredGoodsSeed,
-        // ProjectCandidateSeed, TradeRouteHandoffSeed, SupplySignalState, SettlementFactionId)
+        // Optional sub-tags (StockpileSummary, MarketState, DesiredGoodsSnapshot,
+        // ProjectCandidateSnapshot, TradeRouteHandoffSnapshot, SupplySignalState, SettlementFactionId)
         // intentionally omitted.
         // Residents: present but empty.
         tag.put("Residents", new ListTag());
@@ -409,9 +409,9 @@ class BannerModSettlementSnapshotRoundtripTest {
         assertEquals(0, fromMissing.missingWorkAreaAssignmentCount());
         assertEquals(BannerModSettlementStockpileSummary.empty(), fromMissing.stockpileSummary());
         assertEquals(BannerModSettlementMarketState.empty(), fromMissing.marketState());
-        assertEquals(BannerModSettlementDesiredGoodsSeed.empty(), fromMissing.desiredGoodsSeed());
-        assertEquals(BannerModSettlementProjectCandidateSeed.empty(), fromMissing.projectCandidateSeed());
-        assertEquals(BannerModSettlementTradeRouteHandoffSeed.empty(), fromMissing.tradeRouteHandoffSeed());
+        assertEquals(BannerModSettlementDesiredGoodsSnapshot.empty(), fromMissing.desiredGoodsSnapshot());
+        assertEquals(BannerModSettlementProjectCandidateSnapshot.empty(), fromMissing.projectCandidateSnapshot());
+        assertEquals(BannerModSettlementTradeRouteHandoffSnapshot.empty(), fromMissing.tradeRouteHandoffSnapshot());
         assertEquals(BannerModSettlementSupplySignalState.empty(), fromMissing.supplySignalState());
         assertTrue(fromMissing.residents().isEmpty());
         assertEquals(1, fromMissing.buildings().size());
@@ -446,9 +446,9 @@ class BannerModSettlementSnapshotRoundtripTest {
         assertEquals(expected.missingWorkAreaAssignmentCount(), actual.missingWorkAreaAssignmentCount(), "missingWorkAreaAssignmentCount");
         assertEquals(expected.stockpileSummary(), actual.stockpileSummary(), "stockpileSummary");
         assertEquals(expected.marketState(), actual.marketState(), "marketState");
-        assertEquals(expected.desiredGoodsSeed(), actual.desiredGoodsSeed(), "desiredGoodsSeed");
-        assertEquals(expected.projectCandidateSeed(), actual.projectCandidateSeed(), "projectCandidateSeed");
-        assertEquals(expected.tradeRouteHandoffSeed(), actual.tradeRouteHandoffSeed(), "tradeRouteHandoffSeed");
+        assertEquals(expected.desiredGoodsSnapshot(), actual.desiredGoodsSnapshot(), "desiredGoodsSnapshot");
+        assertEquals(expected.projectCandidateSnapshot(), actual.projectCandidateSnapshot(), "projectCandidateSnapshot");
+        assertEquals(expected.tradeRouteHandoffSnapshot(), actual.tradeRouteHandoffSnapshot(), "tradeRouteHandoffSnapshot");
         assertEquals(expected.supplySignalState(), actual.supplySignalState(), "supplySignalState");
         assertEquals(expected.residents(), actual.residents(), "residents");
         assertEquals(expected.buildings(), actual.buildings(), "buildings");
