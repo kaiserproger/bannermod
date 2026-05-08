@@ -9134,7 +9134,7 @@
     {
       "id": "EVENTSPKG-005C",
       "title": "Move citizen worker and villager services out of events package",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "Citizen, worker, and villager service moves are a separate reviewable slice of EVENTSPKG-005.",
       "scope": [
@@ -9149,8 +9149,14 @@
       ],
       "dependencies": [],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) WorkerAnimalGoalInjector, WorkerMarketAreaAccess, WorkerSettlementClaimPolicy, WorkerSettlementEventService, WorkerSettlementSpawnRuntime, WorkerTradeBootstrap, CitizenWorldLifecycleService, VillagerConversionService, and VillagerProfessionTradeRegistrationService moved out of events/** into ai.civilian.animals, citizen.runtime, entity.military.runtime, and settlement.civilian.runtime; 2) ctx search for old citizen/worker/villager event-service FQNs returned 0 matches; 3) ./gradlew compileJava compileGameTestJava test and tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "EVENTSPKG-005D",
