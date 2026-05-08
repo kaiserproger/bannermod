@@ -8206,7 +8206,7 @@
     {
       "id": "BLDGVALIDATOR-003",
       "title": "Migrate every BuildingType branch into a per-type BuildingTypeValidator",
-      "status": "in_progress",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "Phase 2 of the BLDGVALIDATOR-001 split: with the dispatcher in place, move each inline branch out of DefaultBuildingValidator into its own validator class so the strategy seam actually replaces the giant switch.",
       "scope": [
@@ -8231,8 +8231,14 @@
           "text": "Implementation branch feature/bldgvalidator-003 extracted validators and deleted DefaultBuildingValidator; compileJava, ./gradlew test, and tools/backlog validate passed after naming baseline fix. Closure is blocked because integration runGameTestServer currently fails GAMETESTBASE-001 before this task can satisfy its full-gate acceptance."
         }
       ],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) src/main/java/com/talhanation/bannermod/settlement/validation/DefaultBuildingValidator.java is deleted and active validation now uses SettlementBuildingValidator plus BuildingTypeValidatorDispatcher. 2) All BuildingType values are registered to per-type validators and each validator is <=150 LOC (STARTER_FORT 45, HOUSE 57, FARM 31, MINE 34, LUMBER_CAMP 32, SMITHY 52, STORAGE 27, ARCHITECT_WORKSHOP 38, BARRACKS 49). 3) Integration ./gradlew compileJava test runGameTestServer passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "BLDGVALIDATOR-004",
@@ -8333,7 +8339,7 @@
     {
       "id": "WORKGOAL-004",
       "title": "Migrate BuilderEntity from BuilderWorkGoal to SettlementOrderWorkGoal",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "WORKGOAL-001 phase: builder migration.",
       "scope": [
@@ -8352,13 +8358,19 @@
         "GAMETESTBASE-001"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) BuilderWorkGoal class is deleted from src/main and BuilderEntity no longer registers the legacy goal. 2) BuilderWorkGoalMigrationContractTest verifies the SettlementOrderWorkGoal build-block output path and passed as part of ./gradlew test. 3) Integration ./gradlew compileJava test runGameTestServer passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "WORKGOAL-005",
       "title": "Migrate LumberjackEntity from LumberjackWorkGoal to SettlementOrderWorkGoal",
-      "status": "open",
+      "status": "done",
       "updated": "2026-05-08",
       "why": "WORKGOAL-001 phase: lumberjack migration.",
       "scope": [
@@ -8377,8 +8389,14 @@
         "GAMETESTBASE-001"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-08",
+          "result": "1) LumberjackWorkGoal class is deleted from src/main and LumberjackEntity no longer registers the legacy goal. 2) LumberjackWorkGoalMigrationContractTest verifies the SettlementOrderWorkGoal fell-tree output path and passed as part of ./gradlew test. 3) Integration ./gradlew compileJava test runGameTestServer passed; tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-08"
     },
     {
       "id": "WORKGOAL-006",
