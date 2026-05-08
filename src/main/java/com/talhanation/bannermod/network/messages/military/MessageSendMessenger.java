@@ -47,6 +47,9 @@ public class MessageSendMessenger implements BannerModMessage<MessageSendMesseng
             Entity entity = player.serverLevel().getEntity(this.recruit);
             if (entity instanceof MessengerEntity messenger
                     && player.getBoundingBox().inflate(16D).intersects(messenger.getBoundingBox())) {
+                if (!player.getUUID().equals(messenger.getOwnerUUID()) && !player.hasPermissions(2)) {
+                    return;
+                }
 
                 messenger.setMessage(this.message);
 
