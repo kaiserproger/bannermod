@@ -1,4 +1,4 @@
-package com.talhanation.bannermod.events;
+package com.talhanation.bannermod.settlement.civilian.runtime;
 
 import com.talhanation.bannermod.config.WorkersServerConfig;
 import com.talhanation.bannermod.persistence.military.RecruitsHireTrade;
@@ -6,7 +6,7 @@ import com.talhanation.bannermod.persistence.military.RecruitsHireTradesRegistry
 import com.talhanation.bannermod.registry.civilian.ModEntityTypes;
 import net.minecraft.network.chat.Component;
 
-final class WorkerTradeBootstrap {
+public final class WorkerTradeBootstrap {
     private static final Component TITLE_FARMER = Component.translatable("description.bannermod.workers.title.farmer");
     private static final Component TITLE_MINER = Component.translatable("description.bannermod.workers.title.miner");
     private static final Component TITLE_LUMBERJACK = Component.translatable("description.bannermod.workers.title.lumberjack");
@@ -25,7 +25,7 @@ final class WorkerTradeBootstrap {
     private WorkerTradeBootstrap() {
     }
 
-    static void registerTrades() {
+    public static void registerTrades() {
         RecruitsHireTrade farmer = new RecruitsHireTrade(ModEntityTypes.FARMER.getId(), WorkersServerConfig.FarmerCost.get(), TITLE_FARMER, DESCRIPTION_FARMER);
         RecruitsHireTrade lumberjack = new RecruitsHireTrade(ModEntityTypes.LUMBERJACK.getId(), WorkersServerConfig.LumberjackCost.get(), TITLE_LUMBERJACK, DESCRIPTION_LUMBERJACK);
         RecruitsHireTrade miner = new RecruitsHireTrade(ModEntityTypes.MINER.getId(), WorkersServerConfig.MinerCost.get(), TITLE_MINER, DESCRIPTION_MINER);

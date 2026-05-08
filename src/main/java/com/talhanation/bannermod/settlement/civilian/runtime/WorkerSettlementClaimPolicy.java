@@ -1,4 +1,4 @@
-package com.talhanation.bannermod.events;
+package com.talhanation.bannermod.settlement.civilian.runtime;
 
 import com.talhanation.bannermod.citizen.runtime.CitizenBirthService;
 import com.talhanation.bannermod.entity.civilian.AbstractWorkerEntity;
@@ -13,6 +13,7 @@ import com.talhanation.bannermod.entity.civilian.WorkerIndex;
 import com.talhanation.bannermod.entity.civilian.workarea.StorageArea;
 import com.talhanation.bannermod.entity.civilian.workarea.WorkAreaIndex;
 import com.talhanation.bannermod.entity.military.RecruitPoliticalContext;
+import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.settlement.BannerModSettlementBuildingCategory;
 import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;

@@ -4,7 +4,7 @@ import com.talhanation.bannermod.config.WorkersServerConfig;
 import com.talhanation.bannermod.entity.citizen.CitizenEntity;
 import com.talhanation.bannermod.entity.citizen.CitizenIndex;
 import com.talhanation.bannermod.events.ClaimEvents;
-import com.talhanation.bannermod.events.WorkerSettlementClaimPolicy;
+import com.talhanation.bannermod.settlement.civilian.runtime.WorkerSettlementClaimPolicy;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.registry.citizen.ModCitizenEntityTypes;
 import com.talhanation.bannermod.settlement.civilian.CitizenBirthRules;

@@ -1,4 +1,4 @@
-package com.talhanation.bannermod.events;
+package com.talhanation.bannermod.ai.civilian.animals;
 
 import com.talhanation.bannermod.ai.civilian.animals.WorkerTemptGoal;
 import net.minecraft.world.entity.Entity;
@@ -9,12 +9,12 @@ import net.minecraft.world.entity.animal.Sheep;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 
-final class WorkerAnimalGoalInjector {
+public final class WorkerAnimalGoalInjector {
 
     private WorkerAnimalGoalInjector() {
     }
 
-    static void injectTemptGoal(Entity entity) {
+    public static void injectTemptGoal(Entity entity) {
         if (entity instanceof Chicken chicken) {
             chicken.goalSelector.addGoal(3, new WorkerTemptGoal(chicken, 1.0,
                     Ingredient.of(Items.WHEAT_SEEDS, Items.BEETROOT_SEEDS, Items.PUMPKIN_SEEDS,
