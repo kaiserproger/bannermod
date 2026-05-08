@@ -2,6 +2,8 @@ package com.talhanation.bannermod.events;
 
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.entity.military.RecruitIndex;
+import com.talhanation.bannermod.settlement.runtime.ClaimProtectionEventService;
+import com.talhanation.bannermod.settlement.runtime.ClaimQueueTickService;
 import com.talhanation.bannermod.settlement.runtime.ClaimRuntimeService;
 import com.talhanation.bannermod.settlement.runtime.SettlementHeartbeatService;
 import com.talhanation.bannermod.util.RuntimeProfilingCounters;

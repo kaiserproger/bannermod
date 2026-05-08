@@ -1,4 +1,4 @@
-package com.talhanation.bannermod.events.civilian;
+package com.talhanation.bannermod.settlement.runtime;
 
 /**
  * Pure decision helper for "should this container place/break trigger a settlement refresh?"

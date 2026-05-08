@@ -1,4 +1,4 @@
-package com.talhanation.bannermod.events;
+package com.talhanation.bannermod.settlement.runtime;
 
 import org.junit.jupiter.api.Test;
 

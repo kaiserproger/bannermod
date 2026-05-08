@@ -3,6 +3,7 @@ package com.talhanation.bannermod.events.civilian;
 import com.talhanation.bannermod.entity.civilian.AbstractWorkerEntity;
 import com.talhanation.bannermod.entity.civilian.workarea.StorageArea;
 import com.talhanation.bannermod.entity.civilian.workarea.WorkAreaIndex;
+import com.talhanation.bannermod.settlement.runtime.SettlementContainerHookPolicy;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementRefreshSupport;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
