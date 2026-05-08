@@ -3,6 +3,7 @@ package com.talhanation.bannermod.client.military.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.talhanation.bannermod.ai.military.CombatStance;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
+import com.talhanation.bannermod.client.civilian.input.AssignHomeTargetSelector;
 import com.talhanation.bannermod.events.RecruitEvents;
 import com.talhanation.bannermod.client.military.ClientManager;
 import com.talhanation.bannermod.client.military.gui.widgets.ActionMenuButton;
@@ -110,6 +111,8 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final MutableComponent TEXT_MENU_AGGRO = Component.translatable("gui.recruits.command.menu.aggro");
     private static final MutableComponent TEXT_MENU_ORDERS = Component.translatable("gui.recruits.inv.menu.orders");
     private static final MutableComponent TEXT_MENU_MOUNT = Component.translatable("gui.recruits.inv.menu.mount");
+    private static final MutableComponent TEXT_ASSIGN_HOME = Component.translatable("bannermod.assign_home.button");
+    private static final MutableComponent TOOLTIP_ASSIGN_HOME = Component.translatable("bannermod.assign_home.tooltip");
     private static final MutableComponent STATUS_READ_ONLY = Component.translatable("gui.recruits.inv.status.read_only");
     private static final MutableComponent STATUS_GROUP_UNSET = Component.translatable("gui.recruits.inv.status.group_unset");
     private static final MutableComponent STATUS_GROUP_LOCKED = Component.translatable("gui.recruits.inv.status.group_locked");
@@ -309,6 +312,13 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         moreButton.active = !(recruit instanceof VillagerNobleEntity);
         if (!moreButton.active) moreButton.setTooltip(Tooltip.create(TOOLTIP_NOBLE_LOCKED));
         addRenderableWidget(moreButton);
+
+        Button assignHome = addRenderableWidget(new ProfileButton(zeroLeftPos - 270, zeroTopPos + (20 + topPosGab) * 8,
+                80, 20, TEXT_ASSIGN_HOME, button -> {
+            AssignHomeTargetSelector.start(this.recruit.getUUID());
+            this.onClose();
+        }));
+        assignHome.setTooltip(Tooltip.create(TOOLTIP_ASSIGN_HOME));
 
         if(recruit instanceof VillagerNobleEntity){
             return;

@@ -2478,6 +2478,7 @@
   "bannermod.assign_home.reject.not_owner": "Вы не владеете этим юнитом, нельзя сменить ему дом.",
   "bannermod.assign_home.reject.invalid_block": "Этот блок нельзя сделать домом - выберите кровать или зарегистрированную спальную зону.",
   "bannermod.assign_home.button": "Назначить дом",
+  "bannermod.assign_home.tooltip": "Закрыть профиль и выбрать кровать для этого юнита.",
   "bannermod.assign_home.prompt": "ПКМ по кровати в течение 30 секунд, чтобы назначить её домом (ESC - отмена).",
   "bannermod.assign_home.hud.title": "Назначение дома: ПКМ по кровати",
   "bannermod.assign_home.hud.remaining": "Осталось %s с - ESC отменяет",

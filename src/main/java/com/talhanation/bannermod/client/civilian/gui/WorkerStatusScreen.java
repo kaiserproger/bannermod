@@ -3,6 +3,7 @@ package com.talhanation.bannermod.client.civilian.gui;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.citizen.CitizenProfession;
 import com.talhanation.bannermod.citizen.CitizenRole;
+import com.talhanation.bannermod.client.civilian.input.AssignHomeTargetSelector;
 import com.talhanation.bannermod.client.military.gui.MilitaryGuiStyle;
 import com.talhanation.bannermod.client.military.gui.widgets.ActionMenuButton;
 import com.talhanation.bannermod.client.military.gui.widgets.ContextMenuEntry;
@@ -22,11 +23,11 @@ import java.util.List;
 import java.util.Locale;
 
 public class WorkerStatusScreen extends Screen {
-    private static final int WIDTH = 252;
+    private static final int WIDTH = 300;
     // 210 gives 22 px clearance between the bottom transport text box (ends at top+168)
     // and the action button row (starts at top + HEIGHT - 26 = top+184) so they never overlap.
     private static final int HEIGHT = 210;
-    private static final int BTN_W = 58;
+    private static final int BTN_W = 54;
     private static final int BTN_H = 20;
 
     private final WorkerInspectionSnapshot snapshot;
@@ -44,10 +45,10 @@ public class WorkerStatusScreen extends Screen {
         this.left = (this.width - WIDTH) / 2;
         this.top = (this.height - HEIGHT) / 2;
 
-        // Bottom action row: 4 evenly spaced buttons inside WIDTH.
-        // Stride between centers = (WIDTH - 16) / 4 = 59 -> stays inside parchment frame.
+        // Bottom action row: 5 evenly spaced buttons inside WIDTH.
+        // Stride between centers = (WIDTH - 16) / 5 = 56 -> stays inside parchment frame.
         int rowY = this.top + HEIGHT - 26;
-        int strideX = (WIDTH - 16) / 4;
+        int strideX = (WIDTH - 16) / 5;
         int firstCenter = this.left + 8 + strideX / 2;
 
         SmallCommandButton refresh = this.addRenderableWidget(new SmallCommandButton(
@@ -85,8 +86,18 @@ public class WorkerStatusScreen extends Screen {
         reassign.active = this.snapshot.canConvert();
         this.addRenderableWidget(reassign);
 
-        SmallCommandButton close = this.addRenderableWidget(new SmallCommandButton(
+        SmallCommandButton assignHome = this.addRenderableWidget(new SmallCommandButton(
                 firstCenter + 3 * strideX - BTN_W / 2, rowY, BTN_W, BTN_H,
+                clamped("bannermod.assign_home.button"),
+                button -> {
+                    AssignHomeTargetSelector.start(this.snapshot.workerUuid());
+                    this.onClose();
+                }
+        ));
+        assignHome.setTooltip(Tooltip.create(text("bannermod.assign_home.tooltip")));
+
+        SmallCommandButton close = this.addRenderableWidget(new SmallCommandButton(
+                firstCenter + 4 * strideX - BTN_W / 2, rowY, BTN_W, BTN_H,
                 clamped("gui.bannermod.worker_screen.close"),
                 button -> this.onClose()
         ));
