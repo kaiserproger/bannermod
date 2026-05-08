@@ -14,21 +14,12 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import java.util.UUID;
 
 /**
- * TESTWORKER-001 acceptance gametest.
+ * WORKERUNBIND-001 acceptance gametest.
  *
  * <p>Verifies that when a worker's bound work-area entity is removed from the level,
  * the worker auto-unbinds within ~20 ticks: {@code boundWorkAreaUUID} returns to
  * {@code null} and {@code getCurrentWorkArea()} also returns {@code null}, so no
  * AI goal can still observe the dead area through the worker's binding.
- *
- * <p><b>Status:</b> the {@code @GameTest} annotation on
- * {@link #workerAutoUnbindsWithinTwentyTicksAfterCropAreaRemoval(GameTestHelper)} is
- * intentionally commented out. Production code does NOT currently fan out work-area
- * entity removal to bound workers (no symmetric counterpart to
- * {@link com.talhanation.bannermod.persistence.military.ClaimRemovalFanout} exists for a
- * single work-area entity going away while its parent claim survives). The test below
- * is the executable acceptance specification for the production fix tracked by
- * {@code WORKERUNBIND-001}. Re-enable the {@code @GameTest} line once that fix lands.
  */
 @GameTestHolder(BannerModMain.MOD_ID)
 public class BannerModWorkerUnbindOnAreaRemovalGameTests {
@@ -36,12 +27,8 @@ public class BannerModWorkerUnbindOnAreaRemovalGameTests {
     private static final UUID OWNER_UUID = UUID.fromString("00000000-0000-0000-0000-000000005001");
     private static final String OWNER_TEAM_ID = "workerunbind_owner";
 
-    /**
-     * TODO(WORKERUNBIND-001): re-enable {@code @GameTest} once the work-area-removal
-     * fanout is implemented. The body below is the contract.
-     */
     @PrefixGameTestTemplate(false)
-    // @GameTest(template = "harness_empty", timeoutTicks = 60)
+    @GameTest(template = "harness_empty", timeoutTicks = 60)
     public static void workerAutoUnbindsWithinTwentyTicksAfterCropAreaRemoval(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         Player owner = BannerModDedicatedServerGameTestSupport.createFakeServerPlayer(level, OWNER_UUID, "workerunbind-owner");

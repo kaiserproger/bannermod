@@ -1,6 +1,9 @@
 package com.talhanation.bannermod.entity.civilian.workarea;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
+import com.talhanation.bannermod.entity.civilian.AbstractWorkerEntity;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
 import net.neoforged.neoforge.event.entity.EntityLeaveLevelEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
@@ -24,7 +27,18 @@ public final class WorkAreaIndexEvents {
 
     @SubscribeEvent
     public static void onLeave(EntityLeaveLevelEvent event) {
-        WorkAreaIndex.instance().onEntityLeave(event.getEntity());
+        Entity entity = event.getEntity();
+        WorkAreaIndex.instance().onEntityLeave(entity);
+        if (!(entity instanceof AbstractWorkAreaEntity area)) return;
+        if (!(event.getLevel() instanceof ServerLevel serverLevel)) return;
+        Entity.RemovalReason reason = area.getRemovalReason();
+        if (reason == null || !reason.shouldDestroy()) return;
+        for (Entity loadedEntity : serverLevel.getAllEntities()) {
+            if (loadedEntity instanceof AbstractWorkerEntity worker
+                    && area.getUUID().equals(worker.getBoundWorkAreaUUID())) {
+                worker.setCurrentWorkArea(null);
+            }
+        }
     }
 
     @SubscribeEvent
