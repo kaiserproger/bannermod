@@ -1,9 +1,10 @@
-package com.talhanation.bannermod.events;
+package com.talhanation.bannermod.settlement.civilian.runtime;
 
 import com.talhanation.bannermod.citizen.runtime.CitizenBirthService;
 import com.talhanation.bannermod.citizen.CitizenProfession;
 import com.talhanation.bannermod.config.WorkersServerConfig;
 import com.talhanation.bannermod.entity.civilian.AbstractWorkerEntity;
+import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.settlement.civilian.WorkerSettlementSpawnRules;
 import com.talhanation.bannermod.war.runtime.WarSiegeQueries;
@@ -20,39 +21,39 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-final class WorkerSettlementEventService {
+public final class WorkerSettlementEventService {
     private static final Map<UUID, Long> CLAIM_WORKER_GROWTH_SPAWN_TIMES = new HashMap<>();
 
     private WorkerSettlementEventService() {
     }
 
-    static void resetRuntimeState() {
+    public static void resetRuntimeState() {
         CLAIM_WORKER_GROWTH_SPAWN_TIMES.clear();
         WorkerSettlementSpawnRuntime.reset();
         CitizenBirthService.resetRuntimeState();
     }
 
-    static void runCitizenBirthPass(ServerLevel level) {
+    public static void runCitizenBirthPass(ServerLevel level) {
         CitizenBirthService.runCitizenBirthPass(level);
     }
 
-    static void recordVillagerJoin(Villager villager) {
+    public static void recordVillagerJoin(Villager villager) {
         WorkerSettlementSpawnRuntime.recordVillagerJoin(villager);
     }
 
-    static void handleVillagerAdultTick(ServerLevel level, Villager villager) {
+    public static void handleVillagerAdultTick(ServerLevel level, Villager villager) {
         WorkerSettlementSpawnRuntime.handleVillagerAdultTick(level, villager);
     }
 
-    static AbstractWorkerEntity attemptBirthWorkerSpawn(ServerLevel level, Villager villager) {
+    public static AbstractWorkerEntity attemptBirthWorkerSpawn(ServerLevel level, Villager villager) {
         return WorkerSettlementSpawnRuntime.attemptBirthWorkerSpawn(level, villager);
     }
 
-    static AbstractWorkerEntity attemptSettlementWorkerSpawn(ServerLevel level, Villager villager) {
+    public static AbstractWorkerEntity attemptSettlementWorkerSpawn(ServerLevel level, Villager villager) {
         return WorkerSettlementSpawnRuntime.attemptSettlementWorkerSpawn(level, villager);
     }
 
-    static void runClaimWorkerGrowthPass(ServerLevel level) {
+    public static void runClaimWorkerGrowthPass(ServerLevel level) {
         if (level == null || ClaimEvents.claimManager() == null) {
             return;
         }
@@ -111,7 +112,7 @@ final class WorkerSettlementEventService {
         return entity.coLeaderUuids().contains(playerUuid);
     }
 
-    static AbstractWorkerEntity attemptClaimWorkerGrowth(ServerLevel level,
+    public static AbstractWorkerEntity attemptClaimWorkerGrowth(ServerLevel level,
                                                          RecruitsClaim claim,
                                                          BannerModSettlementBinding.Binding binding,
                                                          long gameTime,
@@ -119,14 +120,14 @@ final class WorkerSettlementEventService {
         return WorkerSettlementClaimPolicy.attemptClaimWorkerGrowth(level, claim, binding, gameTime, config, CLAIM_WORKER_GROWTH_SPAWN_TIMES);
     }
 
-    static AbstractWorkerEntity attemptClaimWorkerGrowth(ServerLevel level,
+    public static AbstractWorkerEntity attemptClaimWorkerGrowth(ServerLevel level,
                                                          RecruitsClaim claim,
                                                          String settlementFactionId,
                                                          long gameTime) {
         return attemptClaimWorkerGrowth(level, claim, settlementFactionId, gameTime, WorkersServerConfig.claimWorkerGrowthConfig());
     }
 
-    static AbstractWorkerEntity attemptClaimWorkerGrowth(ServerLevel level,
+    public static AbstractWorkerEntity attemptClaimWorkerGrowth(ServerLevel level,
                                                          RecruitsClaim claim,
                                                          String settlementFactionId,
                                                          long gameTime,

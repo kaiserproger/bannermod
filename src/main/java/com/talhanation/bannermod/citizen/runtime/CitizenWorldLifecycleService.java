@@ -1,4 +1,4 @@
-package com.talhanation.bannermod.events.runtime;
+package com.talhanation.bannermod.citizen.runtime;
 
 import com.talhanation.bannermod.ai.pathfinding.async.TrueAsyncPathfindingRuntime;
 import com.talhanation.bannermod.config.RecruitsServerConfig;

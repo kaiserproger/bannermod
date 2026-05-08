@@ -1,4 +1,4 @@
-package com.talhanation.bannermod.events;
+package com.talhanation.bannermod.settlement.civilian.runtime;
 
 import com.talhanation.bannermod.entity.civilian.workarea.MarketArea;
 import com.talhanation.bannermod.entity.civilian.workarea.WorkAreaIndex;
@@ -11,12 +11,12 @@ import net.minecraft.world.phys.AABB;
 import java.util.List;
 import java.util.UUID;
 
-final class WorkerMarketAreaAccess {
+public final class WorkerMarketAreaAccess {
 
     private WorkerMarketAreaAccess() {
     }
 
-    static boolean shouldBlockInteraction(Player player, Level level, BlockPos pos) {
+    public static boolean shouldBlockInteraction(Player player, Level level, BlockPos pos) {
         AABB queryBox = new AABB(pos).inflate(8);
         double queryRadius = Math.sqrt(queryBox.getXsize() * queryBox.getXsize()
                 + queryBox.getYsize() * queryBox.getYsize()

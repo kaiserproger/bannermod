@@ -4,7 +4,7 @@ import com.talhanation.bannermod.ai.military.horse.HorseRiddenByRecruitGoal;
 import com.talhanation.bannermod.config.RecruitsServerConfig;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.entity.military.RecruitIndex;
-import com.talhanation.bannermod.events.runtime.CitizenWorldLifecycleService;
+import com.talhanation.bannermod.citizen.runtime.CitizenWorldLifecycleService;
 import com.talhanation.bannermod.persistence.military.PillagerPatrolSpawn;
 import com.talhanation.bannermod.persistence.military.RecruitsGroup;
 import com.talhanation.bannermod.persistence.military.RecruitsGroupsManager;
