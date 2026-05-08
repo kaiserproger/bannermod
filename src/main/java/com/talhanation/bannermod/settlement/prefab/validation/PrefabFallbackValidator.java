@@ -13,7 +13,7 @@ import java.util.List;
  * minimum footprint and minimum solid-block count, so player-built warehouses still get
  * an honest pass/fail even if nobody has written a dedicated ruleset yet.
  */
-public final class DefaultBuildingValidator implements BuildingValidator {
+public final class PrefabFallbackValidator implements BuildingValidator {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("bannermod", "default");
 
     @Override
