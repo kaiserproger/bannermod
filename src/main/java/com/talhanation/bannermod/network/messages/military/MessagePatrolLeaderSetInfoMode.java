@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.network.messages.military;
 
+import com.talhanation.bannermod.army.command.RecruitCommandAuthority;
 import com.talhanation.bannermod.entity.military.AbstractLeaderEntity;
 import com.talhanation.bannermod.network.payload.BannerModMessage;
 import net.minecraft.network.protocol.PacketFlow;
@@ -33,6 +34,7 @@ public class MessagePatrolLeaderSetInfoMode implements BannerModMessage<MessageP
             Entity entity = player.serverLevel().getEntity(this.recruit);
             if (entity instanceof AbstractLeaderEntity leader
                     && leader.isAlive()
+                    && RecruitCommandAuthority.canDirectlyControl(player, leader)
                     && player.getBoundingBox().inflate(16.0D).intersects(leader.getBoundingBox())) {
                 leader.setInfoMode(state);
             }
