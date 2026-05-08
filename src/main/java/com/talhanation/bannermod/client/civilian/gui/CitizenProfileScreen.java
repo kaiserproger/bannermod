@@ -1,12 +1,15 @@
 package com.talhanation.bannermod.client.civilian.gui;
 
 import com.talhanation.bannermod.client.military.ClientManager;
+import com.talhanation.bannermod.client.civilian.input.AssignHomeTargetSelector;
 import com.talhanation.bannermod.client.military.gui.MilitaryGuiStyle;
 import com.talhanation.bannermod.citizen.CitizenProfession;
 import com.talhanation.bannermod.entity.citizen.CitizenEntity;
 import com.talhanation.bannermod.inventory.civilian.CitizenProfileMenu;
 import com.talhanation.bannermod.persistence.military.RecruitsPlayerInfo;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
@@ -47,6 +50,16 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
                     }
                 }
         ).bounds(buttonX, buttonY, 134, 16).build());
+
+        Button assignHome = Button.builder(
+                Component.translatable("bannermod.assign_home.button"),
+                button -> {
+                    AssignHomeTargetSelector.start(this.citizen.getUUID());
+                    this.onClose();
+                }
+        ).bounds(this.leftPos + 14, this.topPos + 140, 70, 16).build();
+        assignHome.setTooltip(Tooltip.create(Component.translatable("bannermod.assign_home.tooltip")));
+        this.addRenderableWidget(assignHome);
     }
 
     @Override

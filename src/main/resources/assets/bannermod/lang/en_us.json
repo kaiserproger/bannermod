@@ -2568,6 +2568,7 @@
   "bannermod.assign_home.reject.not_owner": "You don't own that unit, so you can't reassign their home.",
   "bannermod.assign_home.reject.invalid_block": "That block isn't a valid home - pick a bed or a registered sleeping zone.",
   "bannermod.assign_home.button": "Assign Home",
+  "bannermod.assign_home.tooltip": "Close this profile and choose a bed for this unit.",
   "bannermod.assign_home.prompt": "Right-click a bed within 30 seconds to assign it as home (ESC to cancel).",
   "bannermod.assign_home.hud.title": "Assign Home: right-click a bed",
   "bannermod.assign_home.hud.remaining": "%s seconds left - ESC cancels",
