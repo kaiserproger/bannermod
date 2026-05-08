@@ -22,6 +22,7 @@ import com.talhanation.bannermod.commands.war.BannerModWarCommands;
 import com.talhanation.bannermod.compat.MedievalSiegeMachinesCompat;
 import com.talhanation.bannermod.config.BannerModServerConfig;
 import com.talhanation.bannermod.config.RecruitsClientConfig;
+import com.talhanation.bannermod.entity.military.perks.PerkReloadListener;
 import com.talhanation.bannermod.war.config.WarServerConfig;
 import com.talhanation.bannermod.war.events.WarPvpEvents;
 import com.talhanation.bannermod.war.events.WarRevoltAutoResolver;
@@ -30,6 +31,7 @@ import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.bus.api.IEventBus;
@@ -121,6 +123,11 @@ public class BannerModMain {
         PatrolSpawnCommand.register(event.getDispatcher());
         RecruitsAdminCommands.register(event.getDispatcher());
         BannerModWarCommands.register(event.getDispatcher());
+    }
+
+    @SubscribeEvent
+    public void onAddReloadListeners(AddReloadListenerEvent event) {
+        event.addListener(new PerkReloadListener());
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

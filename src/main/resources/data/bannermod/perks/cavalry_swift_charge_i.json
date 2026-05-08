@@ -1,0 +1,12 @@
+{
+  "id": "cavalry/swift_charge_i",
+  "archetype": "cavalry",
+  "point_cost": 1,
+  "prerequisites": [],
+  "bonuses": [
+    {
+      "stat": "movement_speed",
+      "amount": 0.01
+    }
+  ]
+}

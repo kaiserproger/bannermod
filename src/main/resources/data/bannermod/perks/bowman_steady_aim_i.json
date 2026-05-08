@@ -1,0 +1,12 @@
+{
+  "id": "bowman/steady_aim_i",
+  "archetype": "bowman",
+  "point_cost": 1,
+  "prerequisites": [],
+  "bonuses": [
+    {
+      "stat": "ranged_accuracy",
+      "amount": 0.05
+    }
+  ]
+}
