@@ -14,7 +14,6 @@ import net.minecraft.world.phys.AABB;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageFaceCommand implements BannerModMessage<MessageFaceCommand> {
@@ -39,7 +38,8 @@ public class MessageFaceCommand implements BannerModMessage<MessageFaceCommand> 
     }
 
     public void executeServerSide(BannerModNetworkContext context){
-        ServerPlayer sender = Objects.requireNonNull(context.getSender());
+        ServerPlayer sender = context.getSender();
+        if (sender == null) return;
         if (!com.talhanation.bannermod.network.throttle.PacketRateLimiter.shared()
                 .tryAcquire(sender.getUUID(), MessageFaceCommand.class)) {
             RuntimeProfilingCounters.increment("network.rate_limit.dropped.face");

@@ -16,7 +16,6 @@ import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -38,7 +37,8 @@ public class MessageAttack implements BannerModMessage<MessageAttack> {
     }
 
     public void executeServerSide(BannerModNetworkContext context) {
-        ServerPlayer serverPlayer = Objects.requireNonNull(context.getSender());
+        ServerPlayer serverPlayer = context.getSender();
+        if (serverPlayer == null) return;
         if (!com.talhanation.bannermod.network.throttle.PacketRateLimiter.shared()
                 .tryAcquire(serverPlayer.getUUID(), MessageAttack.class)) {
             RuntimeProfilingCounters.increment("network.rate_limit.dropped.attack");

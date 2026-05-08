@@ -11,7 +11,6 @@ import net.minecraft.server.level.ServerPlayer;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageFollowGui implements BannerModMessage<MessageFollowGui> {
@@ -33,7 +32,8 @@ public class MessageFollowGui implements BannerModMessage<MessageFollowGui> {
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer serverPlayer = Objects.requireNonNull(context.getSender());
+            ServerPlayer serverPlayer = context.getSender();
+            if (serverPlayer == null) return;
             dispatchToServer(serverPlayer, this.uuid, this.state);
         });
     }

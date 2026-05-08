@@ -12,7 +12,6 @@ import net.minecraft.server.level.ServerPlayer;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageAssignNearbyRecruitsInGroup implements BannerModMessage<MessageAssignNearbyRecruitsInGroup> {
@@ -32,7 +31,8 @@ public class MessageAssignNearbyRecruitsInGroup implements BannerModMessage<Mess
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             RecruitsGroup newGroup = RecruitEvents.groupsManager().getGroup(groupUUID);
             if(newGroup == null) return;
 

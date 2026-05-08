@@ -15,7 +15,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageWriteSpawnEgg implements BannerModMessage<MessageWriteSpawnEgg> {
@@ -35,7 +34,8 @@ public class MessageWriteSpawnEgg implements BannerModMessage<MessageWriteSpawnE
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             Entity entity = player.serverLevel().getEntity(this.recruit);
             if (entity instanceof CitizenEntity citizenEntity && citizenEntity.distanceToSqr(player) <= 64.0D * 64.0D) {
                 writeCitizenSpawnEggToHand(player, citizenEntity, InteractionHand.MAIN_HAND);

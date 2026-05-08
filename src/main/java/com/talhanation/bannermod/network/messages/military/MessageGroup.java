@@ -10,7 +10,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageGroup implements BannerModMessage<MessageGroup> {
@@ -32,7 +31,8 @@ public class MessageGroup implements BannerModMessage<MessageGroup> {
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             AbstractRecruitEntity recruit = RecruitMessageEntityResolver.resolveRecruitInInflatedBox(player, this.recruitUUID, 100.0D);
             if (RecruitCommandAuthority.canDirectlyControl(player, recruit)) {
                 this.setGroup(recruit, player, groupUUID);

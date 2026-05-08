@@ -9,7 +9,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.FriendlyByteBuf;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageAssassinGui implements BannerModMessage<MessageAssassinGui> {
@@ -35,7 +34,8 @@ public class MessageAssassinGui implements BannerModMessage<MessageAssassinGui> 
     @Override
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             if (!player.getUUID().equals(uuid)) {
                 return;
             }

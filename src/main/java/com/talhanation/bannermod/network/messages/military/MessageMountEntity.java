@@ -15,7 +15,6 @@ import net.minecraft.world.entity.Entity;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageMountEntity implements BannerModMessage<MessageMountEntity> {
@@ -39,7 +38,8 @@ public class MessageMountEntity implements BannerModMessage<MessageMountEntity> 
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             Entity mount = player.serverLevel().getEntity(target);
             if (mount == null
                     || mount.distanceToSqr(player) > 100.0D * 100.0D

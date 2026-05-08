@@ -9,7 +9,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessagePatrolLeaderSetPatrollingSpeed implements BannerModMessage<MessagePatrolLeaderSetPatrollingSpeed> {
@@ -30,7 +29,8 @@ public class MessagePatrolLeaderSetPatrollingSpeed implements BannerModMessage<M
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             Entity entity = player.serverLevel().getEntity(this.recruit);
             if (entity instanceof AbstractLeaderEntity leader
                     && RecruitCommandAuthority.canDirectlyControl(player, leader)

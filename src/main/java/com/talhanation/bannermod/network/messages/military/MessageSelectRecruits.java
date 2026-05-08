@@ -10,7 +10,6 @@ import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -42,7 +41,8 @@ public class MessageSelectRecruits implements BannerModMessage<MessageSelectRecr
     @Override
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             Set<UUID> set = new LinkedHashSet<>(this.recruitUuids);
             if (this.clearFirst || set.isEmpty()) {
                 RecruitSelectionService.selectExplicit(player, set, SELECTION_RADIUS);
