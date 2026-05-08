@@ -46,7 +46,7 @@ public class MinerEntity extends AbstractWorkerEntity{
         if (!(this.getCommandSenderWorld() instanceof ServerLevel level)) {
             return;
         }
-        if (!this.shouldWork() || this.getCurrentMiningArea() != null) {
+        if (this.needsToSleep() || !this.shouldWork() || this.needsToGetToChest() || this.getCurrentMiningArea() != null) {
             return;
         }
         this.reportIdleReason("miner_no_area", Component.literal(this.getName().getString() + ": Waiting for a mining area."));

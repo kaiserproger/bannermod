@@ -47,7 +47,9 @@ public class FarmerEntity extends AbstractWorkerEntity{
     public void tick() {
         super.tick();
         if (!this.getCommandSenderWorld().isClientSide()
+                && !this.needsToSleep()
                 && this.shouldWork()
+                && !this.needsToGetToChest()
                 && this.getCurrentCropArea() == null) {
             this.reportIdleReason("farmer_no_area", Component.literal(this.getName().getString() + ": Waiting for a crop area."));
         }

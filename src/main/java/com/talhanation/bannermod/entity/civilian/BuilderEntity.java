@@ -38,7 +38,9 @@ public class BuilderEntity extends AbstractWorkerEntity{
     public void tick() {
         super.tick();
         if (!this.getCommandSenderWorld().isClientSide()
+                && !this.needsToSleep()
                 && this.shouldWork()
+                && !this.needsToGetToChest()
                 && this.getCurrentBuildArea() == null) {
             this.reportIdleReason("builder_no_area", Component.literal(this.getName().getString() + ": Waiting for a build area."));
         }

@@ -38,7 +38,9 @@ public class LumberjackEntity extends AbstractWorkerEntity{
     public void tick() {
         super.tick();
         if (!this.getCommandSenderWorld().isClientSide()
+                && !this.needsToSleep()
                 && this.shouldWork()
+                && !this.needsToGetToChest()
                 && this.getCurrentLumberArea() == null) {
             this.reportIdleReason("lumberjack_no_area", Component.literal(this.getName().getString() + ": Waiting for a lumber area."));
         }
