@@ -264,7 +264,11 @@ jacocoTestReport {
             'com/talhanation/bannermod/settlement/prefab/**',
             'com/talhanation/bannermod/settlement/validation/**',
             'com/talhanation/bannermod/settlement/building/**',
-            'com/talhanation/bannermod/settlement/workorder/publisher/**'
+            'com/talhanation/bannermod/settlement/workorder/publisher/**',
+            // Event/heartbeat adapters are exercised by GameTests; keep unit-test JaCoCo on deterministic services.
+            'com/talhanation/bannermod/settlement/runtime/ClaimProtectionEventService.class',
+            'com/talhanation/bannermod/settlement/runtime/ClaimProtectionPolicy*.class',
+            'com/talhanation/bannermod/settlement/runtime/SettlementHeartbeatService.class'
         ])
     }))
     reports {
