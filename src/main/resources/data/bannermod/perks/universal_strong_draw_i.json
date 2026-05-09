@@ -1,0 +1,12 @@
+{
+  "id": "universal/strong_draw_i",
+  "archetype": "universal",
+  "point_cost": 1,
+  "prerequisites": [],
+  "bonuses": [
+    {
+      "stat": "ranged_velocity",
+      "amount": 0.05
+    }
+  ]
+}

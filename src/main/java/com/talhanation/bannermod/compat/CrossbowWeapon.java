@@ -3,6 +3,7 @@ package com.talhanation.bannermod.compat;
 import com.talhanation.bannermod.config.RecruitsServerConfig;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.entity.military.IRangedRecruit;
+import com.talhanation.bannermod.entity.military.perks.PerkEffectService;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
@@ -91,10 +92,15 @@ public class CrossbowWeapon implements IWeapon {
 
         float force = 2.25F;
         double morale = 100;
-        if(shooter instanceof AbstractRecruitEntity recruit){
+        AbstractRecruitEntity recruit = shooter instanceof AbstractRecruitEntity typedRecruit ? typedRecruit : null;
+        if(recruit != null){
             morale = recruit.getMorale();
+            force = PerkEffectService.rangedVelocityFor(recruit, force);
         }
         float accuracy = Math.max(6 - (float) (0.1F * morale), 0);
+        if (recruit != null) {
+            accuracy = PerkEffectService.rangedInaccuracyFor(recruit, accuracy);
+        }
 
 
         double angle = IRangedRecruit.getAngleDistanceModifier(distance, 85, 4) + IRangedRecruit.getCrossbowAngleHeightModifier(distance, heightDiff) / 100;

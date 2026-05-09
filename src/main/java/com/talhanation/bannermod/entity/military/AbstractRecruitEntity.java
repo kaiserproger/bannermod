@@ -295,6 +295,7 @@ public abstract class AbstractRecruitEntity extends AbstractCitizenEntity implem
 
         if (this.getCommandSenderWorld().isClientSide()) return;
 
+        com.talhanation.bannermod.entity.military.perks.PerkEffectService.applyRecruitAttributeBonuses(this);
         RecruitRuntimeLoop.aiStep(this);
         this.getCitizenRoleController().onServerAiStep(this);
 

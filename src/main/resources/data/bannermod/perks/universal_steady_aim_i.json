@@ -1,0 +1,12 @@
+{
+  "id": "universal/steady_aim_i",
+  "archetype": "universal",
+  "point_cost": 1,
+  "prerequisites": [],
+  "bonuses": [
+    {
+      "stat": "ranged_accuracy",
+      "amount": 0.05
+    }
+  ]
+}

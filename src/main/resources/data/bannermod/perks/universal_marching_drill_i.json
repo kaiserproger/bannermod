@@ -1,0 +1,12 @@
+{
+  "id": "universal/marching_drill_i",
+  "archetype": "universal",
+  "point_cost": 1,
+  "prerequisites": [],
+  "bonuses": [
+    {
+      "stat": "movement_speed",
+      "amount": 0.01
+    }
+  ]
+}

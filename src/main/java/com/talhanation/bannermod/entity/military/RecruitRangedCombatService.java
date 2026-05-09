@@ -1,6 +1,7 @@
 package com.talhanation.bannermod.entity.military;
 
 import com.talhanation.bannermod.config.RecruitsServerConfig;
+import com.talhanation.bannermod.entity.military.perks.PerkEffectService;
 import com.talhanation.bannermod.util.AttackUtil;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -65,7 +66,8 @@ public final class RecruitRangedCombatService {
         double angle = IRangedRecruit.getAngleDistanceModifier(distance, 47, 4) + IRangedRecruit.getAngleHeightModifier(distance, heightDiff, 1.00D) / 100;
         float force = 1.90F + IRangedRecruit.getForceDistanceModifier(distance, 1.90F);
         double morale = shooter.getMorale();
-        float accuracy = Math.max(6 - (float) (0.1F * morale), 0);
+        force = PerkEffectService.rangedVelocityFor(shooter, force);
+        float accuracy = PerkEffectService.rangedInaccuracyFor(shooter, Math.max(6 - (float) (0.1F * morale), 0));
         arrow.shoot(d0, d1 + d3 * angle, d2, force, accuracy);
 
         finishBowShot(shooter, arrow, true);
@@ -84,8 +86,9 @@ public final class RecruitRangedCombatService {
         double d2 = z - shooter.getZ();
         double d3 = Mth.sqrt((float) (d0 * d0 + d2 * d2));
         double morale = shooter.getMorale();
-        float accuracy = 3F + Math.max(6 - (float) (0.1F * morale), 0);
-        arrow.shoot(d0, d1 + d3 + angle, d2, force + 1.95F, accuracy);
+        float adjustedForce = PerkEffectService.rangedVelocityFor(shooter, force + 1.95F);
+        float accuracy = PerkEffectService.rangedInaccuracyFor(shooter, 3F + Math.max(6 - (float) (0.1F * morale), 0));
+        arrow.shoot(d0, d1 + d3 + angle, d2, adjustedForce, accuracy);
 
         finishBowShot(shooter, arrow, false);
     }
