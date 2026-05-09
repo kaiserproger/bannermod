@@ -8,7 +8,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageAssassinCount implements BannerModMessage<MessageAssassinCount> {
@@ -30,12 +29,12 @@ public class MessageAssassinCount implements BannerModMessage<MessageAssassinCou
 
     public void executeServerSide(BannerModNetworkContext context){
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             Entity entity = player.serverLevel().getEntity(this.uuid);
             if (entity instanceof AssassinLeaderEntity leader
-                    && (leader.isControlledBy(player) || player.hasPermissions(2))
                     && player.getBoundingBox().inflate(16.0D).intersects(leader.getBoundingBox())) {
-                leader.setCount(this.count);
+                leader.trySetCountFrom(player.getUUID(), player.hasPermissions(2), this.count);
             }
         });
     }

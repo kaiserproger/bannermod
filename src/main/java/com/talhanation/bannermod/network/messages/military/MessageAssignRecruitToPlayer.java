@@ -8,7 +8,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageAssignRecruitToPlayer implements BannerModMessage<MessageAssignRecruitToPlayer> {
@@ -29,7 +28,8 @@ public class MessageAssignRecruitToPlayer implements BannerModMessage<MessageAss
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer serverPlayer = Objects.requireNonNull(context.getSender());
+            ServerPlayer serverPlayer = context.getSender();
+            if (serverPlayer == null) return;
 
             AbstractRecruitEntity recruit = RecruitMessageEntityResolver.resolveRecruitInInflatedBox(serverPlayer, this.recruit, 64.0D);
             assignRecruitToPlayer(serverPlayer, recruit, newOwner);

@@ -18,7 +18,7 @@ import java.util.UUID;
 
 /**
  * In-memory coordinator for live seller dispatches. Takes the persisted
- * {@link com.talhanation.bannermod.settlement.BannerModSettlementSellerDispatchState#READY}
+ * {@link com.talhanation.bannermod.settlement.SettlementSellerDispatchState#READY}
  * seed and drives a per-seller phase machine through MOVING_TO_STALL ->
  * AT_STALL -> SELLING -> RETURNING -> RETURNED. Phase advances can be driven
  * explicitly via {@link #advance(UUID, SellerPhase, long)} or implicitly via

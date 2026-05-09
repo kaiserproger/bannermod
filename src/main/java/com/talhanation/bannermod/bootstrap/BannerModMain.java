@@ -6,7 +6,7 @@ import com.talhanation.bannermod.events.CommandEvents;
 import com.talhanation.bannermod.events.DamageEvent;
 import com.talhanation.bannermod.events.PillagerEvents;
 import com.talhanation.bannermod.events.RecruitCombatEvents;
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.events.RecruitLifecycleEvents;
 import com.talhanation.bannermod.events.VillagerEvents;
 import com.talhanation.bannermod.events.WorkersVillagerEvents;
@@ -22,6 +22,7 @@ import com.talhanation.bannermod.commands.war.BannerModWarCommands;
 import com.talhanation.bannermod.compat.MedievalSiegeMachinesCompat;
 import com.talhanation.bannermod.config.BannerModServerConfig;
 import com.talhanation.bannermod.config.RecruitsClientConfig;
+import com.talhanation.bannermod.entity.military.perks.PerkReloadListener;
 import com.talhanation.bannermod.war.config.WarServerConfig;
 import com.talhanation.bannermod.war.events.WarPvpEvents;
 import com.talhanation.bannermod.war.events.WarRevoltAutoResolver;
@@ -30,6 +31,7 @@ import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.bus.api.IEventBus;
@@ -74,6 +76,8 @@ public class BannerModMain {
         // Lifecycle
         modEventBus.addListener(this::setup);
         modEventBus.addListener(BannerModNetworkBootstrap::registerPayloads);
+
+        com.talhanation.bannermod.registry.ModAttachments.ATTACHMENT_TYPES.register(modEventBus);
 
         // Register military deferred registers (from bannermod.registry.military)
         com.talhanation.bannermod.registry.military.ModBlocks.BLOCKS.register(modEventBus);
@@ -121,6 +125,11 @@ public class BannerModMain {
         PatrolSpawnCommand.register(event.getDispatcher());
         RecruitsAdminCommands.register(event.getDispatcher());
         BannerModWarCommands.register(event.getDispatcher());
+    }
+
+    @SubscribeEvent
+    public void onAddReloadListeners(AddReloadListenerEvent event) {
+        event.addListener(new PerkReloadListener());
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

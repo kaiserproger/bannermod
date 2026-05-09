@@ -1,6 +1,6 @@
 package com.talhanation.bannermod.persistence.military;
 
-import com.talhanation.bannermod.events.ClaimEvent;
+import com.talhanation.bannermod.api.event.ClaimEvent;
 import net.neoforged.neoforge.common.NeoForge;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;

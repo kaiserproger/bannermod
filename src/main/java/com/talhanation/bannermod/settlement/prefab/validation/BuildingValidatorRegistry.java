@@ -12,14 +12,14 @@ import java.util.Optional;
 
 /**
  * Central registry mapping prefab id → {@link BuildingValidator}. If no specific validator
- * is registered for a prefab, {@link DefaultBuildingValidator} is used as a fallback so the
+ * is registered for a prefab, {@link PrefabFallbackValidator} is used as a fallback so the
  * player always gets a reasonable result.
  */
 public final class BuildingValidatorRegistry {
     private static final BuildingValidatorRegistry INSTANCE = new BuildingValidatorRegistry();
 
     private final Map<ResourceLocation, BuildingValidator> validators = new LinkedHashMap<>();
-    private final BuildingValidator fallback = new DefaultBuildingValidator();
+    private final BuildingValidator fallback = new PrefabFallbackValidator();
     private boolean defaultsLoaded;
 
     private BuildingValidatorRegistry() {

@@ -2,13 +2,13 @@ package com.talhanation.bannermod.client.settlement;
 
 import com.talhanation.bannermod.governance.BannerModGovernorPolicy;
 import com.talhanation.bannermod.governance.BannerModGovernorSnapshot;
-import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodsSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementMarketState;
-import com.talhanation.bannermod.settlement.BannerModSettlementProjectCandidateSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
-import com.talhanation.bannermod.settlement.BannerModSettlementStockpileSummary;
-import com.talhanation.bannermod.settlement.BannerModSettlementSupplySignalState;
-import com.talhanation.bannermod.settlement.BannerModSettlementTradeRouteHandoffSeed;
+import com.talhanation.bannermod.settlement.SettlementDesiredGoodsSnapshot;
+import com.talhanation.bannermod.settlement.SettlementMarketState;
+import com.talhanation.bannermod.settlement.SettlementProjectCandidateSnapshot;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementStockpileSummary;
+import com.talhanation.bannermod.settlement.SettlementSupplySignalState;
+import com.talhanation.bannermod.settlement.SettlementTradeRouteHandoffSnapshot;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.Envelope;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.Payload;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.RefreshTrigger;
@@ -45,7 +45,7 @@ class BannerModSettlementClientMirrorTest {
         BannerModGovernorSnapshot governor = BannerModGovernorSnapshot.create(claimId, new ChunkPos(3, 4), "blue")
                 .withHeartbeatReport(30L, 30L, 7, 5, 3, List.of("low_food"), List.of("increase_garrison"))
                 .withPolicies(4, 2, 1);
-        BannerModSettlementSnapshot settlement = BannerModSettlementSnapshot.create(claimId, new ChunkPos(3, 4), "blue");
+        SettlementSnapshot settlement = SettlementSnapshot.create(claimId, new ChunkPos(3, 4), "blue");
         mirror.applyGovernorUpdate(recruitId, Envelope.ready(12L, 12L, RefreshTrigger.SCREEN_OPEN,
                 new Payload(claimId, settlement, governor)));
         BannerModSettlementClientMirror.GovernorView fresh = mirror.governorView(recruitId);
@@ -69,7 +69,7 @@ class BannerModSettlementClientMirrorTest {
         UUID recruitId = UUID.randomUUID();
         UUID claimId = UUID.randomUUID();
         BannerModSettlementClientMirror mirror = new BannerModSettlementClientMirror();
-        BannerModSettlementSnapshot settlement = BannerModSettlementSnapshot.create(claimId, new ChunkPos(6, 7), "green");
+        SettlementSnapshot settlement = SettlementSnapshot.create(claimId, new ChunkPos(6, 7), "green");
         BannerModGovernorSnapshot loginGovernor = BannerModGovernorSnapshot.create(claimId, new ChunkPos(6, 7), "green")
                 .withHeartbeatReport(20L, 20L, 2, 1, 0, List.of(), List.of());
         BannerModGovernorSnapshot mutationGovernor = loginGovernor
@@ -102,7 +102,7 @@ class BannerModSettlementClientMirrorTest {
                 "gui.bannermod.governor.logistics.sea_trade.missing_ship 3205 unassigned gui.bannermod.governor.logistics.sea_trade.reason.no_carrier minecraft:wheat 0 16",
                 "gui.bannermod.governor.logistics.sea_trade.blocked_cargo 3206 2201 gui.bannermod.governor.logistics.sea_trade.reason.destination_full minecraft:wheat 4 16"
         );
-        BannerModSettlementSnapshot settlement = settlementWithSeaTradeLines(claimId, seaTradeLines);
+        SettlementSnapshot settlement = settlementWithSeaTradeLines(claimId, seaTradeLines);
         BannerModGovernorSnapshot governor = BannerModGovernorSnapshot.create(claimId, new ChunkPos(3, 4), "blue");
 
         mirror.applyGovernorUpdate(recruitId, Envelope.ready(12L, 12L, RefreshTrigger.SCREEN_OPEN,
@@ -112,8 +112,8 @@ class BannerModSettlementClientMirrorTest {
         assertTrue(view.logisticsLines().containsAll(seaTradeLines));
     }
 
-    private static BannerModSettlementSnapshot settlementWithSeaTradeLines(UUID claimId, List<String> seaTradeLines) {
-        return new BannerModSettlementSnapshot(
+    private static SettlementSnapshot settlementWithSeaTradeLines(UUID claimId, List<String> seaTradeLines) {
+        return new SettlementSnapshot(
                 claimId,
                 3,
                 4,
@@ -125,12 +125,12 @@ class BannerModSettlementClientMirrorTest {
                 0,
                 0,
                 0,
-                BannerModSettlementStockpileSummary.empty(),
-                BannerModSettlementMarketState.empty(),
-                BannerModSettlementDesiredGoodsSeed.empty(),
-                BannerModSettlementProjectCandidateSeed.empty(),
-                new BannerModSettlementTradeRouteHandoffSeed(0, 0, 0, 0, 0, 0, List.of(), List.of(), seaTradeLines),
-                BannerModSettlementSupplySignalState.empty(),
+                SettlementStockpileSummary.empty(),
+                SettlementMarketState.empty(),
+                SettlementDesiredGoodsSnapshot.empty(),
+                SettlementProjectCandidateSnapshot.empty(),
+                new SettlementTradeRouteHandoffSnapshot(0, 0, 0, 0, 0, 0, List.of(), List.of(), seaTradeLines),
+                SettlementSupplySignalState.empty(),
                 List.of(),
                 List.of()
         );

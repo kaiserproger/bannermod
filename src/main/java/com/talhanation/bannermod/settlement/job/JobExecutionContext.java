@@ -1,6 +1,6 @@
 package com.talhanation.bannermod.settlement.job;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRecord;
+import com.talhanation.bannermod.settlement.SettlementResidentRecord;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderRuntime;
 
 import javax.annotation.Nullable;
@@ -20,7 +20,7 @@ import java.util.UUID;
  * entries. It may be {@code null} under test conditions.</p>
  */
 public record JobExecutionContext(
-        BannerModSettlementResidentRecord resident,
+        SettlementResidentRecord resident,
         long gameTime,
         @Nullable UUID boundEntityUuid,
         @Nullable UUID workplaceUuid,
@@ -31,7 +31,7 @@ public record JobExecutionContext(
     }
 
     /** Backward-compatible constructor for tests that do not exercise the work-order layer. */
-    public JobExecutionContext(BannerModSettlementResidentRecord resident,
+    public JobExecutionContext(SettlementResidentRecord resident,
                                long gameTime,
                                @Nullable UUID boundEntityUuid,
                                @Nullable UUID workplaceUuid) {

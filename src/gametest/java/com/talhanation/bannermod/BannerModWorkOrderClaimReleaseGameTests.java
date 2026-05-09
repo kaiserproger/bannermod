@@ -3,7 +3,7 @@ package com.talhanation.bannermod;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.entity.civilian.FarmerEntity;
 import com.talhanation.bannermod.events.civilian.SettlementWorkOrderClaimReleaseEvents;
-import com.talhanation.bannermod.settlement.BannerModSettlementOrchestrator;
+import com.talhanation.bannermod.settlement.SettlementOrchestrator;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrder;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderRuntime;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderStatus;
@@ -57,7 +57,7 @@ public class BannerModWorkOrderClaimReleaseGameTests {
         BannerModDedicatedServerGameTestSupport.assignDetachedOwnership(worker, LEADER_UUID);
         BannerModDedicatedServerGameTestSupport.joinTeam(level, TEAM_ID, worker);
 
-        SettlementWorkOrderRuntime runtime = BannerModSettlementOrchestrator.workOrderRuntime(level);
+        SettlementWorkOrderRuntime runtime = SettlementOrchestrator.workOrderRuntime(level);
         helper.assertTrue(runtime != null, "Expected the level to expose a SettlementWorkOrderRuntime.");
         SettlementWorkOrder published = runtime.publish(SettlementWorkOrder.pending(
                 DEATH_CLAIM_UUID, DEATH_BUILDING_UUID, SettlementWorkOrderType.HARVEST_CROP,
@@ -103,7 +103,7 @@ public class BannerModWorkOrderClaimReleaseGameTests {
         BannerModDedicatedServerGameTestSupport.assignDetachedOwnership(worker, LEADER_UUID);
         BannerModDedicatedServerGameTestSupport.joinTeam(level, TEAM_ID, worker);
 
-        SettlementWorkOrderRuntime runtime = BannerModSettlementOrchestrator.workOrderRuntime(level);
+        SettlementWorkOrderRuntime runtime = SettlementOrchestrator.workOrderRuntime(level);
         helper.assertTrue(runtime != null, "Expected the level to expose a SettlementWorkOrderRuntime.");
         SettlementWorkOrder published = runtime.publish(SettlementWorkOrder.pending(
                 DISCARD_CLAIM_UUID, DISCARD_BUILDING_UUID, SettlementWorkOrderType.HARVEST_CROP,

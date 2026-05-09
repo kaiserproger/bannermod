@@ -6,6 +6,11 @@ import com.talhanation.bannermod.entity.civilian.AbstractWorkerEntity;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 import com.talhanation.bannermod.network.payload.BannerModMessage;
+import com.talhanation.bannermod.settlement.building.BuildingValidationState;
+import com.talhanation.bannermod.settlement.building.ValidatedBuildingRecord;
+import com.talhanation.bannermod.settlement.building.ValidatedBuildingRegistryData;
+import com.talhanation.bannermod.settlement.building.ZoneRole;
+import com.talhanation.bannermod.settlement.building.ZoneSelection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -13,13 +18,12 @@ import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -68,7 +72,8 @@ public class MessageAssignHome implements BannerModMessage<MessageAssignHome> {
     @Override
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer sender = Objects.requireNonNull(context.getSender(), "sender required for MessageAssignHome");
+            ServerPlayer sender = context.getSender();
+            if (sender == null) return;
             handle(sender, this.entityUuid, this.pos);
         });
     }
@@ -144,14 +149,25 @@ public class MessageAssignHome implements BannerModMessage<MessageAssignHome> {
         return null;
     }
 
-    /**
-     * A "valid" home is currently a vanilla {@link BedBlock}. HousePrefab build
-     * area validation is intentionally out-of-scope for this slice; HOMEASSIGN-002
-     * only requires bed/sleeping-zone acceptance and the bed path is universal.
-     */
+    /** A valid home is a vanilla bed or a server-registered valid sleeping zone. */
     public static boolean isValidHomeTarget(ServerLevel level, BlockPos pos) {
         BlockState state = level.getBlockState(pos);
-        return state.getBlock() instanceof BedBlock;
+        return state.getBlock() instanceof BedBlock || isValidatedSleepingZone(level, pos);
+    }
+
+    private static boolean isValidatedSleepingZone(ServerLevel level, BlockPos pos) {
+        AABB pointBounds = new AABB(pos);
+        for (ValidatedBuildingRecord record : ValidatedBuildingRegistryData.get(level).findIntersecting(pointBounds)) {
+            if (record.state() != BuildingValidationState.VALID || !level.dimension().equals(record.dimension())) {
+                continue;
+            }
+            for (ZoneSelection zone : record.zones()) {
+                if (zone.role() == ZoneRole.SLEEPING && zone.contains(pos)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @Override

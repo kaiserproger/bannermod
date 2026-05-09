@@ -6,12 +6,12 @@ import com.talhanation.bannermod.network.payload.BannerModMessage;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageScoutTask implements BannerModMessage<MessageScoutTask> {
@@ -32,7 +32,10 @@ public class MessageScoutTask implements BannerModMessage<MessageScoutTask> {
 
     public void executeServerSide(BannerModNetworkContext context){
         context.enqueueWork(() -> {
-            dispatchToServer(Objects.requireNonNull(context.getSender()), this.recruit, this.state);
+            ServerPlayer sender = context.getSender();
+            if (sender == null) return;
+
+            dispatchToServer(sender, this.recruit, this.state);
         });
     }
 

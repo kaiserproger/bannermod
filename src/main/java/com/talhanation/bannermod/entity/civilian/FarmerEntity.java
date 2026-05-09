@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableSet;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.ai.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.bannermod.config.WorkersServerConfig;
-import com.talhanation.bannermod.ai.civilian.FarmerWorkGoal;
 import com.talhanation.bannermod.entity.civilian.workarea.CropArea;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -42,12 +41,6 @@ public class FarmerEntity extends AbstractWorkerEntity{
     public FarmerEntity(EntityType<? extends AbstractWorkerEntity> entityType, Level world) {
         super(entityType, world);
 
-    }
-
-    @Override
-    protected void registerGoals() {
-        super.registerGoals();
-        this.goalSelector.addGoal(0, new FarmerWorkGoal(this));
     }
 
     public static AttributeSupplier.Builder setAttributes() {

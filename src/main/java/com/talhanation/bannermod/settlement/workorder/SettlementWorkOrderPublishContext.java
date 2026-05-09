@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.settlement.workorder;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementBuildingRecord;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
 import net.minecraft.server.level.ServerLevel;
 
 import javax.annotation.Nullable;
@@ -17,8 +17,8 @@ import java.util.UUID;
 public record SettlementWorkOrderPublishContext(
         SettlementWorkOrderRuntime runtime,
         UUID claimUuid,
-        BannerModSettlementBuildingRecord building,
-        BannerModSettlementSnapshot snapshot,
+        SettlementBuildingRecord building,
+        SettlementSnapshot snapshot,
         @Nullable ServerLevel level,
         long gameTime
 ) {

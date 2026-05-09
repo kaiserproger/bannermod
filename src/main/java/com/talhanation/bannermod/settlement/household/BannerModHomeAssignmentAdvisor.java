@@ -1,8 +1,8 @@
 package com.talhanation.bannermod.settlement.household;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingCategory;
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementBuildingCategory;
+import com.talhanation.bannermod.settlement.SettlementBuildingRecord;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,7 +15,7 @@ import java.util.UUID;
  *
  * <p>The advisor treats "housing-ish" buildings as candidates. The settlement
  * building category enum does not yet expose a dedicated HOUSING slot, so we
- * fall back to {@link BannerModSettlementBuildingCategory#GENERAL} and prefer
+ * fall back to {@link SettlementBuildingCategory#GENERAL} and prefer
  * those entries. TODO: once HOUSING is introduced, swap the preference list.
  */
 public final class BannerModHomeAssignmentAdvisor {
@@ -25,8 +25,8 @@ public final class BannerModHomeAssignmentAdvisor {
      * HOUSING value in a later slice, add it above GENERAL.
      * TODO category — replace GENERAL with HOUSING when the enum gains that value.
      */
-    private static final BannerModSettlementBuildingCategory HOUSING_CATEGORY =
-            BannerModSettlementBuildingCategory.GENERAL;
+    private static final SettlementBuildingCategory HOUSING_CATEGORY =
+            SettlementBuildingCategory.GENERAL;
 
     private BannerModHomeAssignmentAdvisor() {
         // static helper
@@ -50,12 +50,12 @@ public final class BannerModHomeAssignmentAdvisor {
      * </ul>
      */
     public static Optional<UUID> pickHomeBuilding(UUID residentUuid,
-                                                  BannerModSettlementSnapshot snapshot,
+                                                  SettlementSnapshot snapshot,
                                                   BannerModHomeAssignmentRuntime existing) {
         if (residentUuid == null || snapshot == null || existing == null) {
             return Optional.empty();
         }
-        List<BannerModSettlementBuildingRecord> buildings = snapshot.buildings();
+        List<SettlementBuildingRecord> buildings = snapshot.buildings();
         if (buildings == null || buildings.isEmpty()) {
             return Optional.empty();
         }
@@ -68,14 +68,14 @@ public final class BannerModHomeAssignmentAdvisor {
     }
 
     private static Optional<UUID> scan(UUID residentUuid,
-                                       List<BannerModSettlementBuildingRecord> buildings,
+                                       List<SettlementBuildingRecord> buildings,
                                        BannerModHomeAssignmentRuntime existing,
-                                       BannerModSettlementBuildingCategory required,
+                                       SettlementBuildingCategory required,
                                        boolean enforceCategory) {
         UUID currentHome = existing.homeFor(residentUuid)
                 .map(HomeAssignment::homeBuildingUuid)
                 .orElse(null);
-        for (BannerModSettlementBuildingRecord building : buildings) {
+        for (SettlementBuildingRecord building : buildings) {
             if (building == null || building.buildingUuid() == null) {
                 continue;
             }

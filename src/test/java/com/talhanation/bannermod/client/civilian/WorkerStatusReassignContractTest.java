@@ -39,8 +39,8 @@ class WorkerStatusReassignContractTest {
                 "WorkerStatusScreen must use ActionMenuButton for the Reassign dropdown");
         assertTrue(src.contains("gui.bannermod.worker_screen.reassign"),
                 "WorkerStatusScreen must reference the reassign trigger translatable key");
-        assertTrue(src.contains("gui.bannermod.worker_screen.convert.tooltip.dismiss_path"),
-                "Convert button must carry the dismiss-path tooltip key clarifying the convert flow");
+        assertTrue(src.contains("gui.bannermod.worker_screen.actions"),
+                "Convert action must live inside the compact worker Actions menu after the dismiss split");
         assertTrue(src.contains("CitizenProfession"),
                 "Reassign menu must enumerate CitizenProfession entries to filter out the current one");
     }

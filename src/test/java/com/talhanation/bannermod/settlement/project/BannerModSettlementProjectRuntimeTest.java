@@ -13,11 +13,11 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class BannerModSettlementProjectRuntimeTest {
+class SettlementProjectRuntimeTest {
 
     @Test
     void nullClaimUuidReturnsEmptyWithoutTouchingQueue() {
-        BannerModSettlementProjectRuntime runtime = BannerModSettlementProjectRuntime.detached();
+        SettlementProjectRuntime runtime = SettlementProjectRuntime.detached();
 
         Optional<ProjectAssignment> assignment = runtime.tickClaim(
                 null,
@@ -32,14 +32,14 @@ class BannerModSettlementProjectRuntimeTest {
 
     @Test
     void buildAreaResolverFallsBackToNoopWhenLevelOrClaimManagerIsMissing() {
-        BannerModBuildAreaProjectBridge.BuildAreaResolver resolver = BannerModSettlementProjectRuntime.buildAreaResolver(null);
+        BannerModBuildAreaProjectBridge.BuildAreaResolver resolver = SettlementProjectRuntime.buildAreaResolver(null);
 
         assertInstanceOf(BannerModBuildAreaProjectBridge.NoopBuildAreaResolver.class, resolver);
     }
 
     @Test
     void nullResolverAndNullGrowthQueueUseSafeFallbacks() {
-        BannerModSettlementProjectRuntime runtime = BannerModSettlementProjectRuntime.detached();
+        SettlementProjectRuntime runtime = SettlementProjectRuntime.detached();
         UUID claim = UUID.randomUUID();
 
         Optional<ProjectAssignment> assignment = runtime.tickClaim(null, claim, null, null, 20L);
@@ -50,7 +50,7 @@ class BannerModSettlementProjectRuntimeTest {
 
     @Test
     void assignmentLookupHandlesNullAndUnknownBuildAreas() {
-        BannerModSettlementProjectRuntime runtime = BannerModSettlementProjectRuntime.detached();
+        SettlementProjectRuntime runtime = SettlementProjectRuntime.detached();
 
         assertTrue(runtime.assignmentForBuildArea(null).isEmpty());
         assertTrue(runtime.assignmentForBuildArea(UUID.randomUUID()).isEmpty());
@@ -58,7 +58,7 @@ class BannerModSettlementProjectRuntimeTest {
 
     @Test
     void buildAreaLifecycleTransitionsToStartedAndCompletedAndStaysCompleted() {
-        BannerModSettlementProjectRuntime runtime = BannerModSettlementProjectRuntime.detached();
+        SettlementProjectRuntime runtime = SettlementProjectRuntime.detached();
         UUID claim = UUID.randomUUID();
         UUID buildArea = UUID.randomUUID();
         PendingProject project = ProjectTestFactory.general(55, 4);
@@ -81,7 +81,7 @@ class BannerModSettlementProjectRuntimeTest {
 
     @Test
     void buildAreaLifecycleIgnoresUnknownOrNullBuildAreas() {
-        BannerModSettlementProjectRuntime runtime = BannerModSettlementProjectRuntime.detached();
+        SettlementProjectRuntime runtime = SettlementProjectRuntime.detached();
 
         assertFalse(runtime.onBuildAreaStarted(null).isPresent());
         assertFalse(runtime.onBuildAreaCompleted(UUID.randomUUID()).isPresent());
@@ -89,7 +89,7 @@ class BannerModSettlementProjectRuntimeTest {
 
     @Test
     void snapshotReturnsDefensiveCopyOfSchedulerState() {
-        BannerModSettlementProjectRuntime runtime = BannerModSettlementProjectRuntime.detached();
+        SettlementProjectRuntime runtime = SettlementProjectRuntime.detached();
         UUID claim = UUID.randomUUID();
         PendingProject project = ProjectTestFactory.general(80, 5);
 
@@ -103,7 +103,7 @@ class BannerModSettlementProjectRuntimeTest {
 
     @Test
     void queuedProjectSurvivesNoopTickAndDedupesOnRetryAssignment() {
-        BannerModSettlementProjectRuntime runtime = BannerModSettlementProjectRuntime.detached();
+        SettlementProjectRuntime runtime = SettlementProjectRuntime.detached();
         UUID claim = UUID.randomUUID();
         UUID buildArea = UUID.randomUUID();
         PendingProject project = ProjectTestFactory.general(65, 4);
@@ -138,11 +138,11 @@ class BannerModSettlementProjectRuntimeTest {
 
     @Test
     void staticConvenienceMethodsIgnoreNullInputs() {
-        assertTrue(BannerModSettlementProjectRuntime.tickClaim(null, UUID.randomUUID(), List.of(ProjectTestFactory.general(20, 2))).isEmpty());
+        assertTrue(SettlementProjectRuntime.tickClaim(null, UUID.randomUUID(), List.of(ProjectTestFactory.general(20, 2))).isEmpty());
 
-        BannerModSettlementProjectRuntime.onBuildAreaStarted(null, UUID.randomUUID());
-        BannerModSettlementProjectRuntime.onBuildAreaStarted(null, null);
-        BannerModSettlementProjectRuntime.onBuildAreaCompleted(null, UUID.randomUUID());
-        BannerModSettlementProjectRuntime.onBuildAreaCompleted(null, null);
+        SettlementProjectRuntime.onBuildAreaStarted(null, UUID.randomUUID());
+        SettlementProjectRuntime.onBuildAreaStarted(null, null);
+        SettlementProjectRuntime.onBuildAreaCompleted(null, UUID.randomUUID());
+        SettlementProjectRuntime.onBuildAreaCompleted(null, null);
     }
 }

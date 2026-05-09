@@ -5,7 +5,6 @@ import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.ai.pathfinding.AsyncGroundPathNavigation;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.config.WorkersServerConfig;
-import com.talhanation.bannermod.ai.civilian.MerchantWorkGoal;
 import com.talhanation.bannermod.entity.civilian.workarea.MarketArea;
 import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.governance.BannerModGovernorManager;
@@ -14,8 +13,8 @@ import com.talhanation.bannermod.inventory.civilian.MerchantTradeContainer;
 import com.talhanation.bannermod.network.messages.civilian.MessageOpenMerchantEditTradeScreen;
 import com.talhanation.bannermod.network.messages.civilian.MessageOpenMerchantTradeScreen;
 import com.talhanation.bannermod.persistence.civilian.WorkersMerchantTrade;
-import com.talhanation.bannermod.settlement.BannerModSettlementManager;
-import com.talhanation.bannermod.settlement.BannerModSettlementService;
+import com.talhanation.bannermod.settlement.SettlementManager;
+import com.talhanation.bannermod.settlement.SettlementService;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -111,12 +110,6 @@ public class MerchantEntity extends AbstractWorkerEntity {
     @Override
     public List<Item> inventoryInputHelp() {
         return null;
-    }
-
-    @Override
-    protected void registerGoals() {
-        super.registerGoals();
-        this.goalSelector.addGoal(3, new MerchantWorkGoal(this));
     }
 
     @Nullable
@@ -550,10 +543,10 @@ public class MerchantEntity extends AbstractWorkerEntity {
         if (!(this.level() instanceof ServerLevel serverLevel) || market == null || ClaimEvents.claimManager() == null) {
             return;
         }
-        BannerModSettlementService.refreshClaimAt(
+        SettlementService.refreshClaimAt(
                 serverLevel,
                 ClaimEvents.claimManager(),
-                BannerModSettlementManager.get(serverLevel),
+                SettlementManager.get(serverLevel),
                 BannerModGovernorManager.get(serverLevel),
                 market.blockPosition()
         );

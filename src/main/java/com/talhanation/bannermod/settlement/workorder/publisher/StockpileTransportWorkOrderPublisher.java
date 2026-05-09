@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.settlement.workorder.publisher;
 
 import com.talhanation.bannermod.entity.civilian.workarea.StorageArea;
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
+import com.talhanation.bannermod.settlement.SettlementBuildingRecord;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrder;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderPublishContext;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderPublisher;
@@ -34,7 +34,7 @@ public final class StockpileTransportWorkOrderPublisher implements SettlementWor
     private static final int BASE_PRIORITY = 55;
 
     @Override
-    public boolean matches(BannerModSettlementBuildingRecord building) {
+    public boolean matches(SettlementBuildingRecord building) {
         return building != null && building.stockpileBuilding() && building.stockpileRouteAuthored();
     }
 

@@ -52,7 +52,7 @@ public final class SettlementSurveyorService {
         }
         UUID settlementId = settlementAtAnchor == null ? new UUID(0L, 0L) : settlementAtAnchor.settlementId();
         BuildingValidationRequest request = new BuildingValidationRequest(settlementId, type, session.anchorPos(), session.selections());
-        BuildingValidationResult result = new DefaultBuildingValidator(new BuildingDefinitionRegistry()).validate(level, player, request);
+        BuildingValidationResult result = new SettlementBuildingValidator(new BuildingDefinitionRegistry()).validate(level, player, request);
         SurveyorFeedbackFormatter.sendValidationResult(player, result);
         if (!result.valid()) return;
 

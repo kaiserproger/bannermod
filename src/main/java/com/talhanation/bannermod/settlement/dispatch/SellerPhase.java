@@ -2,7 +2,7 @@ package com.talhanation.bannermod.settlement.dispatch;
 
 /**
  * Live state of a single seller-dispatch flight. The scheduler-facing
- * {@code READY} value mirrors {@code BannerModSettlementSellerDispatchState.READY}
+ * {@code READY} value mirrors {@code SettlementSellerDispatchState.READY}
  * (seed state, nothing in flight), while the rest track the in-memory progression
  * driven by {@link BannerModSellerDispatchRuntime} once {@code beginDispatch} fires.
  *

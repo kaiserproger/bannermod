@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.war.registry;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementBuildingRecord;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,7 @@ class PoliticalStatePromotionPolicyTest {
 
     @Test
     void rejectsPromotionWithoutRequiredInfrastructure() {
-        BannerModSettlementSnapshot snapshot = snapshot(List.of(building("bannermod:storage_area")));
+        SettlementSnapshot snapshot = snapshot(List.of(building("bannermod:storage_area")));
 
         PoliticalStatePromotionPolicy.Result result = PoliticalStatePromotionPolicy.evaluate(snapshot);
 
@@ -29,7 +29,7 @@ class PoliticalStatePromotionPolicyTest {
 
     @Test
     void allowsPromotionWithCoreStorageAndMarket() {
-        BannerModSettlementSnapshot snapshot = snapshot(List.of(
+        SettlementSnapshot snapshot = snapshot(List.of(
                 building("bannermod:starter_fort"),
                 building("bannermod:storage_area"),
                 building("bannermod:market_area")
@@ -40,9 +40,9 @@ class PoliticalStatePromotionPolicyTest {
         assertTrue(result.allowed());
     }
 
-    private static BannerModSettlementSnapshot snapshot(List<BannerModSettlementBuildingRecord> buildings) {
-        BannerModSettlementSnapshot empty = BannerModSettlementSnapshot.create(CLAIM, new ChunkPos(0, 0), null);
-        return new BannerModSettlementSnapshot(
+    private static SettlementSnapshot snapshot(List<SettlementBuildingRecord> buildings) {
+        SettlementSnapshot empty = SettlementSnapshot.create(CLAIM, new ChunkPos(0, 0), null);
+        return new SettlementSnapshot(
                 empty.claimUuid(),
                 empty.anchorChunkX(),
                 empty.anchorChunkZ(),
@@ -56,17 +56,17 @@ class PoliticalStatePromotionPolicyTest {
                 empty.missingWorkAreaAssignmentCount(),
                 empty.stockpileSummary(),
                 empty.marketState(),
-                empty.desiredGoodsSeed(),
-                empty.projectCandidateSeed(),
-                empty.tradeRouteHandoffSeed(),
+                empty.desiredGoodsSnapshot(),
+                empty.projectCandidateSnapshot(),
+                empty.tradeRouteHandoffSnapshot(),
                 empty.supplySignalState(),
                 empty.residents(),
                 buildings
         );
     }
 
-    private static BannerModSettlementBuildingRecord building(String typeId) {
-        return new BannerModSettlementBuildingRecord(
+    private static SettlementBuildingRecord building(String typeId) {
+        return new SettlementBuildingRecord(
                 UUID.randomUUID(),
                 typeId,
                 BlockPos.ZERO,

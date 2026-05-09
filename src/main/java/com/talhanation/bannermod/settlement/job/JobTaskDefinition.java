@@ -1,6 +1,6 @@
 package com.talhanation.bannermod.settlement.job;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementJobHandlerSeed;
+import com.talhanation.bannermod.settlement.SettlementJobHandlerSeed;
 import net.minecraft.resources.ResourceLocation;
 
 import java.util.Objects;
@@ -15,7 +15,7 @@ import java.util.Objects;
  */
 public record JobTaskDefinition(
         ResourceLocation id,
-        BannerModSettlementJobHandlerSeed handlerSeed,
+        SettlementJobHandlerSeed handlerSeed,
         int estimatedTickCost,
         int maxConcurrentAssignments,
         boolean requiresWorkplace,

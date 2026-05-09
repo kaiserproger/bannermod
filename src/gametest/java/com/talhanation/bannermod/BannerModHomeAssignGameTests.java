@@ -5,6 +5,12 @@ import com.talhanation.bannermod.entity.citizen.CitizenEntity;
 import com.talhanation.bannermod.entity.civilian.FarmerEntity;
 import com.talhanation.bannermod.entity.military.RecruitEntity;
 import com.talhanation.bannermod.network.messages.civilian.MessageAssignHome;
+import com.talhanation.bannermod.settlement.building.BuildingType;
+import com.talhanation.bannermod.settlement.building.BuildingValidationState;
+import com.talhanation.bannermod.settlement.building.ValidatedBuildingRecord;
+import com.talhanation.bannermod.settlement.building.ValidatedBuildingRegistryData;
+import com.talhanation.bannermod.settlement.building.ZoneRole;
+import com.talhanation.bannermod.settlement.building.ZoneSelection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -12,11 +18,14 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,7 +36,8 @@ import java.util.UUID;
  *   <li>Recruits, workers, and citizens all expose a {@code homePos} that
  *       round-trips through NBT.</li>
  *   <li>{@link MessageAssignHome#handle} validates ownership and bed
- *       targets (rejects unknown entity, non-owner, and non-bed pos).</li>
+ *       targets, then applies the same server-side home update used by the
+ *       30-second Assign Home selector flow.</li>
  * </ul>
  *
  * <p>Save/load round-trip is exercised in the harness by the
@@ -125,7 +135,7 @@ public class BannerModHomeAssignGameTests {
 
     @PrefixGameTestTemplate(false)
     @GameTest(template = "harness_empty")
-    public static void assignHomeAcceptsBedFromOwner(GameTestHelper helper) {
+    public static void assignHomeMessageAcceptsBedFromOwner(GameTestHelper helper) {
         UUID ownerId = UUID.randomUUID();
         ServerPlayer owner = (ServerPlayer) BannerModDedicatedServerGameTestSupport.createPositionedFakeServerPlayer(
                 helper.getLevel(), ownerId, "homeassign-owner", helper.absolutePos(BlockPos.ZERO));
@@ -134,6 +144,7 @@ public class BannerModHomeAssignGameTests {
         // Pin the recruit's owner explicitly to the fake server player so the
         // ownership check inside MessageAssignHome#handle accepts the request.
         recruit.setOwnerUUID(Optional.of(ownerId));
+        recruit.setHomeBuildAreaUUID(UUID.randomUUID());
 
         BlockPos bedRel = new BlockPos(1, 1, 1);
         BlockPos bedAbs = helper.absolutePos(bedRel);
@@ -143,7 +154,49 @@ public class BannerModHomeAssignGameTests {
         boolean accepted = MessageAssignHome.handle(owner, recruit.getUUID(), bedAbs);
         helper.assertTrue(accepted, "Owner should be allowed to assign a bed as home");
         helper.assertTrue(bedAbs.equals(recruit.getHomePos()),
-                "Recruit homePos must update to the bed BlockPos after assign-home");
+                "Recruit homePos must update to the bed BlockPos through MessageAssignHome");
+        helper.assertTrue(recruit.getHomeBuildAreaUUID() == null,
+                "MessageAssignHome must clear stale prefab home linkage for direct bed assignment");
+
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void assignHomeMessageAcceptsValidatedSleepingZoneFromOwner(GameTestHelper helper) {
+        UUID ownerId = UUID.randomUUID();
+        ServerPlayer owner = (ServerPlayer) BannerModDedicatedServerGameTestSupport.createPositionedFakeServerPlayer(
+                helper.getLevel(), ownerId, "homeassign-zone-owner", helper.absolutePos(BlockPos.ZERO));
+
+        RecruitEntity recruit = BannerModGameTestSupport.spawnOwnedRecruit(helper, owner, BlockPos.ZERO);
+        recruit.setOwnerUUID(Optional.of(ownerId));
+        recruit.setHomeBuildAreaUUID(UUID.randomUUID());
+
+        BlockPos sleepMin = helper.absolutePos(new BlockPos(2, 1, 2));
+        BlockPos sleepMax = helper.absolutePos(new BlockPos(3, 1, 3));
+        BlockPos target = helper.absolutePos(new BlockPos(2, 1, 2));
+        ValidatedBuildingRegistryData.get(helper.getLevel()).registerBuilding(new ValidatedBuildingRecord(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                BuildingType.HOUSE,
+                Level.OVERWORLD,
+                target,
+                List.of(new ZoneSelection(ZoneRole.SLEEPING, sleepMin, sleepMax, null)),
+                new AABB(sleepMin.getX(), sleepMin.getY(), sleepMin.getZ(), sleepMax.getX() + 1.0D, sleepMax.getY() + 1.0D, sleepMax.getZ() + 1.0D),
+                BuildingValidationState.VALID,
+                1,
+                80,
+                helper.getLevel().getGameTime(),
+                helper.getLevel().getGameTime(),
+                0L
+        ));
+
+        boolean accepted = MessageAssignHome.handle(owner, recruit.getUUID(), target);
+        helper.assertTrue(accepted, "Owner should be allowed to assign a validated sleeping zone as home");
+        helper.assertTrue(target.equals(recruit.getHomePos()),
+                "Recruit homePos must update to the sleeping-zone BlockPos through MessageAssignHome");
+        helper.assertTrue(recruit.getHomeBuildAreaUUID() == null,
+                "MessageAssignHome must clear stale prefab home linkage for direct sleeping-zone assignment");
 
         helper.succeed();
     }
@@ -166,6 +219,30 @@ public class BannerModHomeAssignGameTests {
         helper.assertFalse(accepted, "Stone must not be accepted as a home target");
         helper.assertTrue(recruit.getHomePos() == null,
                 "Recruit homePos must remain unset after a rejected assignment");
+
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void assignHomeRejectsForeignSender(GameTestHelper helper) {
+        UUID ownerId = UUID.randomUUID();
+        UUID intruderId = UUID.randomUUID();
+        ServerPlayer owner = (ServerPlayer) BannerModDedicatedServerGameTestSupport.createPositionedFakeServerPlayer(
+                helper.getLevel(), ownerId, "homeassign-owner-3", helper.absolutePos(BlockPos.ZERO));
+        ServerPlayer intruder = (ServerPlayer) BannerModDedicatedServerGameTestSupport.createPositionedFakeServerPlayer(
+                helper.getLevel(), intruderId, "homeassign-intruder", helper.absolutePos(BlockPos.ZERO));
+
+        RecruitEntity recruit = BannerModGameTestSupport.spawnOwnedRecruit(helper, owner, BlockPos.ZERO);
+        recruit.setOwnerUUID(Optional.of(ownerId));
+
+        BlockPos bedAbs = helper.absolutePos(new BlockPos(1, 1, 2));
+        helper.getLevel().setBlock(bedAbs, Blocks.RED_BED.defaultBlockState(), 3);
+
+        boolean accepted = MessageAssignHome.handle(intruder, recruit.getUUID(), bedAbs);
+        helper.assertFalse(accepted, "Foreign sender must not assign another player's recruit home");
+        helper.assertTrue(recruit.getHomePos() == null,
+                "Recruit homePos must remain unset after a rejected foreign assignment");
 
         helper.succeed();
     }

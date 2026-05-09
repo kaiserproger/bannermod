@@ -1,8 +1,8 @@
 package com.talhanation.bannermod.settlement.job;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementJobHandlerSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentMode;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRecord;
+import com.talhanation.bannermod.settlement.SettlementJobHandlerSeed;
+import com.talhanation.bannermod.settlement.SettlementResidentMode;
+import com.talhanation.bannermod.settlement.SettlementResidentRecord;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrder;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderRuntime;
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderType;
@@ -14,10 +14,10 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Construction-style work handler bound to {@link BannerModSettlementJobHandlerSeed#LOCAL_BUILDING_LABOR}.
+ * Building-bound work handler bound to {@link SettlementJobHandlerSeed#LOCAL_BUILDING_LABOR}.
  *
- * <p>Claim lifecycle mirrors {@link HarvestJobHandler} but the set of accepted order types
- * is restricted to building-oriented work (break / place blocks).</p>
+ * <p>Claim lifecycle mirrors {@link HarvestJobHandler} but scopes accepted order types to work
+ * emitted by the resident's assigned local building.</p>
  */
 public final class BuildJobHandler implements JobHandler {
 
@@ -25,7 +25,10 @@ public final class BuildJobHandler implements JobHandler {
 
     public static final Set<SettlementWorkOrderType> SUPPORTED_TYPES = EnumSet.of(
             SettlementWorkOrderType.BREAK_BLOCK,
-            SettlementWorkOrderType.BUILD_BLOCK
+            SettlementWorkOrderType.BUILD_BLOCK,
+            SettlementWorkOrderType.ANIMAL_BREED,
+            SettlementWorkOrderType.ANIMAL_SPECIAL_TASK,
+            SettlementWorkOrderType.ANIMAL_SLAUGHTER
     );
 
     @Override
@@ -34,8 +37,8 @@ public final class BuildJobHandler implements JobHandler {
     }
 
     @Override
-    public BannerModSettlementJobHandlerSeed handles() {
-        return BannerModSettlementJobHandlerSeed.LOCAL_BUILDING_LABOR;
+    public SettlementJobHandlerSeed handles() {
+        return SettlementJobHandlerSeed.LOCAL_BUILDING_LABOR;
     }
 
     @Override
@@ -43,12 +46,12 @@ public final class BuildJobHandler implements JobHandler {
         if (ctx == null || ctx.resident() == null) {
             return false;
         }
-        return ctx.resident().residentMode() == BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER;
+        return ctx.resident().residentMode() == SettlementResidentMode.PROJECTED_CONTROLLED_WORKER;
     }
 
     @Override
     public JobExecutionResult runOneStep(JobExecutionContext ctx) {
-        BannerModSettlementResidentRecord resident = ctx.resident();
+        SettlementResidentRecord resident = ctx.resident();
         SettlementWorkOrderRuntime runtime = ctx.workOrderRuntime();
         if (runtime == null || resident.residentUuid() == null) {
             return JobExecutionResult.COMPLETED;

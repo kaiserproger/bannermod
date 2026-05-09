@@ -1,8 +1,10 @@
 package com.talhanation.bannermod.settlement.workorder;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
+import com.talhanation.bannermod.settlement.SettlementBuildingRecord;
 import com.talhanation.bannermod.settlement.workorder.publisher.BuildAreaWorkOrderPublisher;
+import com.talhanation.bannermod.settlement.workorder.publisher.AnimalPenWorkOrderPublisher;
 import com.talhanation.bannermod.settlement.workorder.publisher.CropAreaWorkOrderPublisher;
+import com.talhanation.bannermod.settlement.workorder.publisher.FishingAreaWorkOrderPublisher;
 import com.talhanation.bannermod.settlement.workorder.publisher.LumberAreaWorkOrderPublisher;
 import com.talhanation.bannermod.settlement.workorder.publisher.MiningAreaWorkOrderPublisher;
 import com.talhanation.bannermod.settlement.workorder.publisher.StockpileTransportWorkOrderPublisher;
@@ -25,7 +27,9 @@ public final class SettlementWorkOrderPublisherRegistry {
     /** Pre-populated registry containing publishers for every work-area type currently shipped. */
     public static SettlementWorkOrderPublisherRegistry defaults() {
         SettlementWorkOrderPublisherRegistry registry = new SettlementWorkOrderPublisherRegistry();
+        registry.register(new AnimalPenWorkOrderPublisher());
         registry.register(new CropAreaWorkOrderPublisher());
+        registry.register(new FishingAreaWorkOrderPublisher());
         registry.register(new BuildAreaWorkOrderPublisher());
         registry.register(new LumberAreaWorkOrderPublisher());
         registry.register(new MiningAreaWorkOrderPublisher());
@@ -46,7 +50,7 @@ public final class SettlementWorkOrderPublisherRegistry {
         return publishers.size();
     }
 
-    public static boolean matchesBuildingType(BannerModSettlementBuildingRecord building, String bareTypeId) {
+    public static boolean matchesBuildingType(SettlementBuildingRecord building, String bareTypeId) {
         if (building == null || building.buildingTypeId() == null || bareTypeId == null || bareTypeId.isBlank()) {
             return false;
         }
@@ -62,7 +66,7 @@ public final class SettlementWorkOrderPublisherRegistry {
     }
 
     public void publishAll(SettlementWorkOrderPublishContext ctx) {
-        BannerModSettlementBuildingRecord building = ctx.building();
+        SettlementBuildingRecord building = ctx.building();
         for (SettlementWorkOrderPublisher publisher : publishers) {
             if (publisher.matches(building)) {
                 publisher.publish(ctx);

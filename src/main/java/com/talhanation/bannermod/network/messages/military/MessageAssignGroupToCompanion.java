@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.network.messages.military;
 
 import com.talhanation.bannermod.army.command.RecruitCommandAuthority;
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.entity.military.AbstractLeaderEntity;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.entity.military.ICompanion;
@@ -20,7 +20,6 @@ import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageAssignGroupToCompanion implements BannerModMessage<MessageAssignGroupToCompanion> {
@@ -41,7 +40,8 @@ public class MessageAssignGroupToCompanion implements BannerModMessage<MessageAs
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer serverPlayer =  Objects.requireNonNull(context.getSender());
+            ServerPlayer serverPlayer = context.getSender();
+            if (serverPlayer == null) return;
             ServerLevel serverLevel =  serverPlayer.serverLevel();
 
             Entity entity = serverLevel.getEntity(this.companionUUID);

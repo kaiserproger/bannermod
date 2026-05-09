@@ -10,7 +10,7 @@ import com.talhanation.bannermod.ai.military.FormationTargetSelectionController;
 import com.talhanation.bannermod.ai.military.ShieldBlockGeometry;
 import com.talhanation.bannermod.ai.military.ShieldMitigation;
 import com.talhanation.bannermod.combat.FormationPlanner;
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Mth;

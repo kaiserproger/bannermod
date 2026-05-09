@@ -8,11 +8,11 @@ import com.talhanation.bannermod.util.RuntimeProfilingCounters;
 import com.talhanation.bannermod.network.payload.BannerModMessage;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.HashSet;
 import java.util.Set;
@@ -39,7 +39,10 @@ public class MessageFormationFollowMovement implements BannerModMessage<MessageF
 
     public void executeServerSide(BannerModNetworkContext context){
         context.enqueueWork(() -> {
-            dispatchToServer(Objects.requireNonNull(context.getSender()), this.player_uuid, this.group, this.formation);
+            ServerPlayer sender = context.getSender();
+            if (sender == null) return;
+
+            dispatchToServer(sender, this.player_uuid, this.group, this.formation);
         });
     }
 

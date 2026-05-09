@@ -13,6 +13,15 @@ public final class BuildingTypeValidatorDispatcher {
     private final EnumMap<BuildingType, BuildingTypeValidator> validators = new EnumMap<>(BuildingType.class);
 
     public BuildingTypeValidatorDispatcher() {
+        register(BuildingType.STARTER_FORT, new StarterFortValidator());
+        register(BuildingType.HOUSE, new HouseValidator());
+        register(BuildingType.FARM, new FarmValidator());
+        register(BuildingType.MINE, new MineValidator());
+        register(BuildingType.LUMBER_CAMP, new LumberCampValidator());
+        register(BuildingType.SMITHY, new SmithyValidator());
+        register(BuildingType.STORAGE, new StorageValidator());
+        register(BuildingType.ARCHITECT_WORKSHOP, new ArchitectWorkshopValidator());
+        register(BuildingType.BARRACKS, new BarracksValidator());
     }
 
     public BuildingTypeValidatorDispatcher(Map<BuildingType, BuildingTypeValidator> validators) {

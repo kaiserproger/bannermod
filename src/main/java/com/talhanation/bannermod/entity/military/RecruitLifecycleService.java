@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.entity.military;
 
-import com.talhanation.bannermod.events.RecruitEvent;
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.api.event.RecruitEvent;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.persistence.military.RecruitsGroup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;

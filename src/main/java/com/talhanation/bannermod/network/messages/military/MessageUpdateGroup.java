@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.network.messages.military;
 
 import com.talhanation.bannermod.events.CommandEvents;
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.persistence.military.RecruitsGroup;
 import com.talhanation.bannermod.persistence.military.RecruitsGroupsManager;
 import com.talhanation.bannermod.network.payload.BannerModMessage;
@@ -31,9 +31,10 @@ public class MessageUpdateGroup implements BannerModMessage<MessageUpdateGroup> 
 
     public void executeServerSide(BannerModNetworkContext context){
         context.enqueueWork(() -> {
-            RecruitsGroup updatedGroup = RecruitsGroup.fromNBT(this.groupNBT);
             ServerPlayer serverPLayer = context.getSender();
+            if (serverPLayer == null || this.groupNBT == null) return;
 
+            RecruitsGroup updatedGroup = RecruitsGroup.fromNBT(this.groupNBT);
             RecruitEvents.groupsManager().addOrUpdateGroup((ServerLevel) serverPLayer.getCommandSenderWorld(), serverPLayer, updatedGroup);
         });
     }

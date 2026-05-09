@@ -1,14 +1,14 @@
 package com.talhanation.bannermod.settlement.workorder;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentAssignmentState;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentMode;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRole;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRuntimeRoleSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentScheduleSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentScheduleWindowSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentServiceContract;
-import com.talhanation.bannermod.settlement.BannerModSettlementServiceActorState;
+import com.talhanation.bannermod.settlement.SettlementResidentAssignmentState;
+import com.talhanation.bannermod.settlement.SettlementResidentMode;
+import com.talhanation.bannermod.settlement.SettlementResidentRecord;
+import com.talhanation.bannermod.settlement.SettlementResidentRole;
+import com.talhanation.bannermod.settlement.SettlementResidentRuntimeRoleState;
+import com.talhanation.bannermod.settlement.SettlementResidentScheduleSeed;
+import com.talhanation.bannermod.settlement.SettlementResidentScheduleWindowSeed;
+import com.talhanation.bannermod.settlement.SettlementResidentServiceContract;
+import com.talhanation.bannermod.settlement.SettlementServiceActorState;
 import com.talhanation.bannermod.settlement.job.BuildJobHandler;
 import com.talhanation.bannermod.settlement.job.HarvestJobHandler;
 import com.talhanation.bannermod.settlement.job.JobExecutionContext;
@@ -33,7 +33,7 @@ class HandlerClaimBehaviorTest {
         SettlementWorkOrderRuntime runtime = new SettlementWorkOrderRuntime();
         runtime.publish(SettlementWorkOrder.pending(CLAIM, BUILDING,
                 SettlementWorkOrderType.HARVEST_CROP, new BlockPos(1, 64, 1), null, 80, 10L));
-        BannerModSettlementResidentRecord resident = controlledResident();
+        SettlementResidentRecord resident = controlledResident();
         JobExecutionContext ctx = new JobExecutionContext(resident, 100L, RESIDENT, BUILDING, runtime);
 
         HarvestJobHandler handler = new HarvestJobHandler();
@@ -49,7 +49,7 @@ class HandlerClaimBehaviorTest {
     @Test
     void harvestHandlerReturnsBlockedWhenNoOrderAvailable() {
         SettlementWorkOrderRuntime runtime = new SettlementWorkOrderRuntime();
-        BannerModSettlementResidentRecord resident = controlledResident();
+        SettlementResidentRecord resident = controlledResident();
         JobExecutionContext ctx = new JobExecutionContext(resident, 100L, RESIDENT, BUILDING, runtime);
 
         JobExecutionResult result = new HarvestJobHandler().runOneStep(ctx);
@@ -64,7 +64,7 @@ class HandlerClaimBehaviorTest {
                 SettlementWorkOrderType.HARVEST_CROP, new BlockPos(1, 64, 1), null, 80, 10L));
         runtime.publish(SettlementWorkOrder.pending(CLAIM, BUILDING,
                 SettlementWorkOrderType.HARVEST_CROP, new BlockPos(1, 64, 2), null, 80, 12L));
-        BannerModSettlementResidentRecord resident = controlledResident();
+        SettlementResidentRecord resident = controlledResident();
         JobExecutionContext ctx = new JobExecutionContext(resident, 100L, RESIDENT, BUILDING, runtime);
 
         HarvestJobHandler handler = new HarvestJobHandler();
@@ -82,7 +82,7 @@ class HandlerClaimBehaviorTest {
         SettlementWorkOrderRuntime runtime = new SettlementWorkOrderRuntime();
         runtime.publish(SettlementWorkOrder.pending(CLAIM, BUILDING,
                 SettlementWorkOrderType.BUILD_BLOCK, new BlockPos(1, 64, 1), null, 80, 10L));
-        BannerModSettlementResidentRecord resident = controlledResident();
+        SettlementResidentRecord resident = controlledResident();
         JobExecutionContext ctx = new JobExecutionContext(resident, 100L, RESIDENT, BUILDING, runtime);
 
         JobExecutionResult result = new HarvestJobHandler().runOneStep(ctx);
@@ -96,7 +96,7 @@ class HandlerClaimBehaviorTest {
         SettlementWorkOrderRuntime runtime = new SettlementWorkOrderRuntime();
         runtime.publish(SettlementWorkOrder.pending(CLAIM, BUILDING,
                 SettlementWorkOrderType.BUILD_BLOCK, new BlockPos(1, 64, 1), null, 70, 10L));
-        BannerModSettlementResidentRecord resident = controlledResident();
+        SettlementResidentRecord resident = controlledResident();
         JobExecutionContext ctx = new JobExecutionContext(resident, 100L, RESIDENT, BUILDING, runtime);
 
         JobExecutionResult result = new BuildJobHandler().runOneStep(ctx);
@@ -106,11 +106,25 @@ class HandlerClaimBehaviorTest {
     }
 
     @Test
+    void buildHandlerClaimsAnimalOrderForAssignedPen() {
+        SettlementWorkOrderRuntime runtime = new SettlementWorkOrderRuntime();
+        runtime.publish(SettlementWorkOrder.pending(CLAIM, BUILDING,
+                SettlementWorkOrderType.ANIMAL_BREED, new BlockPos(1, 64, 1), null, 90, 10L));
+        SettlementResidentRecord resident = controlledResident("animal_pen_area");
+        JobExecutionContext ctx = new JobExecutionContext(resident, 100L, RESIDENT, BUILDING, runtime);
+
+        JobExecutionResult result = new BuildJobHandler().runOneStep(ctx);
+
+        assertEquals(JobExecutionResult.COMPLETED, result);
+        assertEquals(SettlementWorkOrderType.ANIMAL_BREED, runtime.currentClaim(RESIDENT).orElseThrow().type());
+    }
+
+    @Test
     void buildHandlerIgnoresFarmingOrder() {
         SettlementWorkOrderRuntime runtime = new SettlementWorkOrderRuntime();
         runtime.publish(SettlementWorkOrder.pending(CLAIM, BUILDING,
                 SettlementWorkOrderType.HARVEST_CROP, new BlockPos(1, 64, 1), null, 80, 10L));
-        BannerModSettlementResidentRecord resident = controlledResident();
+        SettlementResidentRecord resident = controlledResident();
         JobExecutionContext ctx = new JobExecutionContext(resident, 100L, RESIDENT, BUILDING, runtime);
 
         JobExecutionResult result = new BuildJobHandler().runOneStep(ctx);
@@ -119,23 +133,27 @@ class HandlerClaimBehaviorTest {
         assertFalse(runtime.currentClaim(RESIDENT).isPresent());
     }
 
-    private static BannerModSettlementResidentRecord controlledResident() {
-        BannerModSettlementResidentServiceContract serviceContract = new BannerModSettlementResidentServiceContract(
-                BannerModSettlementServiceActorState.LOCAL_BUILDING_SERVICE,
+    private static SettlementResidentRecord controlledResident() {
+        return controlledResident("crop_area");
+    }
+
+    private static SettlementResidentRecord controlledResident(String buildingTypeId) {
+        SettlementResidentServiceContract serviceContract = new SettlementResidentServiceContract(
+                SettlementServiceActorState.LOCAL_BUILDING_SERVICE,
                 BUILDING,
-                "crop_area"
+                buildingTypeId
         );
-        return new BannerModSettlementResidentRecord(
+        return new SettlementResidentRecord(
                 RESIDENT,
-                BannerModSettlementResidentRole.CONTROLLED_WORKER,
-                BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK,
-                BannerModSettlementResidentRuntimeRoleSeed.LOCAL_LABOR,
+                SettlementResidentRole.CONTROLLED_WORKER,
+                SettlementResidentScheduleSeed.ASSIGNED_WORK,
+                SettlementResidentRuntimeRoleState.LOCAL_LABOR,
                 serviceContract,
-                BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
+                SettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
                 UUID.fromString("00000000-0000-0000-0000-0000000000d1"),
                 "teamA",
                 BUILDING,
-                BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
+                SettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
         );
     }
 }

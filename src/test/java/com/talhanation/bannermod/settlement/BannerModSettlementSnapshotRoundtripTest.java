@@ -14,14 +14,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * TESTSAVELOAD-001: settlement snapshot save/load roundtrip coverage.
  *
- * <p>Each test builds a {@link BannerModSettlementSnapshot}, runs it through
+ * <p>Each test builds a {@link SettlementSnapshot}, runs it through
  * {@code toTag} -> {@code fromTag}, and asserts that the deserialized snapshot equals the
  * original. Records auto-generate {@code equals} from the full component list, so
  * {@code assertEquals(original, restored)} fails the moment a field is added/removed without
  * the codec being updated. Each test additionally asserts every top-level snapshot field
  * individually so a regression points at the offending column rather than just "not equal".
  *
- * <p>Snapshot fields (must stay in sync with {@link BannerModSettlementSnapshot}):
+ * <p>Snapshot fields (must stay in sync with {@link SettlementSnapshot}):
  * <ul>
  *   <li>claimUuid</li>
  *   <li>anchorChunkX</li>
@@ -36,20 +36,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  *   <li>missingWorkAreaAssignmentCount</li>
  *   <li>stockpileSummary</li>
  *   <li>marketState</li>
- *   <li>desiredGoodsSeed</li>
- *   <li>projectCandidateSeed</li>
- *   <li>tradeRouteHandoffSeed</li>
+ *   <li>desiredGoodsSnapshot</li>
+ *   <li>projectCandidateSnapshot</li>
+ *   <li>tradeRouteHandoffSnapshot</li>
  *   <li>supplySignalState</li>
  *   <li>residents</li>
  *   <li>buildings</li>
  * </ul>
  */
-class BannerModSettlementSnapshotRoundtripTest {
+class SettlementSnapshotRoundtripTest {
 
     @Test
     void emptySnapshotRoundTripsThroughTagCodec() {
         UUID claimUuid = UUID.randomUUID();
-        BannerModSettlementSnapshot original = new BannerModSettlementSnapshot(
+        SettlementSnapshot original = new SettlementSnapshot(
                 claimUuid,
                 0,
                 0,
@@ -61,17 +61,17 @@ class BannerModSettlementSnapshotRoundtripTest {
                 0,
                 0,
                 0,
-                BannerModSettlementStockpileSummary.empty(),
-                BannerModSettlementMarketState.empty(),
-                BannerModSettlementDesiredGoodsSeed.empty(),
-                BannerModSettlementProjectCandidateSeed.empty(),
-                BannerModSettlementTradeRouteHandoffSeed.empty(),
-                BannerModSettlementSupplySignalState.empty(),
+                SettlementStockpileSummary.empty(),
+                SettlementMarketState.empty(),
+                SettlementDesiredGoodsSnapshot.empty(),
+                SettlementProjectCandidateSnapshot.empty(),
+                SettlementTradeRouteHandoffSnapshot.empty(),
+                SettlementSupplySignalState.empty(),
                 List.of(),
                 List.of()
         );
 
-        BannerModSettlementSnapshot restored = BannerModSettlementSnapshot.fromTag(original.toTag());
+        SettlementSnapshot restored = SettlementSnapshot.fromTag(original.toTag());
 
         assertEqualsFieldByField(original, restored);
         assertEquals(original, restored);
@@ -81,7 +81,7 @@ class BannerModSettlementSnapshotRoundtripTest {
     void singleBuildingSnapshotRoundTripsThroughTagCodec() {
         UUID claimUuid = UUID.randomUUID();
         UUID buildingUuid = UUID.randomUUID();
-        BannerModSettlementBuildingRecord building = new BannerModSettlementBuildingRecord(
+        SettlementBuildingRecord building = new SettlementBuildingRecord(
                 buildingUuid,
                 "bannermod:storage_area",
                 new BlockPos(8, 64, -16),
@@ -97,11 +97,11 @@ class BannerModSettlementSnapshotRoundtripTest {
                 true,
                 false,
                 List.of("food", "materials"),
-                BannerModSettlementBuildingCategory.STORAGE,
-                BannerModSettlementBuildingProfileSeed.STORAGE
+                SettlementBuildingCategory.STORAGE,
+                SettlementBuildingProfileSeed.STORAGE
         );
 
-        BannerModSettlementSnapshot original = new BannerModSettlementSnapshot(
+        SettlementSnapshot original = new SettlementSnapshot(
                 claimUuid,
                 3,
                 -2,
@@ -113,17 +113,17 @@ class BannerModSettlementSnapshotRoundtripTest {
                 0,
                 1,
                 0,
-                BannerModSettlementStockpileSummary.empty(),
-                BannerModSettlementMarketState.empty(),
-                BannerModSettlementDesiredGoodsSeed.empty(),
-                BannerModSettlementProjectCandidateSeed.empty(),
-                BannerModSettlementTradeRouteHandoffSeed.empty(),
-                BannerModSettlementSupplySignalState.empty(),
+                SettlementStockpileSummary.empty(),
+                SettlementMarketState.empty(),
+                SettlementDesiredGoodsSnapshot.empty(),
+                SettlementProjectCandidateSnapshot.empty(),
+                SettlementTradeRouteHandoffSnapshot.empty(),
+                SettlementSupplySignalState.empty(),
                 List.of(),
                 List.of(building)
         );
 
-        BannerModSettlementSnapshot restored = BannerModSettlementSnapshot.fromTag(original.toTag());
+        SettlementSnapshot restored = SettlementSnapshot.fromTag(original.toTag());
 
         assertEqualsFieldByField(original, restored);
         assertEquals(original, restored);
@@ -139,70 +139,70 @@ class BannerModSettlementSnapshotRoundtripTest {
         UUID storageBuildingUuid = UUID.randomUUID();
         UUID marketBuildingUuid = UUID.randomUUID();
 
-        BannerModSettlementResidentRecord governor = new BannerModSettlementResidentRecord(
+        SettlementResidentRecord governor = new SettlementResidentRecord(
                 UUID.randomUUID(),
-                BannerModSettlementResidentRole.GOVERNOR_RECRUIT,
-                BannerModSettlementResidentScheduleSeed.GOVERNING,
-                BannerModSettlementResidentScheduleWindowSeed.CIVIC_DAY,
-                BannerModSettlementResidentRuntimeRoleSeed.GOVERNANCE,
-                BannerModSettlementResidentServiceContract.notServiceActor(),
-                BannerModSettlementResidentJobDefinition.defaultFor(
-                        BannerModSettlementResidentRole.GOVERNOR_RECRUIT,
-                        BannerModSettlementResidentRuntimeRoleSeed.GOVERNANCE,
-                        BannerModSettlementResidentServiceContract.notServiceActor(),
+                SettlementResidentRole.GOVERNOR_RECRUIT,
+                SettlementResidentScheduleSeed.GOVERNING,
+                SettlementResidentScheduleWindowSeed.CIVIC_DAY,
+                SettlementResidentRuntimeRoleState.GOVERNANCE,
+                SettlementResidentServiceContract.notServiceActor(),
+                SettlementResidentJobDefinition.defaultFor(
+                        SettlementResidentRole.GOVERNOR_RECRUIT,
+                        SettlementResidentRuntimeRoleState.GOVERNANCE,
+                        SettlementResidentServiceContract.notServiceActor(),
                         null
                 ),
-                new BannerModSettlementResidentJobTargetSelectionSeed(
-                        BannerModSettlementJobTargetSelectionMode.NONE, null, null
+                new SettlementResidentJobTargetSelectionState(
+                        SettlementJobTargetSelectionMode.NONE, null, null
                 ),
-                BannerModSettlementResidentMode.SETTLEMENT_RESIDENT,
+                SettlementResidentMode.SETTLEMENT_RESIDENT,
                 UUID.randomUUID(),
                 "blueguild",
                 null,
-                BannerModSettlementResidentAssignmentState.NOT_APPLICABLE,
-                BannerModSettlementResidentRoleProfile.defaultFor(
-                        BannerModSettlementResidentRole.GOVERNOR_RECRUIT,
-                        BannerModSettlementResidentRuntimeRoleSeed.GOVERNANCE,
-                        BannerModSettlementResidentMode.SETTLEMENT_RESIDENT,
-                        BannerModSettlementResidentAssignmentState.NOT_APPLICABLE
+                SettlementResidentAssignmentState.NOT_APPLICABLE,
+                SettlementResidentRoleProfile.defaultFor(
+                        SettlementResidentRole.GOVERNOR_RECRUIT,
+                        SettlementResidentRuntimeRoleState.GOVERNANCE,
+                        SettlementResidentMode.SETTLEMENT_RESIDENT,
+                        SettlementResidentAssignmentState.NOT_APPLICABLE
                 )
         );
 
-        BannerModSettlementResidentRecord worker = new BannerModSettlementResidentRecord(
+        SettlementResidentRecord worker = new SettlementResidentRecord(
                 workerUuid,
-                BannerModSettlementResidentRole.CONTROLLED_WORKER,
-                BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK,
-                BannerModSettlementResidentScheduleWindowSeed.LABOR_DAY,
-                BannerModSettlementResidentRuntimeRoleSeed.LOCAL_LABOR,
-                new BannerModSettlementResidentServiceContract(
-                        BannerModSettlementServiceActorState.LOCAL_BUILDING_SERVICE,
+                SettlementResidentRole.CONTROLLED_WORKER,
+                SettlementResidentScheduleSeed.ASSIGNED_WORK,
+                SettlementResidentScheduleWindowSeed.LABOR_DAY,
+                SettlementResidentRuntimeRoleState.LOCAL_LABOR,
+                new SettlementResidentServiceContract(
+                        SettlementServiceActorState.LOCAL_BUILDING_SERVICE,
                         workAreaUuid,
                         "bannermod:crop_area"
                 ),
-                new BannerModSettlementResidentJobDefinition(
-                        BannerModSettlementJobHandlerSeed.LOCAL_BUILDING_LABOR,
+                new SettlementResidentJobDefinition(
+                        SettlementJobHandlerSeed.LOCAL_BUILDING_LABOR,
                         workAreaUuid,
                         "bannermod:crop_area",
-                        BannerModSettlementBuildingCategory.FOOD,
-                        BannerModSettlementBuildingProfileSeed.FOOD_PRODUCTION
+                        SettlementBuildingCategory.FOOD,
+                        SettlementBuildingProfileSeed.FOOD_PRODUCTION
                 ),
-                new BannerModSettlementResidentJobTargetSelectionSeed(
-                        BannerModSettlementJobTargetSelectionMode.SERVICE_BUILDING, null, null
+                new SettlementResidentJobTargetSelectionState(
+                        SettlementJobTargetSelectionMode.SERVICE_BUILDING, null, null
                 ),
-                BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
+                SettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
                 UUID.randomUUID(),
                 "blueguild",
                 workAreaUuid,
-                BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING,
-                BannerModSettlementResidentRoleProfile.defaultFor(
-                        BannerModSettlementResidentRole.CONTROLLED_WORKER,
-                        BannerModSettlementResidentRuntimeRoleSeed.LOCAL_LABOR,
-                        BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
-                        BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
+                SettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING,
+                SettlementResidentRoleProfile.defaultFor(
+                        SettlementResidentRole.CONTROLLED_WORKER,
+                        SettlementResidentRuntimeRoleState.LOCAL_LABOR,
+                        SettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
+                        SettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
                 )
         );
 
-        BannerModSettlementBuildingRecord storage = new BannerModSettlementBuildingRecord(
+        SettlementBuildingRecord storage = new SettlementBuildingRecord(
                 storageBuildingUuid,
                 "bannermod:storage_area",
                 new BlockPos(2, 64, 4),
@@ -218,11 +218,11 @@ class BannerModSettlementSnapshotRoundtripTest {
                 true,
                 true,
                 List.of("food", "wood"),
-                BannerModSettlementBuildingCategory.STORAGE,
-                BannerModSettlementBuildingProfileSeed.STORAGE
+                SettlementBuildingCategory.STORAGE,
+                SettlementBuildingProfileSeed.STORAGE
         );
 
-        BannerModSettlementBuildingRecord market = new BannerModSettlementBuildingRecord(
+        SettlementBuildingRecord market = new SettlementBuildingRecord(
                 marketBuildingUuid,
                 "bannermod:market_area",
                 new BlockPos(20, 64, 8),
@@ -238,11 +238,11 @@ class BannerModSettlementSnapshotRoundtripTest {
                 false,
                 false,
                 List.of(),
-                BannerModSettlementBuildingCategory.MARKET,
-                BannerModSettlementBuildingProfileSeed.MARKET
+                SettlementBuildingCategory.MARKET,
+                SettlementBuildingProfileSeed.MARKET
         );
 
-        BannerModSettlementBuildingRecord crop = new BannerModSettlementBuildingRecord(
+        SettlementBuildingRecord crop = new SettlementBuildingRecord(
                 workAreaUuid,
                 "bannermod:crop_area",
                 new BlockPos(-12, 64, 6),
@@ -258,64 +258,64 @@ class BannerModSettlementSnapshotRoundtripTest {
                 false,
                 false,
                 List.of(),
-                BannerModSettlementBuildingCategory.FOOD,
-                BannerModSettlementBuildingProfileSeed.FOOD_PRODUCTION
+                SettlementBuildingCategory.FOOD,
+                SettlementBuildingProfileSeed.FOOD_PRODUCTION
         );
 
-        BannerModSettlementStockpileSummary stockpile = new BannerModSettlementStockpileSummary(
+        SettlementStockpileSummary stockpile = new SettlementStockpileSummary(
                 1, 4, 144, 1, 1, List.of("food", "wood")
         );
-        BannerModSettlementMarketState marketState = new BannerModSettlementMarketState(
+        SettlementMarketState marketState = new SettlementMarketState(
                 1,
                 1,
                 64,
                 32,
                 1,
                 1,
-                List.of(new BannerModSettlementMarketRecord(marketBuildingUuid, "Central Market", true, 64, 32)),
-                List.of(new BannerModSettlementSellerDispatchRecord(
-                        workerUuid, marketBuildingUuid, "Central Market", BannerModSettlementSellerDispatchState.READY
+                List.of(new SettlementMarketRecord(marketBuildingUuid, "Central Market", true, 64, 32)),
+                List.of(new SettlementSellerDispatchRecord(
+                        workerUuid, marketBuildingUuid, "Central Market", SettlementSellerDispatchState.READY
                 ))
         );
-        BannerModSettlementDesiredGoodsSeed desiredGoodsSeed = new BannerModSettlementDesiredGoodsSeed(
+        SettlementDesiredGoodsSnapshot desiredGoodsSnapshot = new SettlementDesiredGoodsSnapshot(
                 List.of(
-                        new BannerModSettlementDesiredGoodSeed("food", 3),
-                        new BannerModSettlementDesiredGoodSeed("wood", 1)
+                        new SettlementDesiredGoodSnapshot("food", 3),
+                        new SettlementDesiredGoodSnapshot("wood", 1)
                 )
         );
-        BannerModSettlementProjectCandidateSeed projectCandidateSeed = new BannerModSettlementProjectCandidateSeed(
+        SettlementProjectCandidateSnapshot projectCandidateSnapshot = new SettlementProjectCandidateSnapshot(
                 "expand_storage",
-                BannerModSettlementBuildingProfileSeed.STORAGE,
+                SettlementBuildingProfileSeed.STORAGE,
                 5,
                 true,
                 true,
                 List.of("supply_pressure", "governor_priority")
         );
-        BannerModSettlementTradeRouteHandoffSeed tradeRouteHandoffSeed = new BannerModSettlementTradeRouteHandoffSeed(
+        SettlementTradeRouteHandoffSnapshot tradeRouteHandoffSnapshot = new SettlementTradeRouteHandoffSnapshot(
                 1,
                 1,
                 1,
                 1,
                 2,
                 7,
-                List.of(new BannerModSettlementDesiredGoodSeed("food", 3)),
-                List.of(new BannerModSettlementSellerDispatchRecord(
-                        workerUuid, marketBuildingUuid, "Central Market", BannerModSettlementSellerDispatchState.READY
+                List.of(new SettlementDesiredGoodSnapshot("food", 3)),
+                List.of(new SettlementSellerDispatchRecord(
+                        workerUuid, marketBuildingUuid, "Central Market", SettlementSellerDispatchState.READY
                 )),
                 List.of("port_open", "route_authored")
         );
-        BannerModSettlementSupplySignalState supplySignalState = new BannerModSettlementSupplySignalState(
+        SettlementSupplySignalState supplySignalState = new SettlementSupplySignalState(
                 2,
                 1,
                 4,
                 3,
                 List.of(
-                        new BannerModSettlementSupplySignal("food", 10, 6, 4, 3),
-                        new BannerModSettlementSupplySignal("wood", 5, 5, 0, 0)
+                        new SettlementSupplySignal("food", 10, 6, 4, 3),
+                        new SettlementSupplySignal("wood", 5, 5, 0, 0)
                 )
         );
 
-        BannerModSettlementSnapshot original = new BannerModSettlementSnapshot(
+        SettlementSnapshot original = new SettlementSnapshot(
                 claimUuid,
                 7,
                 -3,
@@ -329,15 +329,15 @@ class BannerModSettlementSnapshotRoundtripTest {
                 1,
                 stockpile,
                 marketState,
-                desiredGoodsSeed,
-                projectCandidateSeed,
-                tradeRouteHandoffSeed,
+                desiredGoodsSnapshot,
+                projectCandidateSnapshot,
+                tradeRouteHandoffSnapshot,
                 supplySignalState,
                 List.of(governor, worker),
                 List.of(storage, market, crop)
         );
 
-        BannerModSettlementSnapshot restored = BannerModSettlementSnapshot.fromTag(original.toTag());
+        SettlementSnapshot restored = SettlementSnapshot.fromTag(original.toTag());
 
         assertEqualsFieldByField(original, restored);
         assertEquals(original, restored);
@@ -365,14 +365,14 @@ class BannerModSettlementSnapshotRoundtripTest {
         tag.putInt("AssignedResidentCount", 2);
         tag.putInt("UnassignedWorkerCount", 1);
         tag.putInt("MissingWorkAreaAssignmentCount", 0);
-        // Optional sub-tags (StockpileSummary, MarketState, DesiredGoodsSeed,
-        // ProjectCandidateSeed, TradeRouteHandoffSeed, SupplySignalState, SettlementFactionId)
+        // Optional sub-tags (StockpileSummary, MarketState, DesiredGoodsSnapshot,
+        // ProjectCandidateSnapshot, TradeRouteHandoffSnapshot, SupplySignalState, SettlementFactionId)
         // intentionally omitted.
         // Residents: present but empty.
         tag.put("Residents", new ListTag());
         // One realistic building so the buildings list is not also empty.
         ListTag buildings = new ListTag();
-        BannerModSettlementBuildingRecord onlyBuilding = new BannerModSettlementBuildingRecord(
+        SettlementBuildingRecord onlyBuilding = new SettlementBuildingRecord(
                 UUID.randomUUID(),
                 "bannermod:storage_area",
                 new BlockPos(0, 64, 0),
@@ -388,13 +388,13 @@ class BannerModSettlementSnapshotRoundtripTest {
                 false,
                 false,
                 List.of("food"),
-                BannerModSettlementBuildingCategory.STORAGE,
-                BannerModSettlementBuildingProfileSeed.STORAGE
+                SettlementBuildingCategory.STORAGE,
+                SettlementBuildingProfileSeed.STORAGE
         );
         buildings.add(onlyBuilding.toTag());
         tag.put("Buildings", buildings);
 
-        BannerModSettlementSnapshot fromMissing = BannerModSettlementSnapshot.fromTag(tag);
+        SettlementSnapshot fromMissing = SettlementSnapshot.fromTag(tag);
 
         assertEquals(claimUuid, fromMissing.claimUuid());
         assertEquals(1, fromMissing.anchorChunkX());
@@ -407,19 +407,19 @@ class BannerModSettlementSnapshotRoundtripTest {
         assertEquals(2, fromMissing.assignedResidentCount());
         assertEquals(1, fromMissing.unassignedWorkerCount());
         assertEquals(0, fromMissing.missingWorkAreaAssignmentCount());
-        assertEquals(BannerModSettlementStockpileSummary.empty(), fromMissing.stockpileSummary());
-        assertEquals(BannerModSettlementMarketState.empty(), fromMissing.marketState());
-        assertEquals(BannerModSettlementDesiredGoodsSeed.empty(), fromMissing.desiredGoodsSeed());
-        assertEquals(BannerModSettlementProjectCandidateSeed.empty(), fromMissing.projectCandidateSeed());
-        assertEquals(BannerModSettlementTradeRouteHandoffSeed.empty(), fromMissing.tradeRouteHandoffSeed());
-        assertEquals(BannerModSettlementSupplySignalState.empty(), fromMissing.supplySignalState());
+        assertEquals(SettlementStockpileSummary.empty(), fromMissing.stockpileSummary());
+        assertEquals(SettlementMarketState.empty(), fromMissing.marketState());
+        assertEquals(SettlementDesiredGoodsSnapshot.empty(), fromMissing.desiredGoodsSnapshot());
+        assertEquals(SettlementProjectCandidateSnapshot.empty(), fromMissing.projectCandidateSnapshot());
+        assertEquals(SettlementTradeRouteHandoffSnapshot.empty(), fromMissing.tradeRouteHandoffSnapshot());
+        assertEquals(SettlementSupplySignalState.empty(), fromMissing.supplySignalState());
         assertTrue(fromMissing.residents().isEmpty());
         assertEquals(1, fromMissing.buildings().size());
         assertEquals(onlyBuilding, fromMissing.buildings().get(0));
 
         // Second pass: roundtrip the snapshot we just hydrated to confirm the codec stays
         // stable across writes once the defaults have materialized.
-        BannerModSettlementSnapshot rehydrated = BannerModSettlementSnapshot.fromTag(fromMissing.toTag());
+        SettlementSnapshot rehydrated = SettlementSnapshot.fromTag(fromMissing.toTag());
         assertEqualsFieldByField(fromMissing, rehydrated);
         assertEquals(fromMissing, rehydrated);
     }
@@ -428,11 +428,11 @@ class BannerModSettlementSnapshotRoundtripTest {
 
     /**
      * Asserts every snapshot record component matches between {@code expected} and
-     * {@code actual}. Mirrors the field list in {@link BannerModSettlementSnapshot}; if a
+     * {@code actual}. Mirrors the field list in {@link SettlementSnapshot}; if a
      * field is added there, this helper must be updated and the test will fail until it is.
      */
-    private static void assertEqualsFieldByField(BannerModSettlementSnapshot expected,
-                                                 BannerModSettlementSnapshot actual) {
+    private static void assertEqualsFieldByField(SettlementSnapshot expected,
+                                                 SettlementSnapshot actual) {
         assertEquals(expected.claimUuid(), actual.claimUuid(), "claimUuid");
         assertEquals(expected.anchorChunkX(), actual.anchorChunkX(), "anchorChunkX");
         assertEquals(expected.anchorChunkZ(), actual.anchorChunkZ(), "anchorChunkZ");
@@ -446,9 +446,9 @@ class BannerModSettlementSnapshotRoundtripTest {
         assertEquals(expected.missingWorkAreaAssignmentCount(), actual.missingWorkAreaAssignmentCount(), "missingWorkAreaAssignmentCount");
         assertEquals(expected.stockpileSummary(), actual.stockpileSummary(), "stockpileSummary");
         assertEquals(expected.marketState(), actual.marketState(), "marketState");
-        assertEquals(expected.desiredGoodsSeed(), actual.desiredGoodsSeed(), "desiredGoodsSeed");
-        assertEquals(expected.projectCandidateSeed(), actual.projectCandidateSeed(), "projectCandidateSeed");
-        assertEquals(expected.tradeRouteHandoffSeed(), actual.tradeRouteHandoffSeed(), "tradeRouteHandoffSeed");
+        assertEquals(expected.desiredGoodsSnapshot(), actual.desiredGoodsSnapshot(), "desiredGoodsSnapshot");
+        assertEquals(expected.projectCandidateSnapshot(), actual.projectCandidateSnapshot(), "projectCandidateSnapshot");
+        assertEquals(expected.tradeRouteHandoffSnapshot(), actual.tradeRouteHandoffSnapshot(), "tradeRouteHandoffSnapshot");
         assertEquals(expected.supplySignalState(), actual.supplySignalState(), "supplySignalState");
         assertEquals(expected.residents(), actual.residents(), "residents");
         assertEquals(expected.buildings(), actual.buildings(), "buildings");

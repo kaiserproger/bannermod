@@ -1,16 +1,16 @@
 package com.talhanation.bannermod.settlement.growth;
 
 import com.talhanation.bannermod.governance.BannerModGovernorSnapshot;
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingCategory;
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingProfileSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodsSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementMarketState;
-import com.talhanation.bannermod.settlement.BannerModSettlementProjectCandidateSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementStockpileSummary;
-import com.talhanation.bannermod.settlement.BannerModSettlementSupplySignal;
-import com.talhanation.bannermod.settlement.BannerModSettlementSupplySignalState;
-import com.talhanation.bannermod.settlement.BannerModSettlementTradeRouteHandoffSeed;
+import com.talhanation.bannermod.settlement.SettlementBuildingCategory;
+import com.talhanation.bannermod.settlement.SettlementBuildingProfileSeed;
+import com.talhanation.bannermod.settlement.SettlementDesiredGoodSnapshot;
+import com.talhanation.bannermod.settlement.SettlementDesiredGoodsSnapshot;
+import com.talhanation.bannermod.settlement.SettlementMarketState;
+import com.talhanation.bannermod.settlement.SettlementProjectCandidateSnapshot;
+import com.talhanation.bannermod.settlement.SettlementStockpileSummary;
+import com.talhanation.bannermod.settlement.SettlementSupplySignal;
+import com.talhanation.bannermod.settlement.SettlementSupplySignalState;
+import com.talhanation.bannermod.settlement.SettlementTradeRouteHandoffSnapshot;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -24,119 +24,119 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.UUID;
 
-class BannerModSettlementGrowthManagerTest {
+class SettlementGrowthManagerTest {
 
-    private static final BannerModSettlementMarketState NON_EMPTY_MARKET =
-            new BannerModSettlementMarketState(1, 1, 0, 0, 0, 0, List.of(), List.of());
+    private static final SettlementMarketState NON_EMPTY_MARKET =
+            new SettlementMarketState(1, 1, 0, 0, 0, 0, List.of(), List.of());
 
     @Test
     void emptySnapshotYieldsEmptyQueue() {
-        List<PendingProject> queue = BannerModSettlementGrowthManager.evaluateGrowthQueue(emptyContext(), 8);
+        List<PendingProject> queue = SettlementGrowthManager.evaluateGrowthQueue(emptyContext(), 8);
         assertTrue(queue.isEmpty(), "empty context should produce no candidates");
     }
 
     @Test
     void housingShortageYieldsNewBuildingInGeneralCategory() {
         // Residents exceed capacity and workers are unassigned → housing pressure.
-        BannerModSettlementGrowthContext ctx = ctxOf(
-                BannerModSettlementProjectCandidateSeed.empty(),
-                BannerModSettlementDesiredGoodsSeed.empty(),
-                BannerModSettlementMarketState.empty(),
+        SettlementGrowthContext ctx = ctxOf(
+                SettlementProjectCandidateSnapshot.empty(),
+                SettlementDesiredGoodsSnapshot.empty(),
+                SettlementMarketState.empty(),
                 2, 2, 3,
                 100L
         );
 
-        List<PendingProject> queue = BannerModSettlementGrowthManager.evaluateGrowthQueue(ctx, 4);
+        List<PendingProject> queue = SettlementGrowthManager.evaluateGrowthQueue(ctx, 4);
 
         assertFalse(queue.isEmpty(), "saturated settlement should have a housing candidate");
         PendingProject top = queue.get(0);
         assertEquals(ProjectKind.NEW_BUILDING, top.kind());
         // Housing currently falls under GENERAL since no dedicated category exists.
-        assertEquals(BannerModSettlementBuildingCategory.GENERAL, top.buildingCategory());
-        assertSame(BannerModSettlementBuildingProfileSeed.GENERAL, top.profileSeed());
+        assertEquals(SettlementBuildingCategory.GENERAL, top.buildingCategory());
+        assertSame(SettlementBuildingProfileSeed.GENERAL, top.profileSeed());
     }
 
     @Test
     void desiredGoodShortagePrioritisesMatchingProducer() {
-        BannerModSettlementDesiredGoodsSeed desired = new BannerModSettlementDesiredGoodsSeed(List.of(
-                new BannerModSettlementDesiredGoodSeed("food", 5)
+        SettlementDesiredGoodsSnapshot desired = new SettlementDesiredGoodsSnapshot(List.of(
+                new SettlementDesiredGoodSnapshot("food", 5)
         ));
-        BannerModSettlementProjectCandidateSeed seed = new BannerModSettlementProjectCandidateSeed(
-                "seed", BannerModSettlementBuildingProfileSeed.STORAGE, 0, false, false, List.of()
+        SettlementProjectCandidateSnapshot seed = new SettlementProjectCandidateSnapshot(
+                "seed", SettlementBuildingProfileSeed.STORAGE, 0, false, false, List.of()
         );
-        BannerModSettlementGrowthContext ctx = ctxOf(seed, desired, NON_EMPTY_MARKET, 0, 0, 0, 0L);
+        SettlementGrowthContext ctx = ctxOf(seed, desired, NON_EMPTY_MARKET, 0, 0, 0, 0L);
 
-        List<PendingProject> queue = BannerModSettlementGrowthManager.evaluateGrowthQueue(ctx, 4);
+        List<PendingProject> queue = SettlementGrowthManager.evaluateGrowthQueue(ctx, 4);
 
         assertFalse(queue.isEmpty());
         PendingProject top = queue.get(0);
-        assertSame(BannerModSettlementBuildingProfileSeed.FOOD_PRODUCTION, top.profileSeed());
-        assertEquals(BannerModSettlementBuildingCategory.FOOD, top.buildingCategory());
+        assertSame(SettlementBuildingProfileSeed.FOOD_PRODUCTION, top.profileSeed());
+        assertEquals(SettlementBuildingCategory.FOOD, top.buildingCategory());
     }
 
     @Test
-    void reservationAwareHintsCanSeedDemandWithoutDesiredGoodsSeed() {
-        BannerModSettlementTradeRouteHandoffSeed tradeRouteHandoffSeed = new BannerModSettlementTradeRouteHandoffSeed(
+    void reservationAwareHintsCanCreateDemandWithoutDesiredGoodsSnapshot() {
+        SettlementTradeRouteHandoffSnapshot tradeRouteHandoffSnapshot = new SettlementTradeRouteHandoffSnapshot(
                 1, 1, 0, 0, 2, 12,
-                List.of(new BannerModSettlementDesiredGoodSeed("market_goods", 0)),
+                List.of(new SettlementDesiredGoodSnapshot("market_goods", 0)),
                 List.of(),
                 List.of()
         );
-        BannerModSettlementSupplySignalState supplySignalState = new BannerModSettlementSupplySignalState(
+        SettlementSupplySignalState supplySignalState = new SettlementSupplySignalState(
                 1, 0, 0, 8,
-                List.of(new BannerModSettlementSupplySignal("market_goods", 0, 0, 0, 8))
+                List.of(new SettlementSupplySignal("market_goods", 0, 0, 0, 8))
         );
-        BannerModSettlementGrowthContext ctx = ctxOf(
-                BannerModSettlementProjectCandidateSeed.empty(),
-                BannerModSettlementDesiredGoodsSeed.empty(),
+        SettlementGrowthContext ctx = ctxOf(
+                SettlementProjectCandidateSnapshot.empty(),
+                SettlementDesiredGoodsSnapshot.empty(),
                 NON_EMPTY_MARKET,
-                tradeRouteHandoffSeed,
+                tradeRouteHandoffSnapshot,
                 supplySignalState,
                 0, 0, 0, 0L
         );
 
-        List<PendingProject> queue = BannerModSettlementGrowthManager.evaluateGrowthQueue(ctx, 4);
+        List<PendingProject> queue = SettlementGrowthManager.evaluateGrowthQueue(ctx, 4);
 
         assertFalse(queue.isEmpty());
-        assertSame(BannerModSettlementBuildingProfileSeed.MARKET, queue.get(0).profileSeed());
+        assertSame(SettlementBuildingProfileSeed.MARKET, queue.get(0).profileSeed());
     }
 
     @Test
     void concreteSupplyShortageOutranksBroadDesiredDemand() {
-        BannerModSettlementDesiredGoodsSeed desired = new BannerModSettlementDesiredGoodsSeed(List.of(
-                new BannerModSettlementDesiredGoodSeed("market_goods", 8)
+        SettlementDesiredGoodsSnapshot desired = new SettlementDesiredGoodsSnapshot(List.of(
+                new SettlementDesiredGoodSnapshot("market_goods", 8)
         ));
-        BannerModSettlementSupplySignalState supplySignalState = new BannerModSettlementSupplySignalState(
+        SettlementSupplySignalState supplySignalState = new SettlementSupplySignalState(
                 1, 1, 2, 0,
-                List.of(new BannerModSettlementSupplySignal("food", 1, 0, 2, 0))
+                List.of(new SettlementSupplySignal("food", 1, 0, 2, 0))
         );
-        BannerModSettlementGrowthContext ctx = ctxOf(
-                BannerModSettlementProjectCandidateSeed.empty(),
+        SettlementGrowthContext ctx = ctxOf(
+                SettlementProjectCandidateSnapshot.empty(),
                 desired,
                 NON_EMPTY_MARKET,
-                BannerModSettlementTradeRouteHandoffSeed.empty(),
+                SettlementTradeRouteHandoffSnapshot.empty(),
                 supplySignalState,
                 0, 0, 0, 77L
         );
 
-        List<PendingProject> queue = BannerModSettlementGrowthManager.evaluateGrowthQueue(ctx, 4);
+        List<PendingProject> queue = SettlementGrowthManager.evaluateGrowthQueue(ctx, 4);
 
         assertFalse(queue.isEmpty());
-        assertSame(BannerModSettlementBuildingProfileSeed.FOOD_PRODUCTION, queue.get(0).profileSeed());
+        assertSame(SettlementBuildingProfileSeed.FOOD_PRODUCTION, queue.get(0).profileSeed());
     }
 
     @Test
     void sameGrowthProfileKeepsStableProjectIdAcrossTicks() {
-        BannerModSettlementDesiredGoodsSeed desired = new BannerModSettlementDesiredGoodsSeed(List.of(
-                new BannerModSettlementDesiredGoodSeed("food", 2)
+        SettlementDesiredGoodsSnapshot desired = new SettlementDesiredGoodsSnapshot(List.of(
+                new SettlementDesiredGoodSnapshot("food", 2)
         ));
-        BannerModSettlementGrowthContext early = ctxOf(
-                BannerModSettlementProjectCandidateSeed.empty(), desired, NON_EMPTY_MARKET, 0, 0, 0, 10L);
-        BannerModSettlementGrowthContext late = ctxOf(
-                BannerModSettlementProjectCandidateSeed.empty(), desired, NON_EMPTY_MARKET, 0, 0, 0, 200L);
+        SettlementGrowthContext early = ctxOf(
+                SettlementProjectCandidateSnapshot.empty(), desired, NON_EMPTY_MARKET, 0, 0, 0, 10L);
+        SettlementGrowthContext late = ctxOf(
+                SettlementProjectCandidateSnapshot.empty(), desired, NON_EMPTY_MARKET, 0, 0, 0, 200L);
 
-        PendingProject first = BannerModSettlementGrowthManager.pickNextProject(early).orElseThrow();
-        PendingProject second = BannerModSettlementGrowthManager.pickNextProject(late).orElseThrow();
+        PendingProject first = SettlementGrowthManager.pickNextProject(early).orElseThrow();
+        PendingProject second = SettlementGrowthManager.pickNextProject(late).orElseThrow();
 
         assertEquals(first.projectId(), second.projectId());
         assertNotEquals(first.proposedAtGameTime(), second.proposedAtGameTime());
@@ -144,141 +144,141 @@ class BannerModSettlementGrowthManagerTest {
 
     @Test
     void pickNextProjectMirrorsTopOfQueue() {
-        assertEquals(Optional.empty(), BannerModSettlementGrowthManager.pickNextProject(emptyContext()));
+        assertEquals(Optional.empty(), SettlementGrowthManager.pickNextProject(emptyContext()));
 
-        BannerModSettlementDesiredGoodsSeed desired = new BannerModSettlementDesiredGoodsSeed(List.of(
-                new BannerModSettlementDesiredGoodSeed("materials", 2)
+        SettlementDesiredGoodsSnapshot desired = new SettlementDesiredGoodsSnapshot(List.of(
+                new SettlementDesiredGoodSnapshot("materials", 2)
         ));
-        BannerModSettlementGrowthContext ctx = ctxOf(
-                BannerModSettlementProjectCandidateSeed.empty(), desired, NON_EMPTY_MARKET, 0, 0, 0, 42L);
+        SettlementGrowthContext ctx = ctxOf(
+                SettlementProjectCandidateSnapshot.empty(), desired, NON_EMPTY_MARKET, 0, 0, 0, 42L);
 
-        List<PendingProject> queue = BannerModSettlementGrowthManager.evaluateGrowthQueue(ctx, 4);
-        Optional<PendingProject> next = BannerModSettlementGrowthManager.pickNextProject(ctx);
+        List<PendingProject> queue = SettlementGrowthManager.evaluateGrowthQueue(ctx, 4);
+        Optional<PendingProject> next = SettlementGrowthManager.pickNextProject(ctx);
         assertTrue(next.isPresent());
         assertEquals(queue.get(0), next.get());
     }
 
     @Test
     void maxQueueSizeZeroReturnsEmptyList() {
-        BannerModSettlementDesiredGoodsSeed desired = new BannerModSettlementDesiredGoodsSeed(List.of(
-                new BannerModSettlementDesiredGoodSeed("food", 3),
-                new BannerModSettlementDesiredGoodSeed("materials", 3)
+        SettlementDesiredGoodsSnapshot desired = new SettlementDesiredGoodsSnapshot(List.of(
+                new SettlementDesiredGoodSnapshot("food", 3),
+                new SettlementDesiredGoodSnapshot("materials", 3)
         ));
-        BannerModSettlementGrowthContext ctx = ctxOf(
-                BannerModSettlementProjectCandidateSeed.empty(), desired, NON_EMPTY_MARKET, 0, 0, 0, 0L);
+        SettlementGrowthContext ctx = ctxOf(
+                SettlementProjectCandidateSnapshot.empty(), desired, NON_EMPTY_MARKET, 0, 0, 0, 0L);
 
-        assertTrue(BannerModSettlementGrowthManager.evaluateGrowthQueue(ctx, 0).isEmpty());
-        assertTrue(BannerModSettlementGrowthManager.evaluateGrowthQueue(ctx, -1).isEmpty());
+        assertTrue(SettlementGrowthManager.evaluateGrowthQueue(ctx, 0).isEmpty());
+        assertTrue(SettlementGrowthManager.evaluateGrowthQueue(ctx, -1).isEmpty());
     }
 
     @Test
     void tieBreakIsDeterministicOnOrdinalThenHash() {
         // "food" and "materials" both have driverCount=1 => identical base score.
         // FOOD (ordinal 0) precedes MATERIAL (ordinal 1), so the food candidate wins.
-        BannerModSettlementDesiredGoodsSeed desired = new BannerModSettlementDesiredGoodsSeed(List.of(
-                new BannerModSettlementDesiredGoodSeed("food", 1),
-                new BannerModSettlementDesiredGoodSeed("materials", 1)
+        SettlementDesiredGoodsSnapshot desired = new SettlementDesiredGoodsSnapshot(List.of(
+                new SettlementDesiredGoodSnapshot("food", 1),
+                new SettlementDesiredGoodSnapshot("materials", 1)
         ));
-        BannerModSettlementGrowthContext ctx = ctxOf(
-                BannerModSettlementProjectCandidateSeed.empty(), desired, NON_EMPTY_MARKET, 0, 0, 0, 7L);
+        SettlementGrowthContext ctx = ctxOf(
+                SettlementProjectCandidateSnapshot.empty(), desired, NON_EMPTY_MARKET, 0, 0, 0, 7L);
 
-        List<PendingProject> first = BannerModSettlementGrowthManager.evaluateGrowthQueue(ctx, 4);
-        List<PendingProject> second = BannerModSettlementGrowthManager.evaluateGrowthQueue(ctx, 4);
+        List<PendingProject> first = SettlementGrowthManager.evaluateGrowthQueue(ctx, 4);
+        List<PendingProject> second = SettlementGrowthManager.evaluateGrowthQueue(ctx, 4);
         assertEquals(first, second, "deterministic ordering expected across invocations");
         assertTrue(first.size() >= 2);
         assertEquals(first.get(0).priorityScore(), first.get(1).priorityScore(),
                 "first two candidates must be a genuine tie on score for this test");
-        assertSame(BannerModSettlementBuildingProfileSeed.FOOD_PRODUCTION, first.get(0).profileSeed());
-        assertSame(BannerModSettlementBuildingProfileSeed.MATERIAL_PRODUCTION, first.get(1).profileSeed());
+        assertSame(SettlementBuildingProfileSeed.FOOD_PRODUCTION, first.get(0).profileSeed());
+        assertSame(SettlementBuildingProfileSeed.MATERIAL_PRODUCTION, first.get(1).profileSeed());
         assertNotEquals(first.get(0), first.get(1));
     }
 
     @Test
     void governorPriorityCanCreateConstructionCandidateWithoutOtherDemand() {
-        BannerModSettlementGrowthContext ctx = ctxOf(
-                BannerModSettlementProjectCandidateSeed.empty(),
-                BannerModSettlementDesiredGoodsSeed.empty(),
-                BannerModSettlementMarketState.empty(),
-                BannerModSettlementTradeRouteHandoffSeed.empty(),
-                BannerModSettlementSupplySignalState.empty(),
+        SettlementGrowthContext ctx = ctxOf(
+                SettlementProjectCandidateSnapshot.empty(),
+                SettlementDesiredGoodsSnapshot.empty(),
+                SettlementMarketState.empty(),
+                SettlementTradeRouteHandoffSnapshot.empty(),
+                SettlementSupplySignalState.empty(),
                 0, 0, 0,
                 governorSnapshot(2, 3, List.of()),
                 15L
         );
 
-        List<PendingProject> queue = BannerModSettlementGrowthManager.evaluateGrowthQueue(ctx, 4);
+        List<PendingProject> queue = SettlementGrowthManager.evaluateGrowthQueue(ctx, 4);
 
         assertEquals(1, queue.size());
-        assertSame(BannerModSettlementBuildingProfileSeed.CONSTRUCTION, queue.get(0).profileSeed());
+        assertSame(SettlementBuildingProfileSeed.CONSTRUCTION, queue.get(0).profileSeed());
         assertEquals(ProjectBlocker.NONE, queue.get(0).blockerReason());
     }
 
     @Test
     void governorPriorityBoostsExistingConstructionDemandInsteadOfReplacingIt() {
-        BannerModSettlementDesiredGoodsSeed desired = new BannerModSettlementDesiredGoodsSeed(List.of(
-                new BannerModSettlementDesiredGoodSeed("construction_materials", 1)
+        SettlementDesiredGoodsSnapshot desired = new SettlementDesiredGoodsSnapshot(List.of(
+                new SettlementDesiredGoodSnapshot("construction_materials", 1)
         ));
-        BannerModSettlementGrowthContext baseline = ctxOf(
-                BannerModSettlementProjectCandidateSeed.empty(),
+        SettlementGrowthContext baseline = ctxOf(
+                SettlementProjectCandidateSnapshot.empty(),
                 desired,
                 NON_EMPTY_MARKET,
-                BannerModSettlementTradeRouteHandoffSeed.empty(),
-                BannerModSettlementSupplySignalState.empty(),
+                SettlementTradeRouteHandoffSnapshot.empty(),
+                SettlementSupplySignalState.empty(),
                 0, 0, 0,
                 null,
                 40L
         );
-        BannerModSettlementGrowthContext boosted = ctxOf(
-                BannerModSettlementProjectCandidateSeed.empty(),
+        SettlementGrowthContext boosted = ctxOf(
+                SettlementProjectCandidateSnapshot.empty(),
                 desired,
                 NON_EMPTY_MARKET,
-                BannerModSettlementTradeRouteHandoffSeed.empty(),
-                BannerModSettlementSupplySignalState.empty(),
+                SettlementTradeRouteHandoffSnapshot.empty(),
+                SettlementSupplySignalState.empty(),
                 0, 0, 0,
                 governorSnapshot(1, 2, List.of()),
                 40L
         );
 
-        PendingProject baselineProject = BannerModSettlementGrowthManager.pickNextProject(baseline).orElseThrow();
-        PendingProject boostedProject = BannerModSettlementGrowthManager.pickNextProject(boosted).orElseThrow();
+        PendingProject baselineProject = SettlementGrowthManager.pickNextProject(baseline).orElseThrow();
+        PendingProject boostedProject = SettlementGrowthManager.pickNextProject(boosted).orElseThrow();
 
-        assertSame(BannerModSettlementBuildingProfileSeed.CONSTRUCTION, baselineProject.profileSeed());
-        assertSame(BannerModSettlementBuildingProfileSeed.CONSTRUCTION, boostedProject.profileSeed());
+        assertSame(SettlementBuildingProfileSeed.CONSTRUCTION, baselineProject.profileSeed());
+        assertSame(SettlementBuildingProfileSeed.CONSTRUCTION, boostedProject.profileSeed());
         assertTrue(boostedProject.priorityScore() > baselineProject.priorityScore());
     }
 
     @Test
     void siegeAddsDefensiveFallbackAndBlocksCivilianExpansion() {
-        BannerModSettlementDesiredGoodsSeed desired = new BannerModSettlementDesiredGoodsSeed(List.of(
-                new BannerModSettlementDesiredGoodSeed("food", 2)
+        SettlementDesiredGoodsSnapshot desired = new SettlementDesiredGoodsSnapshot(List.of(
+                new SettlementDesiredGoodSnapshot("food", 2)
         ));
-        BannerModSettlementGrowthContext ctx = ctxOf(
-                BannerModSettlementProjectCandidateSeed.empty(),
+        SettlementGrowthContext ctx = ctxOf(
+                SettlementProjectCandidateSnapshot.empty(),
                 desired,
                 NON_EMPTY_MARKET,
-                BannerModSettlementTradeRouteHandoffSeed.empty(),
-                BannerModSettlementSupplySignalState.empty(),
+                SettlementTradeRouteHandoffSnapshot.empty(),
+                SettlementSupplySignalState.empty(),
                 0, 0, 0,
                 governorSnapshot(0, 0, List.of("Under_Siege")),
                 99L
         );
 
-        List<PendingProject> queue = BannerModSettlementGrowthManager.evaluateGrowthQueue(ctx, 4);
-        PendingProject foodProject = projectFor(queue, BannerModSettlementBuildingProfileSeed.FOOD_PRODUCTION).orElseThrow();
+        List<PendingProject> queue = SettlementGrowthManager.evaluateGrowthQueue(ctx, 4);
+        PendingProject foodProject = projectFor(queue, SettlementBuildingProfileSeed.FOOD_PRODUCTION).orElseThrow();
 
         assertFalse(queue.isEmpty());
-        assertSame(BannerModSettlementBuildingProfileSeed.CONSTRUCTION, queue.get(0).profileSeed());
+        assertSame(SettlementBuildingProfileSeed.CONSTRUCTION, queue.get(0).profileSeed());
         assertEquals(ProjectBlocker.NONE, queue.get(0).blockerReason());
         assertEquals(ProjectBlocker.UNDER_SIEGE, foodProject.blockerReason());
     }
 
     @Test
     void tradeRouteDemandBonusAmplifiesStorageAndMarketScoring() {
-        BannerModSettlementDesiredGoodsSeed desired = new BannerModSettlementDesiredGoodsSeed(List.of(
-                new BannerModSettlementDesiredGoodSeed("storage_type:merchants", 1),
-                new BannerModSettlementDesiredGoodSeed("trade_stock", 1)
+        SettlementDesiredGoodsSnapshot desired = new SettlementDesiredGoodsSnapshot(List.of(
+                new SettlementDesiredGoodSnapshot("storage_type:merchants", 1),
+                new SettlementDesiredGoodSnapshot("trade_stock", 1)
         ));
-        BannerModSettlementTradeRouteHandoffSeed boostedHandoff = new BannerModSettlementTradeRouteHandoffSeed(
+        SettlementTradeRouteHandoffSnapshot boostedHandoff = new SettlementTradeRouteHandoffSnapshot(
                 1,
                 1,
                 2,
@@ -289,72 +289,72 @@ class BannerModSettlementGrowthManagerTest {
                 List.of(),
                 List.of()
         );
-        BannerModSettlementGrowthContext baseline = ctxOf(
-                BannerModSettlementProjectCandidateSeed.empty(),
+        SettlementGrowthContext baseline = ctxOf(
+                SettlementProjectCandidateSnapshot.empty(),
                 desired,
                 NON_EMPTY_MARKET,
-                BannerModSettlementTradeRouteHandoffSeed.empty(),
-                BannerModSettlementSupplySignalState.empty(),
+                SettlementTradeRouteHandoffSnapshot.empty(),
+                SettlementSupplySignalState.empty(),
                 0, 0, 0,
                 null,
                 0L
         );
-        BannerModSettlementGrowthContext boosted = ctxOf(
-                BannerModSettlementProjectCandidateSeed.empty(),
+        SettlementGrowthContext boosted = ctxOf(
+                SettlementProjectCandidateSnapshot.empty(),
                 desired,
                 NON_EMPTY_MARKET,
                 boostedHandoff,
-                BannerModSettlementSupplySignalState.empty(),
+                SettlementSupplySignalState.empty(),
                 0, 0, 0,
                 null,
                 0L
         );
 
-        List<PendingProject> baselineQueue = BannerModSettlementGrowthManager.evaluateGrowthQueue(baseline, 4);
-        List<PendingProject> boostedQueue = BannerModSettlementGrowthManager.evaluateGrowthQueue(boosted, 4);
+        List<PendingProject> baselineQueue = SettlementGrowthManager.evaluateGrowthQueue(baseline, 4);
+        List<PendingProject> boostedQueue = SettlementGrowthManager.evaluateGrowthQueue(boosted, 4);
 
-        assertTrue(projectFor(boostedQueue, BannerModSettlementBuildingProfileSeed.STORAGE).orElseThrow().priorityScore()
-                > projectFor(baselineQueue, BannerModSettlementBuildingProfileSeed.STORAGE).orElseThrow().priorityScore());
-        assertTrue(projectFor(boostedQueue, BannerModSettlementBuildingProfileSeed.MARKET).orElseThrow().priorityScore()
-                > projectFor(baselineQueue, BannerModSettlementBuildingProfileSeed.MARKET).orElseThrow().priorityScore());
+        assertTrue(projectFor(boostedQueue, SettlementBuildingProfileSeed.STORAGE).orElseThrow().priorityScore()
+                > projectFor(baselineQueue, SettlementBuildingProfileSeed.STORAGE).orElseThrow().priorityScore());
+        assertTrue(projectFor(boostedQueue, SettlementBuildingProfileSeed.MARKET).orElseThrow().priorityScore()
+                > projectFor(baselineQueue, SettlementBuildingProfileSeed.MARKET).orElseThrow().priorityScore());
     }
 
-    private static BannerModSettlementGrowthContext emptyContext() {
+    private static SettlementGrowthContext emptyContext() {
         return ctxOf(
-                BannerModSettlementProjectCandidateSeed.empty(),
-                BannerModSettlementDesiredGoodsSeed.empty(),
-                BannerModSettlementMarketState.empty(),
+                SettlementProjectCandidateSnapshot.empty(),
+                SettlementDesiredGoodsSnapshot.empty(),
+                SettlementMarketState.empty(),
                 0, 0, 0, 0L
         );
     }
 
-    private static BannerModSettlementGrowthContext ctxOf(
-            BannerModSettlementProjectCandidateSeed seed,
-            BannerModSettlementDesiredGoodsSeed desired,
-            BannerModSettlementMarketState market,
+    private static SettlementGrowthContext ctxOf(
+            SettlementProjectCandidateSnapshot seed,
+            SettlementDesiredGoodsSnapshot desired,
+            SettlementMarketState market,
             int residentCapacity,
             int assignedResidentCount,
             int unassignedWorkerCount,
             long gameTime
     ) {
-        return new BannerModSettlementGrowthContext(
+        return new SettlementGrowthContext(
                 seed, desired,
-                BannerModSettlementStockpileSummary.empty(),
+                SettlementStockpileSummary.empty(),
                 market,
-                BannerModSettlementTradeRouteHandoffSeed.empty(),
-                BannerModSettlementSupplySignalState.empty(),
+                SettlementTradeRouteHandoffSnapshot.empty(),
+                SettlementSupplySignalState.empty(),
                 List.of(), List.of(),
                 residentCapacity, assignedResidentCount, unassignedWorkerCount, 0,
                 null, gameTime
         );
     }
 
-    private static BannerModSettlementGrowthContext ctxOf(
-            BannerModSettlementProjectCandidateSeed seed,
-            BannerModSettlementDesiredGoodsSeed desired,
-            BannerModSettlementMarketState market,
-            BannerModSettlementTradeRouteHandoffSeed tradeRouteHandoffSeed,
-            BannerModSettlementSupplySignalState supplySignalState,
+    private static SettlementGrowthContext ctxOf(
+            SettlementProjectCandidateSnapshot seed,
+            SettlementDesiredGoodsSnapshot desired,
+            SettlementMarketState market,
+            SettlementTradeRouteHandoffSnapshot tradeRouteHandoffSnapshot,
+            SettlementSupplySignalState supplySignalState,
             int residentCapacity,
             int assignedResidentCount,
             int unassignedWorkerCount,
@@ -364,7 +364,7 @@ class BannerModSettlementGrowthManagerTest {
                 seed,
                 desired,
                 market,
-                tradeRouteHandoffSeed,
+                tradeRouteHandoffSnapshot,
                 supplySignalState,
                 residentCapacity,
                 assignedResidentCount,
@@ -374,24 +374,24 @@ class BannerModSettlementGrowthManagerTest {
         );
     }
 
-    private static BannerModSettlementGrowthContext ctxOf(
-            BannerModSettlementProjectCandidateSeed seed,
-            BannerModSettlementDesiredGoodsSeed desired,
-            BannerModSettlementMarketState market,
-            BannerModSettlementTradeRouteHandoffSeed tradeRouteHandoffSeed,
-            BannerModSettlementSupplySignalState supplySignalState,
+    private static SettlementGrowthContext ctxOf(
+            SettlementProjectCandidateSnapshot seed,
+            SettlementDesiredGoodsSnapshot desired,
+            SettlementMarketState market,
+            SettlementTradeRouteHandoffSnapshot tradeRouteHandoffSnapshot,
+            SettlementSupplySignalState supplySignalState,
             int residentCapacity,
             int assignedResidentCount,
             int unassignedWorkerCount,
             BannerModGovernorSnapshot governorSnapshot,
             long gameTime
     ) {
-        return new BannerModSettlementGrowthContext(
+        return new SettlementGrowthContext(
                 seed,
                 desired,
-                BannerModSettlementStockpileSummary.empty(),
+                SettlementStockpileSummary.empty(),
                 market,
-                tradeRouteHandoffSeed,
+                tradeRouteHandoffSnapshot,
                 supplySignalState,
                 List.of(),
                 List.of(),
@@ -431,7 +431,7 @@ class BannerModSettlementGrowthManagerTest {
     }
 
     private static Optional<PendingProject> projectFor(List<PendingProject> queue,
-                                                       BannerModSettlementBuildingProfileSeed profileSeed) {
+                                                       SettlementBuildingProfileSeed profileSeed) {
         return queue.stream().filter(project -> project.profileSeed() == profileSeed).findFirst();
     }
 }

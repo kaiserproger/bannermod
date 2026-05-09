@@ -318,6 +318,23 @@ public final class RecruitIndex {
         return version == null ? 0L : version.get();
     }
 
+    public int countInChunk(ServerLevel level, ChunkPos chunkPos, boolean aliveOnly) {
+        if (level == null || chunkPos == null) return 0;
+        LevelIndex index = byLevel.get(level.dimension());
+        if (index == null) return 0;
+        Set<UUID> uuids = index.byChunk.get(chunkPos);
+        if (uuids == null || uuids.isEmpty()) return 0;
+        if (!aliveOnly) return uuids.size();
+        int count = 0;
+        for (UUID uuid : uuids) {
+            Entity entity = level.getEntity(uuid);
+            if (entity instanceof AbstractRecruitEntity recruit && recruit.isAlive()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     public void resetCounters() {
         counters.reset();
     }

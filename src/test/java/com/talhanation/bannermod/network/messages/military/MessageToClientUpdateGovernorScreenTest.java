@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.network.messages.military;
 
 import com.talhanation.bannermod.governance.BannerModGovernorSnapshot;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.Envelope;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.Payload;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.RefreshTrigger;
@@ -21,7 +21,7 @@ class MessageToClientUpdateGovernorScreenTest {
     void roundTripsSettlementSnapshotEnvelopeForMutationRefresh() {
         UUID recruitId = UUID.randomUUID();
         UUID claimId = UUID.randomUUID();
-        BannerModSettlementSnapshot settlement = BannerModSettlementSnapshot.create(claimId, new ChunkPos(4, 5), "sync-team");
+        SettlementSnapshot settlement = SettlementSnapshot.create(claimId, new ChunkPos(4, 5), "sync-team");
         BannerModGovernorSnapshot governor = BannerModGovernorSnapshot.create(claimId, new ChunkPos(4, 5), "sync-team")
                 .withHeartbeatReport(50L, 50L, 6, 4, 2, java.util.List.of("incident"), java.util.List.of("recommend"));
         Envelope envelope = Envelope.ready(50L, 50L, RefreshTrigger.MUTATION_REFRESH,

@@ -1,8 +1,8 @@
 package com.talhanation.bannermod.settlement.dispatch;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementMarketState;
-import com.talhanation.bannermod.settlement.BannerModSettlementSellerDispatchRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementSellerDispatchState;
+import com.talhanation.bannermod.settlement.SettlementMarketState;
+import com.talhanation.bannermod.settlement.SettlementSellerDispatchRecord;
+import com.talhanation.bannermod.settlement.SettlementSellerDispatchState;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -23,14 +23,14 @@ class BannerModSellerDispatchAdvisorTest {
     void picksReadySellerWhoseTwinIsAlreadyBusy() {
         // 2 READY records; one seller is already active in the runtime. Advisor
         // must return the other (still-idle) seller.
-        BannerModSettlementMarketState state = new BannerModSettlementMarketState(
+        SettlementMarketState state = new SettlementMarketState(
                 2, 2, 0, 0, 2, 2,
                 List.of(),
                 List.of(
-                        new BannerModSettlementSellerDispatchRecord(
-                                SELLER_A, MARKET_A, "MarketA", BannerModSettlementSellerDispatchState.READY),
-                        new BannerModSettlementSellerDispatchRecord(
-                                SELLER_B, MARKET_B, "MarketB", BannerModSettlementSellerDispatchState.READY)
+                        new SettlementSellerDispatchRecord(
+                                SELLER_A, MARKET_A, "MarketA", SettlementSellerDispatchState.READY),
+                        new SettlementSellerDispatchRecord(
+                                SELLER_B, MARKET_B, "MarketB", SettlementSellerDispatchState.READY)
                 )
         );
         BannerModSellerDispatchRuntime runtime = new BannerModSellerDispatchRuntime();
@@ -45,20 +45,20 @@ class BannerModSellerDispatchAdvisorTest {
     void emptyStateReturnsEmpty() {
         BannerModSellerDispatchRuntime runtime = new BannerModSellerDispatchRuntime();
         Optional<UUID> picked = BannerModSellerDispatchAdvisor.pickReadySeller(
-                BannerModSettlementMarketState.empty(), runtime, 0L);
+                SettlementMarketState.empty(), runtime, 0L);
         assertTrue(picked.isEmpty());
     }
 
     @Test
     void allSellersBusyReturnsEmpty() {
-        BannerModSettlementMarketState state = new BannerModSettlementMarketState(
+        SettlementMarketState state = new SettlementMarketState(
                 2, 2, 0, 0, 2, 2,
                 List.of(),
                 List.of(
-                        new BannerModSettlementSellerDispatchRecord(
-                                SELLER_A, MARKET_A, "MarketA", BannerModSettlementSellerDispatchState.READY),
-                        new BannerModSettlementSellerDispatchRecord(
-                                SELLER_B, MARKET_B, "MarketB", BannerModSettlementSellerDispatchState.READY)
+                        new SettlementSellerDispatchRecord(
+                                SELLER_A, MARKET_A, "MarketA", SettlementSellerDispatchState.READY),
+                        new SettlementSellerDispatchRecord(
+                                SELLER_B, MARKET_B, "MarketB", SettlementSellerDispatchState.READY)
                 )
         );
         BannerModSellerDispatchRuntime runtime = new BannerModSellerDispatchRuntime();
@@ -71,12 +71,12 @@ class BannerModSellerDispatchAdvisorTest {
 
     @Test
     void marketClosedSeedsAreNotConsidered() {
-        BannerModSettlementMarketState state = new BannerModSettlementMarketState(
+        SettlementMarketState state = new SettlementMarketState(
                 1, 0, 0, 0, 1, 0,
                 List.of(),
                 List.of(
-                        new BannerModSettlementSellerDispatchRecord(
-                                SELLER_A, MARKET_A, "MarketA", BannerModSettlementSellerDispatchState.MARKET_CLOSED)
+                        new SettlementSellerDispatchRecord(
+                                SELLER_A, MARKET_A, "MarketA", SettlementSellerDispatchState.MARKET_CLOSED)
                 )
         );
         BannerModSellerDispatchRuntime runtime = new BannerModSellerDispatchRuntime();
@@ -87,14 +87,14 @@ class BannerModSellerDispatchAdvisorTest {
     @Test
     void iterationOrderMatchesRecordList() {
         // Deterministic: first READY, idle seller in list order wins.
-        BannerModSettlementMarketState state = new BannerModSettlementMarketState(
+        SettlementMarketState state = new SettlementMarketState(
                 2, 2, 0, 0, 2, 2,
                 List.of(),
                 List.of(
-                        new BannerModSettlementSellerDispatchRecord(
-                                SELLER_B, MARKET_B, "MarketB", BannerModSettlementSellerDispatchState.READY),
-                        new BannerModSettlementSellerDispatchRecord(
-                                SELLER_A, MARKET_A, "MarketA", BannerModSettlementSellerDispatchState.READY)
+                        new SettlementSellerDispatchRecord(
+                                SELLER_B, MARKET_B, "MarketB", SettlementSellerDispatchState.READY),
+                        new SettlementSellerDispatchRecord(
+                                SELLER_A, MARKET_A, "MarketA", SettlementSellerDispatchState.READY)
                 )
         );
         BannerModSellerDispatchRuntime runtime = new BannerModSellerDispatchRuntime();
@@ -108,6 +108,6 @@ class BannerModSellerDispatchAdvisorTest {
         BannerModSellerDispatchRuntime runtime = new BannerModSellerDispatchRuntime();
         assertTrue(BannerModSellerDispatchAdvisor.pickReadySeller(null, runtime, 0L).isEmpty());
         assertTrue(BannerModSellerDispatchAdvisor.pickReadySeller(
-                BannerModSettlementMarketState.empty(), null, 0L).isEmpty());
+                SettlementMarketState.empty(), null, 0L).isEmpty());
     }
 }

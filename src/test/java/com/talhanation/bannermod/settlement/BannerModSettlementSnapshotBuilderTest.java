@@ -9,20 +9,20 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class BannerModSettlementSnapshotBuilderTest {
+class SettlementSnapshotBuilderTest {
 
     @Test
     void summarizeCountsAggregatesCapacitiesAndWorkerAssignmentBuckets() {
         Object counts = summarizeCounts(
                 List.of(
-                        new BannerModSettlementBuildingRecord(UUID.randomUUID(), "bannermod:house", BlockPos.ZERO, null, null, 3, 2, 1, List.of()),
-                        new BannerModSettlementBuildingRecord(UUID.randomUUID(), "bannermod:mine", BlockPos.ZERO, null, null, -4, -2, -1, List.of())
+                        new SettlementBuildingRecord(UUID.randomUUID(), "bannermod:house", BlockPos.ZERO, null, null, 3, 2, 1, List.of()),
+                        new SettlementBuildingRecord(UUID.randomUUID(), "bannermod:mine", BlockPos.ZERO, null, null, -4, -2, -1, List.of())
                 ),
                 List.of(
-                        worker(BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING),
-                        worker(BannerModSettlementResidentAssignmentState.UNASSIGNED),
-                        worker(BannerModSettlementResidentAssignmentState.ASSIGNED_MISSING_BUILDING),
-                        worker(BannerModSettlementResidentAssignmentState.NOT_APPLICABLE),
+                        worker(SettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING),
+                        worker(SettlementResidentAssignmentState.UNASSIGNED),
+                        worker(SettlementResidentAssignmentState.ASSIGNED_MISSING_BUILDING),
+                        worker(SettlementResidentAssignmentState.NOT_APPLICABLE),
                         villager()
                 )
         );
@@ -47,14 +47,14 @@ class BannerModSettlementSnapshotBuilderTest {
         assertEquals(0, accessor(counts, "missingWorkAreaAssignmentCount"));
     }
 
-    private static BannerModSettlementResidentRecord worker(BannerModSettlementResidentAssignmentState assignmentState) {
-        return new BannerModSettlementResidentRecord(
+    private static SettlementResidentRecord worker(SettlementResidentAssignmentState assignmentState) {
+        return new SettlementResidentRecord(
                 UUID.randomUUID(),
-                BannerModSettlementResidentRole.CONTROLLED_WORKER,
-                BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK,
-                BannerModSettlementResidentRuntimeRoleSeed.FLOATING_LABOR,
-                BannerModSettlementResidentServiceContract.notServiceActor(),
-                BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
+                SettlementResidentRole.CONTROLLED_WORKER,
+                SettlementResidentScheduleSeed.ASSIGNED_WORK,
+                SettlementResidentRuntimeRoleState.FLOATING_LABOR,
+                SettlementResidentServiceContract.notServiceActor(),
+                SettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
                 UUID.randomUUID(),
                 "blueguild",
                 null,
@@ -62,25 +62,25 @@ class BannerModSettlementSnapshotBuilderTest {
         );
     }
 
-    private static BannerModSettlementResidentRecord villager() {
-        return new BannerModSettlementResidentRecord(
+    private static SettlementResidentRecord villager() {
+        return new SettlementResidentRecord(
                 UUID.randomUUID(),
-                BannerModSettlementResidentRole.VILLAGER,
-                BannerModSettlementResidentScheduleSeed.SETTLEMENT_IDLE,
-                BannerModSettlementResidentRuntimeRoleSeed.VILLAGE_LIFE,
-                BannerModSettlementResidentServiceContract.notServiceActor(),
-                BannerModSettlementResidentMode.SETTLEMENT_RESIDENT,
+                SettlementResidentRole.VILLAGER,
+                SettlementResidentScheduleSeed.SETTLEMENT_IDLE,
+                SettlementResidentRuntimeRoleState.VILLAGE_LIFE,
+                SettlementResidentServiceContract.notServiceActor(),
+                SettlementResidentMode.SETTLEMENT_RESIDENT,
                 null,
                 "blueguild",
                 null,
-                BannerModSettlementResidentAssignmentState.NOT_APPLICABLE
+                SettlementResidentAssignmentState.NOT_APPLICABLE
         );
     }
 
-    private static Object summarizeCounts(List<BannerModSettlementBuildingRecord> buildings,
-                                          List<BannerModSettlementResidentRecord> residents) {
+    private static Object summarizeCounts(List<SettlementBuildingRecord> buildings,
+                                          List<SettlementResidentRecord> residents) {
         try {
-            Method method = BannerModSettlementSnapshotBuilder.class.getDeclaredMethod("summarizeCounts", List.class, List.class);
+            Method method = SettlementSnapshotBuilder.class.getDeclaredMethod("summarizeCounts", List.class, List.class);
             method.setAccessible(true);
             return method.invoke(null, buildings, residents);
         } catch (ReflectiveOperationException e) {

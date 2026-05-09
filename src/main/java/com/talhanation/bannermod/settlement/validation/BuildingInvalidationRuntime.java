@@ -54,7 +54,7 @@ public final class BuildingInvalidationRuntime {
             return new BatchResult(0, 0, queue.size());
         }
 
-        DefaultBuildingValidator validator = new DefaultBuildingValidator(new BuildingDefinitionRegistry());
+        SettlementBuildingValidator validator = new SettlementBuildingValidator(new BuildingDefinitionRegistry());
         int processed = 0;
         int degraded = 0;
         for (BuildingInvalidationQueueData.QueueEntry entry : batch) {

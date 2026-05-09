@@ -1,14 +1,14 @@
 package com.talhanation.bannermod.settlement.growth;
 
 import com.talhanation.bannermod.governance.BannerModGovernorSnapshot;
-import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodsSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementMarketState;
-import com.talhanation.bannermod.settlement.BannerModSettlementProjectCandidateSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
-import com.talhanation.bannermod.settlement.BannerModSettlementStockpileSummary;
-import com.talhanation.bannermod.settlement.BannerModSettlementSupplySignalState;
-import com.talhanation.bannermod.settlement.BannerModSettlementTradeRouteHandoffSeed;
+import com.talhanation.bannermod.settlement.SettlementDesiredGoodSnapshot;
+import com.talhanation.bannermod.settlement.SettlementDesiredGoodsSnapshot;
+import com.talhanation.bannermod.settlement.SettlementMarketState;
+import com.talhanation.bannermod.settlement.SettlementProjectCandidateSnapshot;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementStockpileSummary;
+import com.talhanation.bannermod.settlement.SettlementSupplySignalState;
+import com.talhanation.bannermod.settlement.SettlementTradeRouteHandoffSnapshot;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -19,11 +19,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class BannerModSettlementGrowthContextTest {
+class SettlementGrowthContextTest {
 
     @Test
     void constructorNormalizesNullSeedsAndNegativeCounts() {
-        BannerModSettlementGrowthContext ctx = new BannerModSettlementGrowthContext(
+        SettlementGrowthContext ctx = new SettlementGrowthContext(
                 null,
                 null,
                 null,
@@ -40,12 +40,12 @@ class BannerModSettlementGrowthContextTest {
                 7L
         );
 
-        assertEquals(BannerModSettlementProjectCandidateSeed.empty(), ctx.projectCandidateSeed());
-        assertEquals(BannerModSettlementDesiredGoodsSeed.empty(), ctx.desiredGoodsSeed());
-        assertEquals(BannerModSettlementStockpileSummary.empty(), ctx.stockpileSummary());
-        assertEquals(BannerModSettlementMarketState.empty(), ctx.marketState());
-        assertEquals(BannerModSettlementTradeRouteHandoffSeed.empty(), ctx.tradeRouteHandoffSeed());
-        assertEquals(BannerModSettlementSupplySignalState.empty(), ctx.supplySignalState());
+        assertEquals(SettlementProjectCandidateSnapshot.empty(), ctx.projectCandidateSnapshot());
+        assertEquals(SettlementDesiredGoodsSnapshot.empty(), ctx.desiredGoodsSnapshot());
+        assertEquals(SettlementStockpileSummary.empty(), ctx.stockpileSummary());
+        assertEquals(SettlementMarketState.empty(), ctx.marketState());
+        assertEquals(SettlementTradeRouteHandoffSnapshot.empty(), ctx.tradeRouteHandoffSnapshot());
+        assertEquals(SettlementSupplySignalState.empty(), ctx.supplySignalState());
         assertTrue(ctx.buildings().isEmpty());
         assertTrue(ctx.residents().isEmpty());
         assertEquals(0, ctx.residentCapacity());
@@ -58,15 +58,15 @@ class BannerModSettlementGrowthContextTest {
 
     @Test
     void fromSnapshotCopiesSnapshotFieldsAndCalculatesHeadroom() {
-        BannerModSettlementSnapshot snapshot = snapshot(3, 1, 2, 1);
+        SettlementSnapshot snapshot = snapshot(3, 1, 2, 1);
 
-        BannerModSettlementGrowthContext ctx = BannerModSettlementGrowthContext.fromSnapshot(snapshot, 55L);
+        SettlementGrowthContext ctx = SettlementGrowthContext.fromSnapshot(snapshot, 55L);
 
-        assertEquals(snapshot.projectCandidateSeed(), ctx.projectCandidateSeed());
-        assertEquals(snapshot.desiredGoodsSeed(), ctx.desiredGoodsSeed());
+        assertEquals(snapshot.projectCandidateSnapshot(), ctx.projectCandidateSnapshot());
+        assertEquals(snapshot.desiredGoodsSnapshot(), ctx.desiredGoodsSnapshot());
         assertEquals(snapshot.stockpileSummary(), ctx.stockpileSummary());
         assertEquals(snapshot.marketState(), ctx.marketState());
-        assertEquals(snapshot.tradeRouteHandoffSeed(), ctx.tradeRouteHandoffSeed());
+        assertEquals(snapshot.tradeRouteHandoffSnapshot(), ctx.tradeRouteHandoffSnapshot());
         assertEquals(snapshot.supplySignalState(), ctx.supplySignalState());
         assertEquals(2, ctx.housingHeadroom());
         assertEquals(55L, ctx.gameTime());
@@ -97,18 +97,18 @@ class BannerModSettlementGrowthContextTest {
                 List.of()
         );
 
-        BannerModSettlementGrowthContext ctx = BannerModSettlementGrowthContext.fromSnapshot(snapshot(0, 0, 0, 0), governorSnapshot, 10L);
+        SettlementGrowthContext ctx = SettlementGrowthContext.fromSnapshot(snapshot(0, 0, 0, 0), governorSnapshot, 10L);
 
         assertTrue(ctx.isUnderSiege());
         assertEquals(governorSnapshot, ctx.governorSnapshot());
-        assertThrows(IllegalArgumentException.class, () -> BannerModSettlementGrowthContext.fromSnapshot(null, 10L));
+        assertThrows(IllegalArgumentException.class, () -> SettlementGrowthContext.fromSnapshot(null, 10L));
     }
 
-    private static BannerModSettlementSnapshot snapshot(int residentCapacity,
+    private static SettlementSnapshot snapshot(int residentCapacity,
                                                         int assignedResidentCount,
                                                         int unassignedWorkerCount,
                                                         int missingWorkAreaAssignmentCount) {
-        return new BannerModSettlementSnapshot(
+        return new SettlementSnapshot(
                 UUID.randomUUID(),
                 0,
                 0,
@@ -120,19 +120,19 @@ class BannerModSettlementGrowthContextTest {
                 missingWorkAreaAssignmentCount,
                 0,
                 0,
-                BannerModSettlementStockpileSummary.empty(),
-                BannerModSettlementMarketState.empty(),
-                new BannerModSettlementDesiredGoodsSeed(List.of(new BannerModSettlementDesiredGoodSeed("food", 2))),
-                new BannerModSettlementProjectCandidateSeed(
+                SettlementStockpileSummary.empty(),
+                SettlementMarketState.empty(),
+                new SettlementDesiredGoodsSnapshot(List.of(new SettlementDesiredGoodSnapshot("food", 2))),
+                new SettlementProjectCandidateSnapshot(
                         "seed",
-                        com.talhanation.bannermod.settlement.BannerModSettlementBuildingProfileSeed.GENERAL,
+                        com.talhanation.bannermod.settlement.SettlementBuildingProfileSeed.GENERAL,
                         2,
                         true,
                         true,
                         List.of("housing_pressure")
                 ),
-                BannerModSettlementTradeRouteHandoffSeed.empty(),
-                BannerModSettlementSupplySignalState.empty(),
+                SettlementTradeRouteHandoffSnapshot.empty(),
+                SettlementSupplySignalState.empty(),
                 List.of(),
                 List.of()
         );

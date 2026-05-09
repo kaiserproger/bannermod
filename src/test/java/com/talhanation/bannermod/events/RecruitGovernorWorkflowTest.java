@@ -3,7 +3,7 @@ package com.talhanation.bannermod.events;
 import com.talhanation.bannermod.governance.runtime.RecruitGovernorWorkflow;
 import com.talhanation.bannermod.governance.BannerModGovernorSnapshot;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.Envelope;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.RefreshTrigger;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.SnapshotState;
@@ -21,7 +21,7 @@ class RecruitGovernorWorkflowTest {
     void screenOpenLoginAndMutationRefreshBuildReadySettlementMirrorPayloads() {
         RecruitsClaim claim = new RecruitsClaim("sync-004", UUID.randomUUID());
         claim.setCenter(new ChunkPos(2, 3));
-        BannerModSettlementSnapshot settlement = BannerModSettlementSnapshot.create(claim.getUUID(), new ChunkPos(2, 3), "sync-team");
+        SettlementSnapshot settlement = SettlementSnapshot.create(claim.getUUID(), new ChunkPos(2, 3), "sync-team");
         BannerModGovernorSnapshot governor = BannerModGovernorSnapshot.create(claim.getUUID(), new ChunkPos(2, 3), "sync-team")
                 .withGovernor(UUID.randomUUID(), UUID.randomUUID());
 
@@ -35,7 +35,7 @@ class RecruitGovernorWorkflowTest {
 
     private static void assertEnvelope(Envelope envelope,
                                        UUID claimId,
-                                       BannerModSettlementSnapshot settlement,
+                                       SettlementSnapshot settlement,
                                        BannerModGovernorSnapshot governor,
                                        RefreshTrigger trigger) {
         assertEquals(SnapshotState.READY, envelope.state());

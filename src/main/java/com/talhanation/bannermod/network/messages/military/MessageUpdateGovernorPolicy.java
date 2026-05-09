@@ -1,6 +1,6 @@
 package com.talhanation.bannermod.network.messages.military;
 
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.governance.BannerModGovernorPolicy;
 import com.talhanation.bannermod.network.payload.BannerModMessage;
@@ -9,7 +9,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageUpdateGovernorPolicy implements BannerModMessage<MessageUpdateGovernorPolicy> {
@@ -34,7 +33,8 @@ public class MessageUpdateGovernorPolicy implements BannerModMessage<MessageUpda
     @Override
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             BannerModGovernorPolicy[] policies = BannerModGovernorPolicy.values();
             if (this.policyOrdinal < 0 || this.policyOrdinal >= policies.length) {
                 return;

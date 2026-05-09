@@ -6,7 +6,7 @@ import com.talhanation.bannermod.settlement.building.ZoneRole;
 import com.talhanation.bannermod.settlement.building.ZoneSelection;
 import com.talhanation.bannermod.settlement.validation.BuildingValidationRequest;
 import com.talhanation.bannermod.settlement.validation.BuildingValidationResult;
-import com.talhanation.bannermod.settlement.validation.DefaultBuildingValidator;
+import com.talhanation.bannermod.settlement.validation.SettlementBuildingValidator;
 import com.talhanation.bannermod.settlement.validation.StarterFortPlan;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -47,7 +47,7 @@ public final class BannerModStarterFortGameTestSupport {
     }
 
     public static BuildingValidationResult validateStarterFort(ServerLevel level, BlockPos anchor) {
-        return new DefaultBuildingValidator(new BuildingDefinitionRegistry()).validate(
+        return new SettlementBuildingValidator(new BuildingDefinitionRegistry()).validate(
                 level,
                 null,
                 new BuildingValidationRequest(

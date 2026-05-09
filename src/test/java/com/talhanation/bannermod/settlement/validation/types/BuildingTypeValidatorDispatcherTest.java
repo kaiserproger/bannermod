@@ -40,7 +40,7 @@ class BuildingTypeValidatorDispatcherTest {
 
     @Test
     void fallsBackForUnregisteredBuildingType() {
-        BuildingTypeValidatorDispatcher dispatcher = new BuildingTypeValidatorDispatcher();
+        BuildingTypeValidatorDispatcher dispatcher = new BuildingTypeValidatorDispatcher(Map.of());
         AtomicBoolean fallbackUsed = new AtomicBoolean(false);
         BuildingValidationResult fallbackResult = BuildingValidationResult.blockingFailure(
                 BuildingType.FARM,

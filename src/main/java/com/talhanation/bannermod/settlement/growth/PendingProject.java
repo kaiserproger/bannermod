@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.settlement.growth;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingCategory;
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingProfileSeed;
+import com.talhanation.bannermod.settlement.SettlementBuildingCategory;
+import com.talhanation.bannermod.settlement.SettlementBuildingProfileSeed;
 import net.minecraft.nbt.CompoundTag;
 
 import javax.annotation.Nullable;
@@ -16,8 +16,8 @@ public record PendingProject(
         UUID projectId,
         ProjectKind kind,
         @Nullable UUID targetBuildingUuid,
-        BannerModSettlementBuildingCategory buildingCategory,
-        BannerModSettlementBuildingProfileSeed profileSeed,
+        SettlementBuildingCategory buildingCategory,
+        SettlementBuildingProfileSeed profileSeed,
         int priorityScore,
         long proposedAtGameTime,
         int estimatedTickCost,
@@ -31,7 +31,7 @@ public record PendingProject(
             throw new IllegalArgumentException("kind must not be null");
         }
         if (profileSeed == null) {
-            profileSeed = BannerModSettlementBuildingProfileSeed.GENERAL;
+            profileSeed = SettlementBuildingProfileSeed.GENERAL;
         }
         if (buildingCategory == null) {
             buildingCategory = profileSeed.category();
@@ -68,8 +68,8 @@ public record PendingProject(
                 tag.getUUID("Id"),
                 kindFromTagName(tag.getString("Kind")),
                 target,
-                BannerModSettlementBuildingCategory.fromTagName(tag.getString("Category")),
-                BannerModSettlementBuildingProfileSeed.fromTagName(tag.getString("Profile")),
+                SettlementBuildingCategory.fromTagName(tag.getString("Category")),
+                SettlementBuildingProfileSeed.fromTagName(tag.getString("Profile")),
                 tag.getInt("Priority"),
                 tag.getLong("ProposedAt"),
                 tag.getInt("Cost"),

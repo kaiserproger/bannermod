@@ -1,0 +1,12 @@
+{
+  "id": "swordsman/iron_grip_i",
+  "archetype": "swordsman",
+  "point_cost": 1,
+  "prerequisites": [],
+  "bonuses": [
+    {
+      "stat": "attack_damage",
+      "amount": 0.5
+    }
+  ]
+}

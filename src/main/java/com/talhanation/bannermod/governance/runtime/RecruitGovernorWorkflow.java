@@ -15,9 +15,9 @@ import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.Envelope;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.Payload;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementClientSnapshotContract.RefreshTrigger;
-import com.talhanation.bannermod.settlement.BannerModSettlementManager;
-import com.talhanation.bannermod.settlement.BannerModSettlementService;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementManager;
+import com.talhanation.bannermod.settlement.SettlementService;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -52,10 +52,10 @@ public final class RecruitGovernorWorkflow {
         if (result.allowed()) {
             RecruitsClaim claim = resolveClaim(recruit);
             if (claim != null) {
-                BannerModSettlementService.refreshClaim(
+                SettlementService.refreshClaim(
                         serverLevel,
                         ClaimEvents.claimManager(),
-                        BannerModSettlementManager.get(serverLevel),
+                        SettlementManager.get(serverLevel),
                         BannerModGovernorManager.get(serverLevel),
                         claim
                 );
@@ -93,7 +93,7 @@ public final class RecruitGovernorWorkflow {
         Envelope envelope = Envelope.empty(0L, gameTime, RefreshTrigger.SCREEN_OPEN);
         if (claim != null && recruit.getCommandSenderWorld() instanceof ServerLevel serverLevel) {
             BannerModGovernorSnapshot governorSnapshot = governorService(serverLevel).getOrCreateGovernorSnapshot(claim);
-            BannerModSettlementSnapshot settlementSnapshot = BannerModSettlementManager.get(serverLevel).getSnapshot(claim.getUUID());
+            SettlementSnapshot settlementSnapshot = SettlementManager.get(serverLevel).getSnapshot(claim.getUUID());
             envelope = buildEnvelope(claim, settlementSnapshot, governorSnapshot, gameTime, RefreshTrigger.SCREEN_OPEN);
         }
 
@@ -104,13 +104,13 @@ public final class RecruitGovernorWorkflow {
     public static void syncGovernorSnapshotsOnLogin(ServerPlayer player) {
         ServerLevel level = player.serverLevel();
         BannerModGovernorManager governorManager = BannerModGovernorManager.get(level);
-        BannerModSettlementManager settlementManager = BannerModSettlementManager.get(level);
+        SettlementManager settlementManager = SettlementManager.get(level);
         long gameTime = level.getGameTime();
         for (BannerModGovernorSnapshot governorSnapshot : governorManager.getAllSnapshots()) {
             if (!player.getUUID().equals(governorSnapshot.governorOwnerUuid()) || governorSnapshot.governorRecruitUuid() == null) {
                 continue;
             }
-            BannerModSettlementSnapshot settlementSnapshot = settlementManager.getSnapshot(governorSnapshot.claimUuid());
+            SettlementSnapshot settlementSnapshot = settlementManager.getSnapshot(governorSnapshot.claimUuid());
             Envelope envelope = buildEnvelope(governorSnapshot.claimUuid(), settlementSnapshot, governorSnapshot,
                     gameTime, RefreshTrigger.LOGIN);
             sendGovernorUpdate(player, governorSnapshot.governorRecruitUuid(), envelope);
@@ -126,13 +126,13 @@ public final class RecruitGovernorWorkflow {
         if (player == null) {
             return;
         }
-        BannerModSettlementSnapshot settlementSnapshot = BannerModSettlementManager.get(level).getSnapshot(claim.getUUID());
+        SettlementSnapshot settlementSnapshot = SettlementManager.get(level).getSnapshot(claim.getUUID());
         Envelope envelope = buildEnvelope(claim, settlementSnapshot, governorSnapshot, level.getGameTime(), RefreshTrigger.MUTATION_REFRESH);
         sendGovernorUpdate(player, governorSnapshot.governorRecruitUuid(), envelope);
     }
 
     public static Envelope buildEnvelope(RecruitsClaim claim,
-                                  BannerModSettlementSnapshot settlementSnapshot,
+                                  SettlementSnapshot settlementSnapshot,
                                   BannerModGovernorSnapshot governorSnapshot,
                                   long gameTime,
                                   RefreshTrigger trigger) {
@@ -140,7 +140,7 @@ public final class RecruitGovernorWorkflow {
     }
 
     public static Envelope buildEnvelope(java.util.UUID claimUuid,
-                                  BannerModSettlementSnapshot settlementSnapshot,
+                                  SettlementSnapshot settlementSnapshot,
                                   BannerModGovernorSnapshot governorSnapshot,
                                   long gameTime,
                                   RefreshTrigger trigger) {

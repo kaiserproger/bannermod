@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.network.messages.military;
 
 import com.talhanation.bannermod.army.command.RecruitCommandAuthority;
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.entity.military.AbstractLeaderEntity;
 import com.talhanation.bannermod.persistence.military.RecruitsGroup;
 import com.talhanation.bannermod.network.payload.BannerModMessage;
@@ -12,7 +12,6 @@ import net.minecraft.world.entity.Entity;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
 import javax.annotation.Nullable;
-import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -40,7 +39,8 @@ public class MessageSetLeaderGroup implements BannerModMessage<MessageSetLeaderG
     @Override
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             Entity entity = player.serverLevel().getEntity(this.leaderUUID);
             if (!(entity instanceof AbstractLeaderEntity leader)
                     || !leader.isAlive()

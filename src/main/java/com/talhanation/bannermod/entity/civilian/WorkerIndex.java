@@ -114,6 +114,23 @@ public final class WorkerIndex {
         return Optional.of(List.copyOf(workers));
     }
 
+    public int countInChunk(ServerLevel level, ChunkPos chunkPos, boolean aliveOnly) {
+        if (level == null || chunkPos == null) return 0;
+        Map<ChunkPos, Set<UUID>> chunks = byLevel.get(level.dimension());
+        if (chunks == null) return 0;
+        Set<UUID> uuids = chunks.get(chunkPos);
+        if (uuids == null || uuids.isEmpty()) return 0;
+        if (!aliveOnly) return uuids.size();
+        int count = 0;
+        for (UUID uuid : uuids) {
+            Entity entity = level.getEntity(uuid);
+            if (entity instanceof AbstractWorkerEntity worker && worker.isAlive()) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     public void clear(ResourceKey<Level> dimension) {
         if (dimension == null) return;
         byLevel.remove(dimension);

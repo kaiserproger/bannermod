@@ -1,6 +1,6 @@
 package com.talhanation.bannermod.network.messages.military;
 
-import com.talhanation.bannermod.events.RecruitEvents;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.persistence.military.RecruitsGroup;
 import com.talhanation.bannermod.network.payload.BannerModMessage;
 import net.minecraft.network.protocol.PacketFlow;
@@ -8,7 +8,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageSplitGroup implements BannerModMessage<MessageSplitGroup> {
@@ -28,7 +27,8 @@ public class MessageSplitGroup implements BannerModMessage<MessageSplitGroup> {
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             RecruitsGroup groupToSplit = RecruitEvents.groupsManager().getGroup(groupUUID);
 
             if(groupToSplit == null) return;

@@ -1,13 +1,13 @@
 package com.talhanation.bannermod.settlement.household;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentAssignmentState;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentMode;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRole;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRuntimeRoleSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentScheduleSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentScheduleWindowSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentServiceContract;
+import com.talhanation.bannermod.settlement.SettlementResidentAssignmentState;
+import com.talhanation.bannermod.settlement.SettlementResidentMode;
+import com.talhanation.bannermod.settlement.SettlementResidentRecord;
+import com.talhanation.bannermod.settlement.SettlementResidentRole;
+import com.talhanation.bannermod.settlement.SettlementResidentRuntimeRoleState;
+import com.talhanation.bannermod.settlement.SettlementResidentScheduleSeed;
+import com.talhanation.bannermod.settlement.SettlementResidentScheduleWindowSeed;
+import com.talhanation.bannermod.settlement.SettlementResidentServiceContract;
 import com.talhanation.bannermod.settlement.goal.ResidentGoalContext;
 import org.junit.jupiter.api.Test;
 
@@ -142,19 +142,19 @@ class HouseholdGoalsTest {
     // Helpers
     // ------------------------------------------------------------------
 
-    private static BannerModSettlementResidentRecord buildResident() {
-        return new BannerModSettlementResidentRecord(
+    private static SettlementResidentRecord buildResident() {
+        return new SettlementResidentRecord(
                 RESIDENT_ID,
-                BannerModSettlementResidentRole.CONTROLLED_WORKER,
-                BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK,
-                BannerModSettlementResidentScheduleWindowSeed.LABOR_DAY,
-                BannerModSettlementResidentRuntimeRoleSeed.LOCAL_LABOR,
-                BannerModSettlementResidentServiceContract.notServiceActor(),
-                BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
+                SettlementResidentRole.CONTROLLED_WORKER,
+                SettlementResidentScheduleSeed.ASSIGNED_WORK,
+                SettlementResidentScheduleWindowSeed.LABOR_DAY,
+                SettlementResidentRuntimeRoleState.LOCAL_LABOR,
+                SettlementResidentServiceContract.notServiceActor(),
+                SettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
                 UUID.fromString("00000000-0000-0000-0000-0000000000cc"),
                 "teamA",
                 UUID.fromString("00000000-0000-0000-0000-0000000000dd"),
-                BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
+                SettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
         );
     }
 }

@@ -1,6 +1,7 @@
 package com.talhanation.bannermod.client.military.gui.overlay;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
+import com.talhanation.bannermod.client.civilian.input.AssignHomeTargetSelector;
 import com.talhanation.bannermod.client.military.ClientManager;
 import com.talhanation.bannermod.client.military.api.ClientClaimEvent;
 import com.talhanation.bannermod.client.military.api.ClientOverlayEvent;
@@ -124,7 +125,7 @@ public final class HudOverlayCoordinator {
         if (mc.player == null || mc.level == null) return;
         if (mc.options.hideGui || mc.getDebugOverlay().showDebugScreen() || mc.options.keyPlayerList.isDown()) return;
 
-        int y = TOP_SAFE_MARGIN;
+        int y = AssignHomeTargetSelector.renderPrompt(graphics, mc, TOP_SAFE_MARGIN);
         y = renderBattleWindow(graphics, mc, y);
         y = renderSiegeZone(graphics, mc, y);
         renderClaim(graphics, mc, y);

@@ -9,7 +9,6 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 
-import java.util.Objects;
 import java.util.UUID;
 
 public class MessageClearTargetGui implements BannerModMessage<MessageClearTargetGui> {
@@ -30,7 +29,8 @@ public class MessageClearTargetGui implements BannerModMessage<MessageClearTarge
 
     public void executeServerSide(BannerModNetworkContext context) {
         context.enqueueWork(() -> {
-            ServerPlayer player = Objects.requireNonNull(context.getSender());
+            ServerPlayer player = context.getSender();
+            if (player == null) return;
             AbstractRecruitEntity recruit = RecruitMessageEntityResolver.resolveRecruitInInflatedBox(player, this.recruit, 16.0D);
             if (recruit != null && RecruitCommandAuthority.canDirectlyControl(player, recruit)) {
                 CommandEvents.onClearTargetButton(recruit.getOwnerUUID(), recruit, null);

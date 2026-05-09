@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.war.registry;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementBuildingRecord;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
 
 import java.util.LinkedHashSet;
 import java.util.Locale;
@@ -11,12 +11,12 @@ public final class PoliticalStatePromotionPolicy {
     private PoliticalStatePromotionPolicy() {
     }
 
-    public static Result evaluate(BannerModSettlementSnapshot snapshot) {
+    public static Result evaluate(SettlementSnapshot snapshot) {
         if (snapshot == null) {
             return new Result(false, Set.of("settlement_snapshot"));
         }
         Set<String> present = new LinkedHashSet<>();
-        for (BannerModSettlementBuildingRecord building : snapshot.buildings()) {
+        for (SettlementBuildingRecord building : snapshot.buildings()) {
             present.add(normalize(building.buildingTypeId()));
         }
 

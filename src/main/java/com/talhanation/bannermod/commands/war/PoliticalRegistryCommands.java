@@ -10,8 +10,8 @@ import com.talhanation.bannermod.war.cooldown.WarCooldownPolicy;
 import com.talhanation.bannermod.war.cooldown.WarCooldownRuntime;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.persistence.military.RecruitsClaimSaveData;
-import com.talhanation.bannermod.settlement.BannerModSettlementManager;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementManager;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
 import com.talhanation.bannermod.war.registry.PoliticalEntityRecord;
 import com.talhanation.bannermod.war.registry.PoliticalEntityStatus;
 import com.talhanation.bannermod.war.registry.PoliticalRegistryRuntime;
@@ -169,14 +169,14 @@ public final class PoliticalRegistryCommands {
         return 1;
     }
 
-    private static Optional<BannerModSettlementSnapshot> settlementSnapshotForEntity(
+    private static Optional<SettlementSnapshot> settlementSnapshotForEntity(
             com.mojang.brigadier.context.CommandContext<CommandSourceStack> context,
             UUID politicalEntityId) {
         var level = WarCommandSupport.level(context);
-        BannerModSettlementManager settlements = BannerModSettlementManager.get(level);
+        SettlementManager settlements = SettlementManager.get(level);
         for (RecruitsClaim claim : RecruitsClaimSaveData.get(level).getAllClaims()) {
             if (politicalEntityId.equals(claim.getOwnerPoliticalEntityId())) {
-                BannerModSettlementSnapshot snapshot = settlements.getSnapshot(claim.getUUID());
+                SettlementSnapshot snapshot = settlements.getSnapshot(claim.getUUID());
                 if (snapshot != null) {
                     return Optional.of(snapshot);
                 }

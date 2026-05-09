@@ -19,8 +19,8 @@ import com.talhanation.bannermod.entity.civilian.workarea.MiningArea;
 import com.talhanation.bannermod.governance.BannerModGovernorManager;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.persistence.military.RecruitsClaimManager;
-import com.talhanation.bannermod.settlement.BannerModSettlementManager;
-import com.talhanation.bannermod.settlement.BannerModSettlementService;
+import com.talhanation.bannermod.settlement.SettlementManager;
+import com.talhanation.bannermod.settlement.SettlementService;
 import com.talhanation.bannermod.settlement.building.ValidatedBuildingRecord;
 import com.talhanation.bannermod.util.RuntimeProfilingCounters;
 import net.minecraft.core.BlockPos;
@@ -39,7 +39,7 @@ import java.util.UUID;
 
 /**
  * Owns the claim-refresh and worker-binding repair pipeline that was previously embedded inside
- * {@link BannerModSettlementService}. Snapshot construction and lookup helpers stay on the
+ * {@link SettlementService}. Snapshot construction and lookup helpers stay on the
  * orchestrator service; this class only handles iterating claims, putting snapshots, and repairing
  * worker bindings against canonical validated buildings.
  */
@@ -49,14 +49,14 @@ public final class SettlementClaimBindingService {
 
     public static void refreshAllClaims(ServerLevel level,
                                         RecruitsClaimManager claimManager,
-                                        BannerModSettlementManager settlementManager,
+                                        SettlementManager settlementManager,
                                         BannerModGovernorManager governorManager) {
         refreshClaimsBatch(level, claimManager, settlementManager, governorManager, 0, Integer.MAX_VALUE);
     }
 
     public static BatchResult refreshClaimsBatch(ServerLevel level,
                                                  RecruitsClaimManager claimManager,
-                                                 BannerModSettlementManager settlementManager,
+                                                 SettlementManager settlementManager,
                                                  BannerModGovernorManager governorManager,
                                                  int startIndex,
                                                  int maxClaims) {
@@ -79,7 +79,7 @@ public final class SettlementClaimBindingService {
         int clampedStart = Math.max(0, Math.min(startIndex, total));
         int endIndex = Math.min(total, clampedStart + maxClaims);
         for (int i = clampedStart; i < endIndex; i++) {
-            settlementManager.putSnapshot(BannerModSettlementService.buildSnapshot(level, claims.get(i), governorManager));
+            settlementManager.putSnapshot(SettlementService.buildSnapshot(level, claims.get(i), governorManager));
         }
 
         if (endIndex >= total) {
@@ -109,7 +109,7 @@ public final class SettlementClaimBindingService {
 
     public static void refreshClaimAt(ServerLevel level,
                                       RecruitsClaimManager claimManager,
-                                      BannerModSettlementManager settlementManager,
+                                      SettlementManager settlementManager,
                                       BannerModGovernorManager governorManager,
                                       BlockPos pos) {
         if (level == null || claimManager == null || settlementManager == null || pos == null) {
@@ -120,7 +120,7 @@ public final class SettlementClaimBindingService {
 
     public static void refreshClaim(ServerLevel level,
                                     RecruitsClaimManager claimManager,
-                                    BannerModSettlementManager settlementManager,
+                                    SettlementManager settlementManager,
                                     @Nullable BannerModGovernorManager governorManager,
                                     @Nullable RecruitsClaim claim) {
         if (level == null || claimManager == null || settlementManager == null) {
@@ -129,7 +129,7 @@ public final class SettlementClaimBindingService {
         if (claim == null) {
             return;
         }
-        settlementManager.putSnapshot(BannerModSettlementService.buildSnapshot(level, claim, governorManager));
+        settlementManager.putSnapshot(SettlementService.buildSnapshot(level, claim, governorManager));
     }
 
     public static void repairClaimState(ServerLevel level,
@@ -139,12 +139,12 @@ public final class SettlementClaimBindingService {
         if (level == null || claim == null) {
             return;
         }
-        Map<UUID, UUID> canonicalBindings = BannerModSettlementService.buildCanonicalWorkAreaBindings(validatedBuildings, workAreas);
+        Map<UUID, UUID> canonicalBindings = SettlementService.buildCanonicalWorkAreaBindings(validatedBuildings, workAreas);
         Map<UUID, AbstractWorkAreaEntity> areasById = new LinkedHashMap<>();
         for (AbstractWorkAreaEntity workArea : workAreas) {
             areasById.put(workArea.getUUID(), workArea);
         }
-        for (AbstractWorkerEntity worker : BannerModSettlementService.workersInClaim(level, claim)) {
+        for (AbstractWorkerEntity worker : SettlementService.workersInClaim(level, claim)) {
             repairWorkerBinding(worker, workAreas, canonicalBindings, areasById);
         }
     }
