@@ -8047,8 +8047,8 @@
     {
       "id": "SKILLTREE-005",
       "title": "Recruit + player skill-tree GUI screens",
-      "status": "open",
-      "updated": "2026-05-04",
+      "status": "in_progress",
+      "updated": "2026-05-09",
       "why": "SKILLTREE-001 phase plan step 4: the perk system is invisible to players without parchment-style GUI screens, locked/available/owned states, and a player key-binding to open the player tree.",
       "scope": [
         "Add a parchment-style recruit perk-tree screen invoked from the existing RecruitProfileScreen with locked/available/owned visual states and a click-to-unlock flow gated by skill-points and prerequisites.",
@@ -8067,10 +8067,14 @@
         "tools/backlog validate passes; ./gradlew compileJava is green."
       ],
       "dependencies": [
-        "SKILLTREE-003",
-        "SKILLTREE-004"
+        "SKILLTREE-005A"
       ],
-      "progress": [],
+      "progress": [
+        {
+          "date": "2026-05-09",
+          "text": "Implemented recruit/player parchment skill-tree screens, keybinding, server-authoritative snapshot/unlock/respec packets, localized strings, guides/almanac updates, source UI contract coverage, and packet-path GameTest coverage. Verified compileJava, compileTestJava, compileGameTestJava, focused CriticalUiStateVerificationTest, verifyGameTestStage, code-simplifier no-op, and code-reviewer no blocker/medium findings. Remaining acceptance moved to SKILLTREE-005A: live manual screenshot/overlap validation at 1080p and 1440p."
+        }
+      ],
       "verification": [],
       "evidence": []
     },
@@ -10010,6 +10014,29 @@
       ],
       "evidence": [],
       "doneDate": "2026-05-08"
+    },
+    {
+      "id": "SKILLTREE-005A",
+      "title": "Manual skill-tree UI overlap validation",
+      "status": "open",
+      "updated": "2026-05-09",
+      "why": "SKILLTREE-005 includes a manual screenshot/overlap acceptance check that cannot be honestly completed from the headless coding session.",
+      "scope": [
+        "Run a Minecraft client with the SKILLTREE-005 implementation and open the recruit perk tree from recruit inventory.",
+        "Open the player skill tree through the new player skill-tree keybinding.",
+        "Capture or record manual UI notes for 1080p and 1440p showing no overlap with hotbar, chat, crosshair, boss bars, or existing BannerMod overlays.",
+        "Verify the visible locked, available, owned, pending, denied, unlock, and respec-confirmation states in the live UI; if defects are found, create concrete follow-up fix tasks instead of closing this validation task."
+      ],
+      "acceptance": [
+        "Recruit perk tree opens from recruit inventory and live screenshots/notes show locked, available, and owned states at 1080p and 1440p without overlap.",
+        "Player skill tree opens from the keybinding and live screenshots/notes show locked, available, and owned states at 1080p and 1440p without overlap.",
+        "Live unlock, insufficient-points denial, and respec confirmation feedback are visible and do not obscure required decision context.",
+        "tools/backlog validate passes after recording the verification result."
+      ],
+      "dependencies": [],
+      "progress": [],
+      "verification": [],
+      "evidence": []
     }
   ]
 }

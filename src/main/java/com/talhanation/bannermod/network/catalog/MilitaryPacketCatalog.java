@@ -105,6 +105,9 @@ public final class MilitaryPacketCatalog {
         MessageFormationMapMoveOrder.class,
         MessageFormationMapEngage.class,
         MessageConvertRecruitType.class,
+        MessageRequestPerkTreeSnapshot.class,
+        MessageUpdatePerkTree.class,
+        MessageToClientUpdatePerkTreeSnapshot.class,
     };
 
     public static final PacketCatalog CATALOG = new PacketCatalog(MESSAGES);

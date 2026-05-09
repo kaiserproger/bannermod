@@ -6,6 +6,7 @@ import com.talhanation.bannermod.BannerModGameTestSupport;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.entity.civilian.workarea.StorageArea;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
+import com.talhanation.bannermod.entity.military.perks.PlayerPerkProgressService;
 import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.gametest.support.PacketGameTestSupport;
 import com.talhanation.bannermod.gametest.support.RecruitsBattleGameTestSupport;
@@ -13,6 +14,7 @@ import com.talhanation.bannermod.network.messages.civilian.MessageUpdateOwner;
 import com.talhanation.bannermod.network.messages.military.MessageAssignGroupToPlayer;
 import com.talhanation.bannermod.network.messages.military.MessageAssignRecruitToPlayer;
 import com.talhanation.bannermod.network.messages.military.MessageTeleportPlayer;
+import com.talhanation.bannermod.network.messages.military.MessageUpdatePerkTree;
 import com.talhanation.bannermod.persistence.military.RecruitsGroup;
 import com.talhanation.bannermod.persistence.military.RecruitsPlayerInfo;
 import com.talhanation.bannermod.registry.military.ModEntityTypes;
@@ -148,6 +150,64 @@ public class PacketAuthorityGameTests {
             helper.assertTrue(area.getPlayerName() != null && !area.getPlayerName().isBlank(),
                     "Expected work-area owner packet to resolve a non-blank server-side owner name");
         });
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void perkTreeUpdatePacketRejectsUnauthorizedAndAppliesServerMutations(GameTestHelper helper) {
+        ServerLevel level = helper.getLevel();
+        ServerPlayer owner = createPlayer(helper, level, OWNER_UUID, "packet-perk-owner");
+        ServerPlayer outsider = createPlayer(helper, level, OUTSIDER_UUID, "packet-perk-outsider");
+        AbstractRecruitEntity recruit = spawnOwnedRecruit(helper, OWNER_UUID, "Packet Perk Recruit");
+        String recruitPerk = "universal/toughness_i";
+        String playerPerk = "player/toughness_i";
+
+        PacketGameTestSupport.dispatchServerbound(outsider,
+                new MessageUpdatePerkTree(false, recruit.getUUID(), MessageUpdatePerkTree.ACTION_UNLOCK, recruitPerk),
+                MessageUpdatePerkTree::new);
+        helper.assertTrue(!recruit.getPerkProgress().isOwned(recruitPerk),
+                "Expected outsider recruit perk packet to leave the perk locked");
+
+        PacketGameTestSupport.dispatchServerbound(owner,
+                new MessageUpdatePerkTree(false, recruit.getUUID(), MessageUpdatePerkTree.ACTION_UNLOCK, recruitPerk),
+                MessageUpdatePerkTree::new);
+        helper.assertTrue(!recruit.getPerkProgress().isOwned(recruitPerk),
+                "Expected insufficient-points recruit perk packet to leave the perk locked");
+
+        recruit.getPerkProgress().grantPoints(1);
+        PacketGameTestSupport.dispatchServerbound(owner,
+                new MessageUpdatePerkTree(false, recruit.getUUID(), MessageUpdatePerkTree.ACTION_UNLOCK, recruitPerk),
+                MessageUpdatePerkTree::new);
+        helper.assertTrue(recruit.getPerkProgress().isOwned(recruitPerk),
+                "Expected owner recruit perk packet with points to unlock the perk");
+
+        PacketGameTestSupport.dispatchServerbound(owner,
+                new MessageUpdatePerkTree(false, recruit.getUUID(), MessageUpdatePerkTree.ACTION_RESPEC, ""),
+                MessageUpdatePerkTree::new);
+        helper.assertTrue(!recruit.getPerkProgress().isOwned(recruitPerk)
+                        && recruit.getPerkProgress().getAvailablePoints() == 1,
+                "Expected recruit respec packet to clear the perk and refund its point");
+
+        PacketGameTestSupport.dispatchServerbound(owner,
+                new MessageUpdatePerkTree(true, null, MessageUpdatePerkTree.ACTION_UNLOCK, playerPerk),
+                MessageUpdatePerkTree::new);
+        helper.assertTrue(!PlayerPerkProgressService.progress(owner).isOwned(playerPerk),
+                "Expected insufficient-points player perk packet to leave the perk locked");
+
+        PlayerPerkProgressService.progress(owner).grantPoints(1);
+        PacketGameTestSupport.dispatchServerbound(owner,
+                new MessageUpdatePerkTree(true, null, MessageUpdatePerkTree.ACTION_UNLOCK, playerPerk),
+                MessageUpdatePerkTree::new);
+        helper.assertTrue(PlayerPerkProgressService.progress(owner).isOwned(playerPerk),
+                "Expected player perk packet with points to unlock the perk");
+
+        PacketGameTestSupport.dispatchServerbound(owner,
+                new MessageUpdatePerkTree(true, null, MessageUpdatePerkTree.ACTION_RESPEC, ""),
+                MessageUpdatePerkTree::new);
+        helper.assertTrue(!PlayerPerkProgressService.progress(owner).isOwned(playerPerk)
+                        && PlayerPerkProgressService.progress(owner).getAvailablePoints() == 1,
+                "Expected player respec packet to clear the perk and refund its point");
+        helper.succeed();
     }
 
     private static ServerPlayer createPlayer(GameTestHelper helper, ServerLevel level, UUID playerId, String name) {

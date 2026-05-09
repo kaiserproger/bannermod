@@ -275,7 +275,7 @@ You can set per-unit stances from the recruit's inventory (`RecruitInventoryScre
 
 If a crossbowman is holding a musketmod gun, the recruit inventory now shows whether that firearm is supported, whether cartridges are present, or whether the gun is unsupported for recruit use. Check that feedback before assuming the recruit combat runtime is broken.
 
-Recruit and player perks are server-side. Level-ups grant perk points, kill credit can add player perk progress, and unlocked perks can add max health, knockback resistance, melee damage, attack speed, movement speed, ranged accuracy, or projectile velocity. Recruit archetype perks apply only to the matching role: swordsman, bowman, crossbowman, pikeman/shieldman, or cavalry.
+Recruit and player perks are server-side. Level-ups grant perk points, kill credit can add player perk progress, and unlocked perks can add max health, knockback resistance, melee damage, attack speed, movement speed, ranged accuracy, or projectile velocity. Recruit archetype perks apply only to the matching role: swordsman, bowman, crossbowman, pikeman/shieldman, or cavalry. Open a recruit's parchment perk tree from the recruit inventory `Perks` button; open your own parchment skill tree with the `Open Player Skill Tree` keybind (`K` by default). Locked, available, and owned states are shown in the tree. Unlock and respec requests are sent to the server, which validates ownership, points, and prerequisites before sending the refreshed tree back.
 
 ### Recruit command pipeline details
 

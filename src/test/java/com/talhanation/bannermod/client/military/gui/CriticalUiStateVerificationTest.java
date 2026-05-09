@@ -73,6 +73,45 @@ class CriticalUiStateVerificationTest {
     }
 
     @Test
+    void perkTreeKeepsServerAuthoritativeUiAndLocalizedWiring() throws IOException {
+        String recruitInventoryScreen = read("src/main/java/com/talhanation/bannermod/client/military/gui/RecruitInventoryScreen.java");
+        String perkTreeScreen = read("src/main/java/com/talhanation/bannermod/client/military/gui/PerkTreeScreen.java");
+        String keyEvents = read("src/main/java/com/talhanation/bannermod/client/military/events/KeyEvents.java");
+        String modShortcuts = read("src/main/java/com/talhanation/bannermod/registry/military/ModShortcuts.java");
+        String packetCatalog = read("src/main/java/com/talhanation/bannermod/network/catalog/MilitaryPacketCatalog.java");
+        String updatePacket = read("src/main/java/com/talhanation/bannermod/network/messages/military/MessageUpdatePerkTree.java");
+        String enLang = read("src/main/resources/assets/bannermod/lang/en_us.json");
+        String ruLang = read("src/main/resources/assets/bannermod/lang/ru_ru.json");
+
+        assertTrue(recruitInventoryScreen.contains("PerkTreeScreen.recruitTree(this.recruit)"));
+        assertTrue(modShortcuts.contains("PLAYER_SKILL_TREE_KEY"));
+        assertTrue(keyEvents.contains("PerkTreeScreen.playerTree()"));
+
+        assertTrue(perkTreeScreen.contains("private boolean snapshotReady"));
+        assertTrue(perkTreeScreen.contains("if (!snapshotReady) return null"));
+        assertTrue(perkTreeScreen.contains("respecButton.active = progress != null"));
+        assertTrue(perkTreeScreen.contains("setScreen(null)"));
+        assertTrue(perkTreeScreen.contains("PerkState.LOCKED"));
+        assertTrue(perkTreeScreen.contains("PerkState.AVAILABLE"));
+        assertTrue(perkTreeScreen.contains("PerkState.OWNED"));
+        assertTrue(perkTreeScreen.contains("new MessageUpdatePerkTree(playerTree, recruitUuid(), action, perkId)"));
+        assertTrue(perkTreeScreen.contains("gui.bannermod.perk_tree.respec.confirm"));
+
+        assertTrue(updatePacket.contains("PlayerPerkProgressService.unlock(sender, perkId)"));
+        assertTrue(updatePacket.contains("recruit.getPerkProgress().unlock(node)"));
+        assertTrue(updatePacket.contains("MessageRequestPerkTreeSnapshot.isAuthorized(sender, recruit)"));
+        assertTrue(updatePacket.contains("PerkEffectService.applyRecruitAttributeBonuses(recruit)"));
+        assertTrue(packetCatalog.contains("MessageRequestPerkTreeSnapshot.class"));
+        assertTrue(packetCatalog.contains("MessageUpdatePerkTree.class"));
+        assertTrue(packetCatalog.contains("MessageToClientUpdatePerkTreeSnapshot.class"));
+
+        assertTrue(enLang.contains("gui.bannermod.perk_tree.state.available"));
+        assertTrue(enLang.contains("key.bannermod.player_skill_tree_key"));
+        assertTrue(ruLang.contains("gui.bannermod.perk_tree.state.available"));
+        assertTrue(ruLang.contains("key.bannermod.player_skill_tree_key"));
+    }
+
+    @Test
     void recruitAndAssassinScreensKeepVisibleStatusReasons() throws IOException {
         String recruitInventoryScreen = read("src/main/java/com/talhanation/bannermod/client/military/gui/RecruitInventoryScreen.java");
         String assassinLeaderScreen = read("src/main/java/com/talhanation/bannermod/client/military/gui/AssassinLeaderScreen.java");
