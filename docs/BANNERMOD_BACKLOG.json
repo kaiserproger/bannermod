@@ -8011,8 +8011,8 @@
     {
       "id": "SKILLTREE-004",
       "title": "Player skill tree perks + combat hooks",
-      "status": "open",
-      "updated": "2026-05-04",
+      "status": "done",
+      "updated": "2026-05-09",
       "why": "SKILLTREE-001 phase plan step 3: player-side perks must use the SKILLTREE-002 AttachmentType and observably affect the player when unlocked. Without this the system is recruit-only.",
       "scope": [
         "Author the player perk catalog (general-stat: HP, KB-resist, attack damage, attack speed, movement, ranged accuracy, ranged velocity) using the SKILLTREE-002 model.",
@@ -8031,8 +8031,18 @@
         "SKILLTREE-002"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-09",
+          "result": "1) ./gradlew runGameTestServer passed under JDK 21, including BannerModPlayerSkillTreeCombatGameTests for player HP, knockback resistance, attack damage, attack speed, movement, ranged accuracy, and captured projectile velocity deltas. 2) BannerModSkillTreePersistenceGameTests passed with player perk save/load plus reload into a dimension target. 3) PlayerPerkEvents LevelChange and kill-credit GameTest coverage proved one point per gained level/kill credit and respec refunded the cost-1 player perk. 4) PerkCatalogContractTest passed for en_us/ru_ru keys for every authored player perk; runGameTestServer completed without missing-key failures. 5) tools/backlog validate passed and ./gradlew compileJava passed under JDK 21."
+        },
+        {
+          "date": "2026-05-09",
+          "result": "1) compileJava, compileTestJava, compileGameTestJava, and PerkCatalogContractTest passed under JDK 21 after final changes. 2) runGameTestServer executed after final changes; all SKILLTREE player/recruit GameTests passed, including player stat/ranged projectile deltas, earning/respec, and player perk save/load plus server-level dimension transfer/reload; the only remaining failure was unrelatedclaimstateispreservedwhensiblingclaimisdeleted outside this task. 3) en_us/ru_ru localization coverage passed via PerkCatalogContractTest; the GameTest log showed no missing-key failures. 4) tools/backlog validate passed."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-09"
     },
     {
       "id": "SKILLTREE-005",
