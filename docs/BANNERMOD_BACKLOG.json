@@ -7980,8 +7980,8 @@
     {
       "id": "SKILLTREE-003",
       "title": "Per-archetype recruit perk catalogs + combat hooks",
-      "status": "open",
-      "updated": "2026-05-04",
+      "status": "done",
+      "updated": "2026-05-09",
       "why": "SKILLTREE-001 phase plan step 2: once the data model exists, recruit perks (sword/bow/crossbow/pikeman/cavalry) plus general stats (HP, KB-resist, attack damage, attack speed, movement, ranged accuracy, ranged velocity) need real catalog entries and observable combat effects.",
       "scope": [
         "Author per-archetype perk catalogs for swordsman, bowman, crossbowman, pikeman, and cavalry recruits using the SKILLTREE-002 model.",
@@ -7999,8 +7999,14 @@
         "SKILLTREE-002"
       ],
       "progress": [],
-      "verification": [],
-      "evidence": []
+      "verification": [
+        {
+          "date": "2026-05-09",
+          "result": "1) ./gradlew runGameTestServer passed under JDK 21, including BannerModRecruitSkillTreeCombatGameTests coverage for swordsman damage, universal HP, pikeman knockback resistance, cavalry movement, bow accuracy, and captured crossbow projectile velocity deltas. 2) freshRecruitKeepsBaselineStatsAndNoUnlockedPerks GameTest passed, proving no-perk recruits keep baseline stats and zero unlocked perks. 3) PerkCatalogContractTest passed for universal stat coverage plus en_us/ru_ru keys for every default perk; runGameTestServer log had no missing-key failure. 4) tools/backlog validate passed and ./gradlew compileJava passed under JDK 21."
+        }
+      ],
+      "evidence": [],
+      "doneDate": "2026-05-09"
     },
     {
       "id": "SKILLTREE-004",
