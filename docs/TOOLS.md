@@ -80,6 +80,7 @@ Shared local guardrail scripts live in `tools/agent-hooks/`.
 - Claude Code uses `.claude/settings.local.json`, which runs `tools/ai-context-proxy/hooks/claude-pre-bash.py`; that wrapper delegates to `tools/agent-hooks/pre-bash-guardrails.py`.
 - Codex supports project hooks through `.codex/config.toml` with `[features].codex_hooks = true`; this repo wires `PreToolUse` for Bash to the shared guardrail script.
 - OpenCode supports project plugins under `.opencode/plugins/`; this repo uses `.opencode/plugins/project-guardrails.js` to block direct backlog JSON access and raw context dumps before Bash execution.
+- `code-simplifier` and `code-reviewer` are required quality gates for every completed feature/task. Run `code-simplifier` first, verify any cleanup, then run `code-reviewer` and resolve or record findings before marking the task done.
 - Cursor, Windsurf, Gemini, and Copilot rule files currently provide instruction-level guardrails only; no repo-local executable hook format is configured here for them.
 
 Repo-local execution commands:

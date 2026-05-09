@@ -6,6 +6,7 @@ import com.talhanation.bannermod.client.civilian.gui.WorkerCommandScreen;
 import com.talhanation.bannermod.client.civilian.input.AssignHomeTargetSelector;
 import com.talhanation.bannermod.client.civilian.render.WorkerAreaRenderer;
 import com.talhanation.bannermod.client.military.gui.war.WarListScreen;
+import com.talhanation.bannermod.client.military.gui.PerkTreeScreen;
 import com.talhanation.bannermod.client.military.gui.worldmap.WorldMapScreen;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.registry.military.ModShortcuts;
@@ -58,6 +59,10 @@ public class KeyEvents {
 
         if (ModShortcuts.WAR_ROOM_KEY.consumeClick()) {
             minecraft.setScreen(new WarListScreen(null));
+        }
+
+        if (ModShortcuts.PLAYER_SKILL_TREE_KEY != null && ModShortcuts.PLAYER_SKILL_TREE_KEY.consumeClick()) {
+            minecraft.setScreen(PerkTreeScreen.playerTree());
         }
 
         if (com.talhanation.bannermod.registry.civilian.ModShortcuts.TOGGLE_PREFAB_RENDER_KEY != null

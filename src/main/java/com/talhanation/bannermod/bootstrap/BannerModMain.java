@@ -147,6 +147,7 @@ public class BannerModMain {
         NeoForge.EVENT_BUS.register(new ClaimEvents());
         NeoForge.EVENT_BUS.register(new CommandEvents());
         NeoForge.EVENT_BUS.register(new DamageEvent());
+        NeoForge.EVENT_BUS.register(new com.talhanation.bannermod.events.PlayerPerkEvents());
         NeoForge.EVENT_BUS.register(new PillagerEvents());
         NeoForge.EVENT_BUS.register(new VillagerEvents());
         NeoForge.EVENT_BUS.register(new WarPvpEvents());

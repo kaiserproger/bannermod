@@ -1,9 +1,11 @@
 package com.talhanation.bannermod.client.military;
 
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
+import com.talhanation.bannermod.entity.military.perks.PerkProgress;
 import com.talhanation.bannermod.army.map.FormationMapContact;
 import com.talhanation.bannermod.persistence.military.*;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -30,6 +32,11 @@ public class ClientManager {
     public static int groupsVersion;
     public static List<FormationMapContact> formationMapContacts = new ArrayList<>();
     public static int formationMapContactsVersion;
+    public static PerkProgress playerPerkSnapshot = new PerkProgress();
+    public static UUID recruitPerkSnapshotUuid;
+    public static PerkProgress recruitPerkSnapshot = new PerkProgress();
+    public static Component perkTreeFeedback = Component.empty();
+    public static int perkTreeSnapshotVersion;
     public static int configValueClaimCost;
     public static int configValueChunkCost;
     public static boolean configValueCascadeClaimCost;
@@ -64,6 +71,11 @@ public class ClientManager {
         groupsVersion++;
         formationMapContacts = new ArrayList<>();
         formationMapContactsVersion++;
+        playerPerkSnapshot = new PerkProgress();
+        recruitPerkSnapshotUuid = null;
+        recruitPerkSnapshot = new PerkProgress();
+        perkTreeFeedback = Component.empty();
+        perkTreeSnapshotVersion++;
         configValueClaimCost = 0;
         configValueChunkCost = 0;
         configValueCascadeClaimCost = false;

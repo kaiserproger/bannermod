@@ -1,0 +1,12 @@
+{
+  "id": "player/quick_hands_i",
+  "archetype": "universal",
+  "point_cost": 1,
+  "prerequisites": [],
+  "bonuses": [
+    {
+      "stat": "attack_speed",
+      "amount": 0.10
+    }
+  ]
+}

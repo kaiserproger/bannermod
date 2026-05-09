@@ -113,6 +113,8 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
     private static final MutableComponent TEXT_MENU_MOUNT = Component.translatable("gui.recruits.inv.menu.mount");
     private static final MutableComponent TEXT_ASSIGN_HOME = Component.translatable("bannermod.assign_home.button");
     private static final MutableComponent TOOLTIP_ASSIGN_HOME = Component.translatable("bannermod.assign_home.tooltip");
+    private static final MutableComponent TEXT_PERK_TREE = Component.translatable("gui.bannermod.perk_tree.recruit.button");
+    private static final MutableComponent TOOLTIP_PERK_TREE = Component.translatable("gui.bannermod.perk_tree.recruit.tooltip");
     private static final MutableComponent STATUS_READ_ONLY = Component.translatable("gui.recruits.inv.status.read_only");
     private static final MutableComponent STATUS_GROUP_UNSET = Component.translatable("gui.recruits.inv.status.group_unset");
     private static final MutableComponent STATUS_GROUP_LOCKED = Component.translatable("gui.recruits.inv.status.group_locked");
@@ -312,6 +314,10 @@ public class RecruitInventoryScreen extends ScreenBase<RecruitInventoryMenu> {
         moreButton.active = !(recruit instanceof VillagerNobleEntity);
         if (!moreButton.active) moreButton.setTooltip(Tooltip.create(TOOLTIP_NOBLE_LOCKED));
         addRenderableWidget(moreButton);
+
+        Button perkTreeButton = addRenderableWidget(new ProfileButton(leftPos + 292, topPos + 24, 78, 16, TEXT_PERK_TREE,
+                button -> minecraft.setScreen(PerkTreeScreen.recruitTree(this.recruit))));
+        perkTreeButton.setTooltip(Tooltip.create(TOOLTIP_PERK_TREE));
 
         Button assignHome = addRenderableWidget(new ProfileButton(zeroLeftPos, zeroTopPos + (20 + topPosGab) * 6,
                 80, 20, TEXT_ASSIGN_HOME, button -> {

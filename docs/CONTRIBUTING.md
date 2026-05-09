@@ -16,11 +16,14 @@ BannerMod is a brownfield merge workspace. Contributions should be small, verifi
 3. Reproduce the bug or define acceptance checks before editing.
 4. Make the smallest code change that satisfies the check.
 5. Add or update focused tests when behavior changes.
-6. Self-verify the result against every acceptance item of the backlog task before marking it done.
-7. Update `MULTIPLAYER_GUIDE_RU.md`, `MULTIPLAYER_GUIDE_EN.md`, and `docs/BANNERMOD_ALMANAC.html` when the task changes UI, changes mechanics, or adds player-facing mechanics that non-technical players must know.
-8. Run the cheapest relevant verification first, then wider gates only when the touched area needs them.
-9. Update the backlog through `tools/backlog progress` or `tools/backlog done --verification`, and update `docs/STATUS.md` / `.planning/STATE.md` when shipped behavior or project status changes.
-10. Commit atomically by area: code, tools, and docs should usually be separate commits.
+6. Run `code-simplifier` on the completed slice and apply only small, behavior-preserving cleanup that it justifies.
+7. Self-verify the result against every acceptance item of the backlog task before marking it done.
+8. Update `MULTIPLAYER_GUIDE_RU.md`, `MULTIPLAYER_GUIDE_EN.md`, and `docs/BANNERMOD_ALMANAC.html` when the task changes UI, changes mechanics, or adds player-facing mechanics that non-technical players must know.
+9. Run the cheapest relevant verification first, then wider gates only when the touched area needs them.
+10. Update `docs/STATUS.md` / `.planning/STATE.md` when shipped behavior or project status changes.
+11. Run `code-reviewer` on the completed diff and resolve or explicitly document every finding before closing the task.
+12. Update the backlog through `tools/backlog progress` or `tools/backlog done --verification`.
+13. Commit atomically by area: code, tools, and docs should usually be separate commits.
 
 ## Naming Conventions
 
@@ -112,10 +115,11 @@ Use `tools/task-worktree <TASK-ID> --base origin/master` for an independent task
 3. Rewrite each acceptance item into one concrete verification check you can actually observe now: compile, unit test, GameTest, manual in-game flow, log output, UI state, or code-path inspection when runtime proof is impossible.
 4. Run the cheapest relevant verification first. Examples: `./gradlew compileJava` before full tests, a focused test before the whole suite, or a single GameTest class before `verifyGameTestStage`.
 5. If the task changes gameplay, UI, multiplayer authority, persistence, or player-facing docs, include at least one verification step that exercises the changed behavior directly rather than only compiling.
-6. If one or more acceptance items are still not satisfied, keep the task open and append `tools/backlog progress <ID> "<what passed; what is still missing; what blocked full verification>"`.
-7. Mark a task done only when every acceptance item is observably satisfied right now and every dependency is already done. Record the evidence with `tools/backlog done <ID> --verification "<per-acceptance proof>"`.
-8. The verification note must map back to the acceptance items explicitly. Example: `1) compileJava passed; 2) BannerModClaimProtectionGameTests passed hostile-denial path; 3) in-game War Room flow showed disabled tribute reason text.`
-9. When verification is blocked, say so plainly in backlog progress instead of guessing or claiming green status.
+6. Before final completion, run `code-simplifier`, verify any accepted cleanup, then run `code-reviewer` and resolve or document findings.
+7. If one or more acceptance items are still not satisfied, keep the task open and append `tools/backlog progress <ID> "<what passed; what is still missing; what blocked full verification>"`.
+8. Mark a task done only when every acceptance item is observably satisfied right now, every dependency is already done, and the `code-simplifier` / `code-reviewer` gate is complete. Record the evidence with `tools/backlog done <ID> --verification "<per-acceptance proof; simplifier/reviewer result>"`.
+9. The verification note must map back to the acceptance items explicitly. Example: `1) compileJava passed; 2) BannerModClaimProtectionGameTests passed hostile-denial path; 3) in-game War Room flow showed disabled tribute reason text; 4) code-simplifier no-op and code-reviewer no findings.`
+10. When verification is blocked, say so plainly in backlog progress instead of guessing or claiming green status.
 
 ## Verification Defaults
 

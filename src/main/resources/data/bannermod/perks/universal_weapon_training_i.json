@@ -1,0 +1,12 @@
+{
+  "id": "universal/weapon_training_i",
+  "archetype": "universal",
+  "point_cost": 1,
+  "prerequisites": [],
+  "bonuses": [
+    {
+      "stat": "attack_damage",
+      "amount": 0.25
+    }
+  ]
+}
