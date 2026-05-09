@@ -7,6 +7,7 @@ import java.util.Set;
 
 public final class PlayerPerkProgressService {
     private static final int PERK_POINTS_PER_LEVEL = 1;
+    private static final String PLAYER_PERK_PREFIX = "player/";
 
     private PlayerPerkProgressService() {
     }
@@ -28,12 +29,27 @@ public final class PlayerPerkProgressService {
         progress(player).grantPoints(gainedLevels * PERK_POINTS_PER_LEVEL);
     }
 
+    public static void grantKillCredit(ServerPlayer player) {
+        progress(player).grantPoints(PERK_POINTS_PER_LEVEL);
+    }
+
     public static PerkProgress.UnlockResult unlock(ServerPlayer player, String perkId) {
         PerkNode node = PerkRegistry.get(perkId).orElse(null);
+        if (!isPlayerPerk(node)) {
+            return PerkProgress.UnlockResult.UNKNOWN_PERK;
+        }
         return progress(player).unlock(node);
     }
 
     public static int respec(ServerPlayer player) {
         return progress(player).respec();
+    }
+
+    public static boolean isPlayerPerk(PerkNode node) {
+        return node != null && node.id().startsWith(PLAYER_PERK_PREFIX);
+    }
+
+    public static int perkPointsPerLevel() {
+        return PERK_POINTS_PER_LEVEL;
     }
 }

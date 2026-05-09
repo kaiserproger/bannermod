@@ -1,0 +1,12 @@
+{
+  "id": "player/toughness_i",
+  "archetype": "universal",
+  "point_cost": 1,
+  "prerequisites": [],
+  "bonuses": [
+    {
+      "stat": "max_health",
+      "amount": 2.0
+    }
+  ]
+}

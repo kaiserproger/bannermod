@@ -12,6 +12,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -23,7 +24,7 @@ public class BannerModSkillTreePersistenceGameTests {
     private static final UUID RECRUIT_OWNER_UUID = UUID.fromString("00000000-0000-0000-0000-000000002c01");
     private static final UUID PLAYER_UUID = UUID.fromString("00000000-0000-0000-0000-000000002c02");
     private static final String RECRUIT_PERK_ID = "universal/toughness_i";
-    private static final String PLAYER_PERK_ID = "swordsman/iron_grip_i";
+    private static final String PLAYER_PERK_ID = "player/weapon_training_i";
 
     @PrefixGameTestTemplate(false)
     @GameTest(template = "harness_empty")
@@ -70,8 +71,20 @@ public class BannerModSkillTreePersistenceGameTests {
         helper.assertTrue(PlayerPerkProgressService.unlock(player, PLAYER_PERK_ID) == PerkProgress.UnlockResult.OK,
                 "Expected player test perk to unlock before save");
 
+        ServerLevel destination = level.getServer().getLevel(Level.NETHER);
+        if (destination == null) {
+            destination = level;
+        }
+        if (destination != level) {
+            player.setServerLevel(destination);
+            player.moveTo(player.getX(), player.getY() + 1.0D, player.getZ(), player.getYRot(), player.getXRot());
+        }
+        helper.assertTrue(PlayerPerkProgressService.progress(player).isOwned(PLAYER_PERK_ID),
+                "Expected player perk to survive dimension teleport before reload");
+
         CompoundTag saved = BannerModDedicatedServerGameTestSupport.saveEntity(player);
-        ServerPlayer reloaded = new FakePlayer(level, new GameProfile(UUID.fromString("00000000-0000-0000-0000-000000002c03"), "skilltree-reloaded"));
+        ServerLevel currentLevel = player.serverLevel();
+        ServerPlayer reloaded = new FakePlayer(currentLevel, new GameProfile(UUID.fromString("00000000-0000-0000-0000-000000002c03"), "skilltree-reloaded"));
         reloaded.load(saved);
 
         PerkProgress restored = PlayerPerkProgressService.progress(reloaded);
@@ -79,6 +92,14 @@ public class BannerModSkillTreePersistenceGameTests {
                 "Expected player attachment unlocked perk to survive save/load");
         helper.assertTrue(restored.getAvailablePoints() == 2,
                 "Expected player attachment skill points to survive save/load");
+
+        ServerPlayer dimensionReloaded = new FakePlayer(destination, new GameProfile(UUID.fromString("00000000-0000-0000-0000-000000002c04"), "skilltree-dimension"));
+        dimensionReloaded.load(saved);
+        PerkProgress dimensionProgress = PlayerPerkProgressService.progress(dimensionReloaded);
+        helper.assertTrue(dimensionProgress.isOwned(PLAYER_PERK_ID),
+                "Expected player perk to survive reload after dimension transfer");
+        helper.assertTrue(dimensionProgress.getAvailablePoints() == 2,
+                "Expected player skill points to survive reload after dimension transfer");
         helper.succeed();
     }
 

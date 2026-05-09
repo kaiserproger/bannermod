@@ -9,6 +9,8 @@ import com.talhanation.bannermod.entity.military.HorsemanEntity;
 import com.talhanation.bannermod.entity.military.RecruitShieldmanEntity;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -26,31 +28,55 @@ public final class PerkEffectService {
 
     public static void applyRecruitAttributeBonuses(AbstractRecruitEntity recruit) {
         PerkArchetype archetype = recruitArchetype(recruit);
-        applyAttributeBonus(recruit, archetype, Attributes.MAX_HEALTH, PerkStat.MAX_HEALTH, MAX_HEALTH_ID);
-        applyAttributeBonus(recruit, archetype, Attributes.KNOCKBACK_RESISTANCE, PerkStat.KNOCKBACK_RESIST, KNOCKBACK_RESIST_ID);
-        applyAttributeBonus(recruit, archetype, Attributes.ATTACK_DAMAGE, PerkStat.ATTACK_DAMAGE, ATTACK_DAMAGE_ID);
-        applyAttributeBonus(recruit, archetype, Attributes.ATTACK_SPEED, PerkStat.ATTACK_SPEED, ATTACK_SPEED_ID);
-        applyAttributeBonus(recruit, archetype, Attributes.MOVEMENT_SPEED, PerkStat.MOVEMENT_SPEED, MOVEMENT_SPEED_ID);
+        applyAttributeBonus(recruit, Attributes.MAX_HEALTH, bonus(recruit.getPerkProgress(), PerkStat.MAX_HEALTH, archetype), MAX_HEALTH_ID);
+        applyAttributeBonus(recruit, Attributes.KNOCKBACK_RESISTANCE, bonus(recruit.getPerkProgress(), PerkStat.KNOCKBACK_RESIST, archetype), KNOCKBACK_RESIST_ID);
+        applyAttributeBonus(recruit, Attributes.ATTACK_DAMAGE, bonus(recruit.getPerkProgress(), PerkStat.ATTACK_DAMAGE, archetype), ATTACK_DAMAGE_ID);
+        applyAttributeBonus(recruit, Attributes.ATTACK_SPEED, bonus(recruit.getPerkProgress(), PerkStat.ATTACK_SPEED, archetype), ATTACK_SPEED_ID);
+        applyAttributeBonus(recruit, Attributes.MOVEMENT_SPEED, bonus(recruit.getPerkProgress(), PerkStat.MOVEMENT_SPEED, archetype), MOVEMENT_SPEED_ID);
+    }
+
+    public static void applyPlayerAttributeBonuses(ServerPlayer player) {
+        applyAttributeBonus(player, Attributes.MAX_HEALTH, playerBonus(player, PerkStat.MAX_HEALTH), MAX_HEALTH_ID);
+        applyAttributeBonus(player, Attributes.KNOCKBACK_RESISTANCE, playerBonus(player, PerkStat.KNOCKBACK_RESIST), KNOCKBACK_RESIST_ID);
+        applyAttributeBonus(player, Attributes.ATTACK_DAMAGE, playerBonus(player, PerkStat.ATTACK_DAMAGE), ATTACK_DAMAGE_ID);
+        applyAttributeBonus(player, Attributes.ATTACK_SPEED, playerBonus(player, PerkStat.ATTACK_SPEED), ATTACK_SPEED_ID);
+        applyAttributeBonus(player, Attributes.MOVEMENT_SPEED, playerBonus(player, PerkStat.MOVEMENT_SPEED), MOVEMENT_SPEED_ID);
     }
 
     public static float rangedInaccuracyFor(AbstractRecruitEntity recruit, float baseInaccuracy) {
-        double bonus = recruitBonus(recruit, PerkStat.RANGED_ACCURACY);
-        if (bonus <= 0.0D || baseInaccuracy <= 0.0F) {
-            return baseInaccuracy;
-        }
-        return (float) Math.max(0.0D, baseInaccuracy * Math.max(0.0D, 1.0D - bonus));
+        return rangedInaccuracy(baseInaccuracy, recruitBonus(recruit, PerkStat.RANGED_ACCURACY));
     }
 
     public static float rangedVelocityFor(AbstractRecruitEntity recruit, float baseVelocity) {
-        double bonus = recruitBonus(recruit, PerkStat.RANGED_VELOCITY);
-        if (bonus <= 0.0D || baseVelocity <= 0.0F) {
-            return baseVelocity;
-        }
-        return (float) (baseVelocity * (1.0D + bonus));
+        return rangedVelocity(baseVelocity, recruitBonus(recruit, PerkStat.RANGED_VELOCITY));
+    }
+
+    public static float playerRangedInaccuracyFor(ServerPlayer player, float baseInaccuracy) {
+        return rangedInaccuracy(baseInaccuracy, playerBonus(player, PerkStat.RANGED_ACCURACY));
+    }
+
+    public static float playerRangedVelocityFor(ServerPlayer player, float baseVelocity) {
+        return rangedVelocity(baseVelocity, playerBonus(player, PerkStat.RANGED_VELOCITY));
     }
 
     public static double recruitBonus(AbstractRecruitEntity recruit, PerkStat stat) {
         return bonus(recruit.getPerkProgress(), stat, recruitArchetype(recruit));
+    }
+
+    public static double playerBonus(ServerPlayer player, PerkStat stat) {
+        double total = 0.0D;
+        for (String id : PlayerPerkProgressService.unlockedPerkIds(player)) {
+            PerkNode node = PerkRegistry.get(id).orElse(null);
+            if (!PlayerPerkProgressService.isPlayerPerk(node)) {
+                continue;
+            }
+            for (PerkBonus bonus : node.bonuses()) {
+                if (bonus.stat() == stat) {
+                    total += bonus.amount();
+                }
+            }
+        }
+        return total;
     }
 
     public static double bonus(PerkProgress progress, PerkStat stat, PerkArchetype archetype) {
@@ -86,13 +112,12 @@ public final class PerkEffectService {
         return PerkArchetype.SWORDSMAN;
     }
 
-    private static void applyAttributeBonus(AbstractRecruitEntity recruit, PerkArchetype archetype,
-                                            Holder<Attribute> attribute, PerkStat stat, ResourceLocation modifierId) {
-        AttributeInstance instance = recruit.getAttribute(attribute);
+    private static void applyAttributeBonus(LivingEntity entity, Holder<Attribute> attribute,
+                                            double amount, ResourceLocation modifierId) {
+        AttributeInstance instance = entity.getAttribute(attribute);
         if (instance == null) {
             return;
         }
-        double amount = bonus(recruit.getPerkProgress(), stat, archetype);
         AttributeModifier existing = instance.getModifier(modifierId);
         if (existing != null) {
             if (amount != 0.0D && Double.compare(existing.amount(), amount) == 0) {
@@ -111,5 +136,19 @@ public final class PerkEffectService {
 
     private static ResourceLocation modifierId(String path) {
         return ResourceLocation.fromNamespaceAndPath(BannerModMain.MOD_ID, path);
+    }
+
+    private static float rangedInaccuracy(float baseInaccuracy, double bonus) {
+        if (bonus <= 0.0D || baseInaccuracy <= 0.0F) {
+            return baseInaccuracy;
+        }
+        return (float) Math.max(0.0D, baseInaccuracy * Math.max(0.0D, 1.0D - bonus));
+    }
+
+    private static float rangedVelocity(float baseVelocity, double bonus) {
+        if (bonus <= 0.0D || baseVelocity <= 0.0F) {
+            return baseVelocity;
+        }
+        return (float) (baseVelocity * (1.0D + bonus));
     }
 }
