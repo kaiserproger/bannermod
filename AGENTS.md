@@ -107,13 +107,13 @@ All server-side movement / face / attack / aggro / stance / strategic-fire comma
 - **Explicit target positions:** when the move target arrives via network (world-map click, etc.) instead of `player.pick(...)`, use the 6-arg overload `CommandEvents.onMovementCommand(player, recruits, state, formation, tight, Vec3)` — the underlying `MovementFormationCommandService` short-circuits the hit-result lookup when `explicitTargetPos != null`.
 - **Verifying a wiring change:** `./gradlew compileJava` via `ctx log` is the cheap gate. For runtime verification of formation behavior, save a formation in the command screen, then exercise the command path; `formation == 0` means the player never opened the formation UI and the per-recruit fallback is the correct path.
 
-14. Claude Code plugins
-- `code-simplifier` — post-slice clean-up pass: review changed code for clarity / reuse and fix issues found. Run before committing a non-trivial slice.
-- `code-reviewer` — independent review of pending changes or a PR. Run before merging an integration branch into master.
+14. Agent plugins/tools
+- `code-simplifier` — mandatory post-slice clean-up pass before final verification/closure. Apply only justified, behavior-preserving cleanup.
+- `code-reviewer` — mandatory independent review after `code-simplifier` and before marking work done or committing. Resolve or explicitly document every finding.
 - `context7` — live documentation lookup for libraries, frameworks, SDKs, CLI tools (NeoForge, Mojang, Gradle plugins, JUnit, etc.). Use whenever a task touches third-party APIs instead of relying on training-data recollection.
-- `jd-tls` — Java decompilation / class-inspection tooling for compiled NeoForge and vendored jars. Use when tracing through bytecode is faster than spelunking sources.
+- `jd-tls` / `jdtls` — Java decompilation, class inspection, LSP diagnostics, and compiled API tracing for NeoForge and vendored jars. Use when tracing through bytecode is faster than spelunking sources.
 
-Prefer these plugins over ad-hoc shell commands or local scripts when the task fits.
+Prefer these tools over ad-hoc shell commands or local scripts when the task fits. The normal finish order is implementation, `code-simplifier`, verification, `code-reviewer`, fixes if any, and final verification/closure.
 
 ## Project
 
