@@ -98,6 +98,33 @@ class SettlementTreasuryDerivationServiceTest {
     }
 
     @Test
+    void coarseArmyUpkeepRequestDebitsTreasuryEvenWhenIndividualPaymentIsCurrent() {
+        UUID claimUuid = UUID.randomUUID();
+        BannerModGovernorSnapshot snapshot = BannerModGovernorSnapshot.create(claimUuid, new ChunkPos(4, 7), "blueguild");
+        BannerModTreasuryManager treasuryManager = new BannerModTreasuryManager();
+        BannerModSettlementBinding.Binding binding = new BannerModSettlementBinding.Binding(BannerModSettlementBinding.Status.FRIENDLY_CLAIM, "blueguild", "blueguild");
+        BannerModGovernorHeartbeat.HeartbeatReport report = new BannerModGovernorHeartbeat.HeartbeatReport(6, 12, 12, List.of(), List.of(), 100L, 100L);
+
+        BannerModTreasuryLedgerSnapshot.FiscalRollup rollup = SettlementTreasuryDerivationService.deriveHeartbeatAccounting(
+                treasuryManager,
+                snapshot,
+                binding,
+                report,
+                stableRecruitSupply(),
+                5
+        );
+
+        BannerModTreasuryLedgerSnapshot ledger = treasuryManager.getLedger(claimUuid);
+        assertNotNull(ledger);
+        assertNotNull(rollup);
+        assertEquals(12, ledger.accruedTaxes());
+        assertEquals(5, ledger.spentArmyUpkeep());
+        assertEquals(7, ledger.treasuryBalance());
+        assertEquals(5, ledger.lastArmyUpkeepDebitAmount());
+        assertEquals(7, rollup.treasuryBalance());
+    }
+
+    @Test
     void fiscalRollupCanBeAppliedToGovernorSnapshot() {
         UUID claimUuid = UUID.randomUUID();
         BannerModGovernorSnapshot snapshot = BannerModGovernorSnapshot.create(claimUuid, new ChunkPos(4, 7), "blueguild");

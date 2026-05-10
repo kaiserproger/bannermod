@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.commands.admin;
 
+import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
@@ -37,10 +38,14 @@ import com.talhanation.bannermod.settlement.validation.BuildingInvalidationQueue
 import com.talhanation.bannermod.settlement.workorder.SettlementWorkOrderSavedData;
 import com.talhanation.bannermod.shared.logistics.BannerModSeaTradeExecutionSavedData;
 import com.talhanation.bannermod.util.RuntimeProfilingCounters;
+import com.talhanation.bannermod.war.WarRuntimeContext;
 import com.talhanation.bannermod.war.audit.WarAuditLogSavedData;
 import com.talhanation.bannermod.war.cooldown.WarCooldownSavedData;
 import com.talhanation.bannermod.war.registry.WarPoliticalRegistrySavedData;
 import com.talhanation.bannermod.war.runtime.DemilitarizationSavedData;
+import com.talhanation.bannermod.war.runtime.EconomicObjectiveRecord;
+import com.talhanation.bannermod.war.runtime.EconomicObjectiveRuntime;
+import com.talhanation.bannermod.war.runtime.EconomicObjectiveTargetKind;
 import com.talhanation.bannermod.war.runtime.OccupationSavedData;
 import com.talhanation.bannermod.war.runtime.RevoltSavedData;
 import com.talhanation.bannermod.war.runtime.SiegeStandardSavedData;
@@ -54,6 +59,7 @@ import net.minecraft.world.level.ChunkPos;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -117,7 +123,24 @@ public final class AdminDebugCommands {
                                         .executes(AdminDebugCommands::claimMineSites)))
                         .then(Commands.literal("contracts")
                                 .then(Commands.argument("claimUuid", StringArgumentType.word())
-                                        .executes(AdminDebugCommands::claimContracts))))
+                                        .executes(AdminDebugCommands::claimContracts)))
+                        .then(Commands.literal("objectives")
+                                .then(Commands.literal("mine-dispute")
+                                        .then(Commands.argument("claimUuid", StringArgumentType.word())
+                                                .then(Commands.argument("mineSiteId", StringArgumentType.word())
+                                                        .then(Commands.argument("durationTicks", LongArgumentType.longArg(0L))
+                                                                .executes(AdminDebugCommands::createMineDisputeObjective)))))
+                                .then(Commands.literal("blockade")
+                                        .then(Commands.argument("targetKind", StringArgumentType.word())
+                                                .then(Commands.argument("claimUuid", StringArgumentType.word())
+                                                        .then(Commands.argument("objectId", StringArgumentType.word())
+                                                                .then(Commands.argument("durationTicks", LongArgumentType.longArg(0L))
+                                                                        .executes(AdminDebugCommands::createBlockadeObjective))))))
+                                .then(Commands.literal("resolve")
+                                        .then(Commands.argument("objectiveId", StringArgumentType.word())
+                                                .executes(AdminDebugCommands::resolveEconomicObjective)))
+                                .then(Commands.literal("prune")
+                                        .executes(AdminDebugCommands::pruneEconomicObjectives))))
                 .then(Commands.literal("save-versions")
                         .executes(AdminDebugCommands::saveVersions));
     }
@@ -207,12 +230,15 @@ public final class AdminDebugCommands {
         List<StrategicMineSite> mineSites = claim == null
                 ? List.of()
                 : StrategicMineSiteService.derive(level, claim, snapshot, validatedBuildings);
+        long gameTime = level.getGameTime();
         ClaimStrategicEconomySummary summary = ClaimStrategicEconomySummaryService.derive(
                 snapshot,
                 validatedBuildings,
                 BannerModTreasuryManager.get(level).getLedger(claimUuid),
                 mineSites,
-                claim == null ? FortLevelDefinition.MIN_LEVEL : claim.getFortLevel()
+                claim == null ? FortLevelDefinition.MIN_LEVEL : claim.getFortLevel(),
+                WarRuntimeContext.economicObjectives(level).activeForClaim(claimUuid, gameTime),
+                gameTime
         );
         for (String line : summary.debugLines()) {
             context.getSource().sendSuccess(() -> Component.literal(line), false);
@@ -273,6 +299,96 @@ public final class AdminDebugCommands {
             context.getSource().sendSuccess(() -> Component.literal(line), false);
         }
         return Math.max(0, lines.size() - 1);
+    }
+
+    private static int createMineDisputeObjective(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerLevel level = serverLevel(context.getSource());
+        UUID claimUuid = parseUuidArgument(context, "claimUuid");
+        UUID mineSiteId = parseUuidArgument(context, "mineSiteId");
+        if (claimUuid == null || mineSiteId == null) {
+            return 0;
+        }
+        long now = level.getGameTime();
+        EconomicObjectiveRecord record = WarRuntimeContext.economicObjectives(level).createMineDispute(
+                null,
+                null,
+                claimUuid,
+                mineSiteId,
+                now,
+                expiresAt(now, LongArgumentType.getLong(context, "durationTicks"))
+        );
+        context.getSource().sendSuccess(() -> Component.literal("Created mine dispute objective " + record.id()), false);
+        return 1;
+    }
+
+    private static int createBlockadeObjective(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerLevel level = serverLevel(context.getSource());
+        EconomicObjectiveTargetKind targetKind = targetKind(StringArgumentType.getString(context, "targetKind"));
+        if (targetKind == null) {
+            context.getSource().sendFailure(Component.literal("targetKind must be route or storage"));
+            return 0;
+        }
+        UUID claimUuid = parseUuidArgument(context, "claimUuid");
+        UUID objectId = parseUuidArgument(context, "objectId");
+        if (claimUuid == null || objectId == null) {
+            return 0;
+        }
+        long now = level.getGameTime();
+        EconomicObjectiveRecord record = WarRuntimeContext.economicObjectives(level).createBlockade(
+                null,
+                null,
+                claimUuid,
+                targetKind,
+                objectId,
+                now,
+                expiresAt(now, LongArgumentType.getLong(context, "durationTicks"))
+        );
+        context.getSource().sendSuccess(() -> Component.literal("Created blockade objective " + record.id()), false);
+        return 1;
+    }
+
+    private static int resolveEconomicObjective(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerLevel level = serverLevel(context.getSource());
+        UUID objectiveId = parseUuidArgument(context, "objectiveId");
+        if (objectiveId == null) {
+            return 0;
+        }
+        boolean resolved = WarRuntimeContext.economicObjectives(level).resolve(objectiveId, level.getGameTime());
+        if (!resolved) {
+            context.getSource().sendFailure(Component.literal("No active economic objective " + objectiveId));
+            return 0;
+        }
+        context.getSource().sendSuccess(() -> Component.literal("Resolved economic objective " + objectiveId), false);
+        return 1;
+    }
+
+    private static int pruneEconomicObjectives(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerLevel level = serverLevel(context.getSource());
+        EconomicObjectiveRuntime runtime = WarRuntimeContext.economicObjectives(level);
+        int removed = runtime.pruneExpired(level.getGameTime());
+        context.getSource().sendSuccess(() -> Component.literal("Pruned " + removed + " expired economic objectives"), false);
+        return removed;
+    }
+
+    private static EconomicObjectiveTargetKind targetKind(String value) {
+        return switch ((value == null ? "" : value).toLowerCase(Locale.ROOT)) {
+            case "route" -> EconomicObjectiveTargetKind.ROUTE;
+            case "storage" -> EconomicObjectiveTargetKind.STORAGE;
+            default -> null;
+        };
+    }
+
+    private static UUID parseUuidArgument(CommandContext<CommandSourceStack> context, String argumentName) {
+        try {
+            return UUID.fromString(StringArgumentType.getString(context, argumentName));
+        } catch (IllegalArgumentException exception) {
+            context.getSource().sendFailure(Component.literal(argumentName + " must be a UUID"));
+            return null;
+        }
+    }
+
+    private static long expiresAt(long now, long durationTicks) {
+        return durationTicks <= 0L ? 0L : now + durationTicks;
     }
 
     private static Integer currentVersion(Class<?> savedDataClass) {

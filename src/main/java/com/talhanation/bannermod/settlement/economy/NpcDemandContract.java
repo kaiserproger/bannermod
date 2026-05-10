@@ -51,6 +51,24 @@ public record NpcDemandContract(
         );
     }
 
+    public NpcDemandContract fulfilled() {
+        if (this.status == Status.FULFILLED) {
+            return this;
+        }
+        return new NpcDemandContract(
+                this.contractUuid,
+                this.claimUuid,
+                this.buyer,
+                this.resourceBucket,
+                this.requestedItems,
+                this.amount,
+                this.createdAtGameTime,
+                this.deadlineGameTime,
+                this.rewardCoins,
+                Status.FULFILLED
+        );
+    }
+
     public String debugLine() {
         return "contract=" + this.contractUuid
                 + " claim=" + this.claimUuid

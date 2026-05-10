@@ -154,6 +154,7 @@ public class BannerModMain {
         NeoForge.EVENT_BUS.register(new WarRevoltAutoResolver());
         NeoForge.EVENT_BUS.register(new WarStateBroadcaster());
         NeoForge.EVENT_BUS.register(new com.talhanation.bannermod.war.events.WarOccupationTaxTicker());
+        NeoForge.EVENT_BUS.register(new com.talhanation.bannermod.war.events.TreatyPaymentTicker());
         NeoForge.EVENT_BUS.register(new com.talhanation.bannermod.war.events.WarRetentionSweeper());
         NeoForge.EVENT_BUS.register(new SettlementMutationRefreshEvents());
         NeoForge.EVENT_BUS.register(new SettlementWorkOrderClaimReleaseEvents());

@@ -1,15 +1,20 @@
 package com.talhanation.bannermod.settlement.economy;
 
+import com.talhanation.bannermod.governance.BannerModTreasuryLedgerSnapshot;
+import com.talhanation.bannermod.governance.BannerModTreasuryManager;
+import com.talhanation.bannermod.settlement.SettlementManager;
 import com.talhanation.bannermod.settlement.SettlementSnapshot;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.server.level.ServerLevel;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -76,6 +81,80 @@ public final class NpcDemandContractService {
             lines.add(contract.debugLine());
         }
         return lines;
+    }
+
+    public CompletionResult completeContract(ServerLevel level, UUID claimUuid, UUID contractUuid, long gameTime) {
+        return completeContract(
+                BannerModTreasuryManager.get(level),
+                SettlementManager.get(level),
+                StrategicResourceAccountingManager.get(level),
+                claimUuid,
+                contractUuid,
+                gameTime
+        );
+    }
+
+    CompletionResult completeContract(BannerModTreasuryManager treasuryManager,
+                                      SettlementManager settlementManager,
+                                      StrategicResourceAccountingManager accountingManager,
+                                      UUID claimUuid,
+                                      UUID contractUuid,
+                                      long gameTime) {
+        if (treasuryManager == null || settlementManager == null || accountingManager == null || claimUuid == null || contractUuid == null) {
+            return CompletionResult.failed("invalid_request");
+        }
+        List<NpcDemandContract> contracts = this.contractsByClaim.get(claimUuid);
+        if (contracts == null || contracts.isEmpty()) {
+            return CompletionResult.failed("contract_not_found");
+        }
+        for (int i = 0; i < contracts.size(); i++) {
+            NpcDemandContract contract = contracts.get(i);
+            if (!contract.contractUuid().equals(contractUuid)) {
+                continue;
+            }
+            if (contract.status() != NpcDemandContract.Status.OPEN) {
+                return CompletionResult.failed("contract_" + contract.status().name().toLowerCase(Locale.ROOT));
+            }
+            if (gameTime >= contract.deadlineGameTime()) {
+                contracts.set(i, contract.expired(gameTime));
+                markDirty();
+                return CompletionResult.failed("contract_expired");
+            }
+            StrategicResourceBucket requestedBucket = bucketById(contract.resourceBucket());
+            if (requestedBucket == null) {
+                return CompletionResult.failed("unknown_resource_bucket");
+            }
+            if (!hasRewardDestination(treasuryManager, settlementManager, claimUuid)) {
+                return CompletionResult.failed("reward_destination_unavailable");
+            }
+            StrategicResourceAccountingService.TransactionResult debit = StrategicResourceAccountingService.debit(
+                    treasuryManager,
+                    accountingManager,
+                    claimUuid,
+                    requestedBucket,
+                    contract.amount(),
+                    gameTime
+            );
+            if (debit.status() != StrategicResourceAccountingService.Status.SUCCESS) {
+                return CompletionResult.failed(debit.reason().isBlank() ? debit.status().name().toLowerCase(Locale.ROOT) : debit.reason());
+            }
+            StrategicResourceAccountingService.TransactionResult reward = StrategicResourceAccountingService.credit(
+                    treasuryManager,
+                    settlementManager,
+                    accountingManager,
+                    claimUuid,
+                    StrategicResourceBucket.COINS,
+                    contract.rewardCoins(),
+                    gameTime
+            );
+            if (reward.status() != StrategicResourceAccountingService.Status.SUCCESS) {
+                return CompletionResult.failed(reward.reason().isBlank() ? reward.status().name().toLowerCase(Locale.ROOT) : reward.reason());
+            }
+            contracts.set(i, contract.fulfilled());
+            markDirty();
+            return CompletionResult.success(contract, requestedBucket, debit.appliedAmount(), reward.appliedAmount(), reward.balanceAfter());
+        }
+        return CompletionResult.failed("contract_not_found");
     }
 
     private void expireContracts(UUID claimUuid, long gameTime) {
@@ -157,6 +236,24 @@ public final class NpcDemandContractService {
         this.dirtyCallback.run();
     }
 
+    private boolean hasRewardDestination(BannerModTreasuryManager treasuryManager, SettlementManager settlementManager, UUID claimUuid) {
+        BannerModTreasuryLedgerSnapshot ledger = treasuryManager.getLedger(claimUuid);
+        SettlementSnapshot snapshot = settlementManager.getSnapshot(claimUuid);
+        return (ledger != null && ledger.anchorChunk() != null) || (snapshot != null && snapshot.anchorChunk() != null);
+    }
+
+    private static StrategicResourceBucket bucketById(String bucketId) {
+        if (bucketId == null || bucketId.isBlank()) {
+            return null;
+        }
+        for (StrategicResourceBucket bucket : StrategicResourceBucket.values()) {
+            if (bucket.id().equals(bucketId)) {
+                return bucket;
+            }
+        }
+        return null;
+    }
+
     private NpcDemandContract createContract(SettlementSnapshot snapshot, long gameTime) {
         int index = Math.floorMod(snapshot.claimUuid().hashCode() + (int) (gameTime / 20L), TEMPLATES.size());
         ContractTemplate template = TEMPLATES.get(index);
@@ -217,5 +314,23 @@ public final class NpcDemandContractService {
                                     List<String> requestedItems,
                                     int baseAmount,
                                     int baseReward) {
+    }
+
+    public record CompletionResult(
+            boolean success,
+            String reason,
+            UUID contractUuid,
+            StrategicResourceBucket deliveredBucket,
+            int deliveredAmount,
+            int rewardCoins,
+            int rewardBalanceAfter
+    ) {
+        private static CompletionResult success(NpcDemandContract contract, StrategicResourceBucket deliveredBucket, int deliveredAmount, int rewardCoins, int rewardBalanceAfter) {
+            return new CompletionResult(true, "", contract.contractUuid(), deliveredBucket, deliveredAmount, rewardCoins, rewardBalanceAfter);
+        }
+
+        private static CompletionResult failed(String reason) {
+            return new CompletionResult(false, reason == null || reason.isBlank() ? "failed" : reason, null, null, 0, 0, 0);
+        }
     }
 }

@@ -3,6 +3,7 @@ package com.talhanation.bannermod.network.messages.military;
 import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.config.RecruitsServerConfig;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
+import com.talhanation.bannermod.settlement.economy.FortLevelDefinition;
 import com.talhanation.bannermod.war.WarRuntimeContext;
 import com.talhanation.bannermod.war.registry.PoliticalEntityRecord;
 import com.talhanation.bannermod.war.registry.PoliticalRegistryRuntime;
@@ -55,6 +56,7 @@ public class MessageUpdateClaim implements BannerModMessage<MessageUpdateClaim> 
                     resolvePoliticalOwner(sender, existingClaim))) return;
             if (!isAdmin && overlapsOtherClaim(updatedClaim, existingClaim)) return;
 
+            preserveServerOwnedFields(updatedClaim, existingClaim);
             if (existingClaim != null && !isAdmin) {
                 updatedClaim.setOwnerPoliticalEntityId(existingClaim.getOwnerPoliticalEntityId());
                 updatedClaim.setPlayer(existingClaim.getPlayerInfo());
@@ -109,6 +111,12 @@ public class MessageUpdateClaim implements BannerModMessage<MessageUpdateClaim> 
         }
         return false;
     }
+
+    static void preserveServerOwnedFields(RecruitsClaim updatedClaim, RecruitsClaim existingClaim) {
+        if (updatedClaim == null) return;
+        updatedClaim.setFortLevel(existingClaim != null ? existingClaim.getFortLevel() : FortLevelDefinition.MIN_LEVEL);
+    }
+
     public MessageUpdateClaim fromBytes(FriendlyByteBuf buf) {
         this.claimNBT = buf.readNbt();
         return this;
