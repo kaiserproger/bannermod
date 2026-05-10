@@ -2,6 +2,7 @@ package com.talhanation.bannermod.client.military.gui;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.client.military.ClientManager;
+import com.talhanation.bannermod.client.military.scenario.SkillTreeVisualScenarioStep;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import com.talhanation.bannermod.entity.military.perks.PerkArchetype;
 import com.talhanation.bannermod.entity.military.perks.PerkEffectService;
@@ -43,29 +44,48 @@ public class PerkTreeScreen extends RecruitsScreenBase {
     private final boolean playerTree;
     @Nullable
     private final AbstractRecruitEntity recruit;
+    private final boolean visualScenario;
+    @Nullable
+    private final PerkArchetype visualRecruitArchetype;
     private int seenSnapshotVersion;
     private boolean snapshotReady;
     private boolean confirmingRespec;
     private boolean requestedSnapshot;
+    @Nullable
+    private PerkProgress visualProgress;
+    private Component visualFeedback = Component.empty();
 
     public static PerkTreeScreen playerTree() {
-        return new PerkTreeScreen(true, null);
+        return new PerkTreeScreen(true, null, false, null);
     }
 
     public static PerkTreeScreen recruitTree(AbstractRecruitEntity recruit) {
-        return new PerkTreeScreen(false, recruit);
+        return new PerkTreeScreen(false, recruit, false, null);
     }
 
-    private PerkTreeScreen(boolean playerTree, @Nullable AbstractRecruitEntity recruit) {
+    public static PerkTreeScreen visualScenarioPlayerTree() {
+        return new PerkTreeScreen(true, null, true, null);
+    }
+
+    public static PerkTreeScreen visualScenarioRecruitTree(@Nullable AbstractRecruitEntity recruit) {
+        return new PerkTreeScreen(false, recruit, true, PerkArchetype.SWORDSMAN);
+    }
+
+    private PerkTreeScreen(boolean playerTree, @Nullable AbstractRecruitEntity recruit, boolean visualScenario,
+                           @Nullable PerkArchetype visualRecruitArchetype) {
         super(playerTree ? TITLE_PLAYER : TITLE_RECRUIT, 320, 260);
         this.playerTree = playerTree;
         this.recruit = recruit;
+        this.visualScenario = visualScenario;
+        this.visualRecruitArchetype = visualRecruitArchetype;
+        this.snapshotReady = visualScenario;
+        this.visualProgress = visualScenario ? new PerkProgress() : null;
     }
 
     @Override
     protected void init() {
         super.init();
-        if (!requestedSnapshot) {
+        if (!visualScenario && !requestedSnapshot) {
             requestedSnapshot = true;
             BannerModMain.SIMPLE_CHANNEL.sendToServer(new MessageRequestPerkTreeSnapshot(playerTree, recruitUuid()));
         }
@@ -96,7 +116,7 @@ public class PerkTreeScreen extends RecruitsScreenBase {
 
     @Override
     public void renderForeground(GuiGraphics guiGraphics, int mouseX, int mouseY, float delta) {
-        if (seenSnapshotVersion != ClientManager.perkTreeSnapshotVersion) {
+        if (!visualScenario && seenSnapshotVersion != ClientManager.perkTreeSnapshotVersion) {
             seenSnapshotVersion = ClientManager.perkTreeSnapshotVersion;
             rebuildWidgets();
         }
@@ -105,8 +125,8 @@ public class PerkTreeScreen extends RecruitsScreenBase {
         PerkProgress progress = progress();
         Object points = progress == null ? "..." : progress.getAvailablePoints();
         guiGraphics.drawString(font, Component.translatable("gui.bannermod.perk_tree.points", points), guiLeft + 16, guiTop + 36, MilitaryGuiStyle.TEXT_DARK, false);
-        Component feedback = confirmingRespec ? TEXT_CONFIRM_RESPEC : ClientManager.perkTreeFeedback;
-        guiGraphics.drawString(font, MilitaryGuiStyle.clampLabel(font, feedback, 170), guiLeft + 110, guiTop + 36, feedbackColor(), false);
+        Component feedback = confirmingRespec ? TEXT_CONFIRM_RESPEC : feedback();
+        guiGraphics.drawString(font, MilitaryGuiStyle.clampLabel(font, feedback, 170), guiLeft + 110, guiTop + 36, feedbackColor(feedback), false);
 
         List<PerkNode> nodes = visibleNodes();
         if (nodes.isEmpty()) {
@@ -131,10 +151,20 @@ public class PerkTreeScreen extends RecruitsScreenBase {
     }
 
     public void onSnapshot(boolean playerTree, @Nullable UUID recruitUuid, boolean hasProgress) {
+        if (visualScenario) return;
         if (this.playerTree != playerTree) return;
         if (!playerTree && (this.recruit == null || !this.recruit.getUUID().equals(recruitUuid))) return;
         this.snapshotReady = hasProgress;
         this.seenSnapshotVersion = -1;
+    }
+
+    public void applyVisualScenarioStep(SkillTreeVisualScenarioStep step) {
+        if (!visualScenario) return;
+        this.confirmingRespec = step == SkillTreeVisualScenarioStep.RESPEC_CONFIRM;
+        this.visualProgress = createVisualProgress(step);
+        this.visualFeedback = Component.translatable(step.feedbackKey());
+        this.snapshotReady = true;
+        rebuildWidgets();
     }
 
     private void renderNode(GuiGraphics guiGraphics, PerkNode node, PerkProgress progress, int y) {
@@ -159,6 +189,11 @@ public class PerkTreeScreen extends RecruitsScreenBase {
 
     private void sendUpdate(String action, String perkId) {
         confirmingRespec = false;
+        if (visualScenario) {
+            visualFeedback = Component.translatable("gui.bannermod.perk_tree.pending");
+            rebuildWidgets();
+            return;
+        }
         ClientManager.perkTreeFeedback = Component.translatable("gui.bannermod.perk_tree.pending");
         BannerModMain.SIMPLE_CHANNEL.sendToServer(new MessageUpdatePerkTree(playerTree, recruitUuid(), action, perkId));
     }
@@ -171,6 +206,9 @@ public class PerkTreeScreen extends RecruitsScreenBase {
     @Nullable
     private PerkProgress progress() {
         if (!snapshotReady) return null;
+        if (visualScenario) {
+            return visualProgress;
+        }
         if (playerTree) {
             return ClientManager.playerPerkSnapshot;
         }
@@ -186,8 +224,8 @@ public class PerkTreeScreen extends RecruitsScreenBase {
             for (PerkNode node : PerkRegistry.byArchetype(PerkArchetype.UNIVERSAL)) {
                 if (node.id().startsWith("player/")) nodes.add(node);
             }
-        } else if (recruit != null) {
-            PerkArchetype archetype = PerkEffectService.recruitArchetype(recruit);
+        } else if (recruit != null || visualRecruitArchetype != null) {
+            PerkArchetype archetype = recruit != null ? PerkEffectService.recruitArchetype(recruit) : visualRecruitArchetype;
             for (PerkNode node : PerkRegistry.byArchetype(PerkArchetype.UNIVERSAL)) {
                 if (!node.id().startsWith("player/")) nodes.add(node);
             }
@@ -205,8 +243,27 @@ public class PerkTreeScreen extends RecruitsScreenBase {
         return PerkState.LOCKED;
     }
 
-    private static int feedbackColor() {
-        String text = ClientManager.perkTreeFeedback.getString();
+    private Component feedback() {
+        return visualScenario ? visualFeedback : ClientManager.perkTreeFeedback;
+    }
+
+    private PerkProgress createVisualProgress(SkillTreeVisualScenarioStep step) {
+        PerkProgress progress = new PerkProgress();
+        List<PerkNode> nodes = visibleNodes();
+        PerkNode first = nodes.isEmpty() ? null : nodes.get(0);
+        if (first == null) return progress;
+
+        if (step == SkillTreeVisualScenarioStep.AVAILABLE || step == SkillTreeVisualScenarioStep.PENDING) {
+            progress.grantPoints(Math.max(1, first.pointCost()));
+        } else if (step == SkillTreeVisualScenarioStep.OWNED || step == SkillTreeVisualScenarioStep.RESPEC_CONFIRM) {
+            progress.grantPoints(Math.max(1, first.pointCost()));
+            progress.unlock(first);
+        }
+        return progress;
+    }
+
+    private static int feedbackColor(Component feedback) {
+        String text = feedback.getString();
         if (text.isEmpty()) return MilitaryGuiStyle.TEXT_DARK;
         return text.contains("denied") || text.contains("отклон") ? MilitaryGuiStyle.TEXT_DENIED : MilitaryGuiStyle.TEXT_GOOD;
     }

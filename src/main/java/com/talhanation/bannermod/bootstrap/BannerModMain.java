@@ -199,6 +199,7 @@ public class BannerModMain {
         // See 21-UAT.md gap "Recruits hotkey screens (Command/Faction/Map) and the claim overlay open in dev client".
         NeoForge.EVENT_BUS.register(new KeyEvents());
         NeoForge.EVENT_BUS.register(new ClientPlayerEvents());
+        NeoForge.EVENT_BUS.register(new com.talhanation.bannermod.client.military.scenario.VisualScenarioClient());
         NeoForge.EVENT_BUS.register(HudOverlayCoordinator.INSTANCE);
     }
 

@@ -5,6 +5,7 @@ import com.talhanation.bannermod.client.civilian.input.AssignHomeTargetSelector;
 import com.talhanation.bannermod.client.military.ClientManager;
 import com.talhanation.bannermod.client.military.api.ClientClaimEvent;
 import com.talhanation.bannermod.client.military.api.ClientOverlayEvent;
+import com.talhanation.bannermod.client.military.scenario.VisualScenarioClient;
 import com.talhanation.bannermod.config.RecruitsClientConfig;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.util.RuntimeProfilingCounters;
@@ -89,6 +90,7 @@ public final class HudOverlayCoordinator {
 
     public static void registerOverlays(RegisterGuiLayersEvent event) {
         event.registerAbove(VanillaGuiLayers.HOTBAR, HUD_LAYER, HudOverlayCoordinator::render);
+        VisualScenarioClient.registerOverlay(event);
     }
 
     private static void render(GuiGraphics graphics, DeltaTracker deltaTracker) {
