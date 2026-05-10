@@ -13,6 +13,7 @@ import com.talhanation.bannermod.entity.military.RecruitIndex;
 import com.talhanation.bannermod.governance.BannerModGovernorManager;
 import com.talhanation.bannermod.governance.BannerModTreasuryManager;
 import com.talhanation.bannermod.persistence.military.RecruitPlayerUnitSaveData;
+import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.persistence.military.RecruitsClaimSaveData;
 import com.talhanation.bannermod.persistence.military.RecruitsGroupsSaveData;
 import com.talhanation.bannermod.settlement.SettlementManager;
@@ -23,6 +24,8 @@ import com.talhanation.bannermod.settlement.building.ValidatedBuildingRegistryDa
 import com.talhanation.bannermod.settlement.dispatch.BannerModSellerDispatchSavedData;
 import com.talhanation.bannermod.settlement.economy.ClaimStrategicEconomySummary;
 import com.talhanation.bannermod.settlement.economy.ClaimStrategicEconomySummaryService;
+import com.talhanation.bannermod.settlement.economy.StrategicMineSite;
+import com.talhanation.bannermod.settlement.economy.StrategicMineSiteService;
 import com.talhanation.bannermod.settlement.household.BannerModHomeAssignmentSavedData;
 import com.talhanation.bannermod.settlement.prefab.player.PlayerBuildingRegistrySavedData;
 import com.talhanation.bannermod.settlement.project.SettlementProjectSavedData;
@@ -103,7 +106,10 @@ public final class AdminDebugCommands {
                 .then(Commands.literal("economy")
                         .then(Commands.literal("claim")
                                 .then(Commands.argument("claimUuid", StringArgumentType.word())
-                                        .executes(AdminDebugCommands::claimEconomySummary))))
+                                        .executes(AdminDebugCommands::claimEconomySummary)))
+                        .then(Commands.literal("mines")
+                                .then(Commands.argument("claimUuid", StringArgumentType.word())
+                                        .executes(AdminDebugCommands::claimMineSites))))
                 .then(Commands.literal("save-versions")
                         .executes(AdminDebugCommands::saveVersions));
     }
@@ -195,6 +201,40 @@ public final class AdminDebugCommands {
             context.getSource().sendSuccess(() -> Component.literal(line), false);
         }
         return summary.resources().size();
+    }
+
+    private static int claimMineSites(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerLevel level = serverLevel(context.getSource());
+        UUID claimUuid;
+        try {
+            claimUuid = UUID.fromString(StringArgumentType.getString(context, "claimUuid"));
+        } catch (IllegalArgumentException exception) {
+            context.getSource().sendFailure(Component.literal("claimUuid must be a UUID"));
+            return 0;
+        }
+
+        RecruitsClaim claim = RecruitsClaimSaveData.get(level).getAllClaims().stream()
+                .filter(candidate -> candidate.getUUID().equals(claimUuid))
+                .findFirst()
+                .orElse(null);
+        if (claim == null) {
+            context.getSource().sendFailure(Component.literal("No claim " + claimUuid));
+            return 0;
+        }
+
+        SettlementSnapshot snapshot = SettlementManager.get(level).getSnapshot(claimUuid);
+        List<ValidatedBuildingRecord> validatedBuildings = ValidatedBuildingRegistryData.get(level).allRecords().stream()
+                .filter(record -> record.settlementId().equals(claimUuid))
+                .toList();
+        List<StrategicMineSite> sites = StrategicMineSiteService.derive(level, claim, snapshot, validatedBuildings);
+        if (sites.isEmpty()) {
+            context.getSource().sendSuccess(() -> Component.literal("No strategic mine sites for claim " + claimUuid), false);
+            return 0;
+        }
+        for (StrategicMineSite site : sites) {
+            context.getSource().sendSuccess(() -> Component.literal(site.debugLine()), false);
+        }
+        return sites.size();
     }
 
     private static Integer currentVersion(Class<?> savedDataClass) {
