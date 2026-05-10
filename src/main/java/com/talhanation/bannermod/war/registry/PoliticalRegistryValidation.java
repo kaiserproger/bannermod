@@ -24,6 +24,9 @@ public final class PoliticalRegistryValidation {
             return Result.invalid("missing_leader");
         }
         for (PoliticalEntityRecord record : existing) {
+            if (leaderUuid.equals(record.leaderUuid())) {
+                return Result.invalid("leader_already_has_entity");
+            }
             if (record.name().equalsIgnoreCase(normalized)) {
                 return Result.invalid("duplicate_name");
             }

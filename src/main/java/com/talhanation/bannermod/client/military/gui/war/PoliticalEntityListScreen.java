@@ -260,15 +260,10 @@ public class PoliticalEntityListScreen extends Screen {
     private void openColorDialog() {
         if (this.selected == null) return;
         UUID id = this.selected.id();
-        // 9 chars: optional '#' + up to 8 hex digits (covers AARRGGBB).
-        Minecraft.getInstance().setScreen(new PoliticalEntityNameInputScreen(
+        Minecraft.getInstance().setScreen(new PoliticalEntityColorPaletteScreen(
                 this,
-                text("gui.bannermod.states.dialog.color.title"),
-                text("gui.bannermod.states.dialog.color.prompt"),
                 this.selected.color(),
-                value -> sendColor(id, value),
-                9,
-                /* allowEmpty */ true
+                value -> sendColor(id, value)
         ));
     }
 

@@ -32,6 +32,7 @@ public final class CivilianPacketCatalog {
         MessageRequestRegisterBuilding.class,
         MessageSetSurveyorMode.class,
         MessageSetSurveyorRole.class,
+        MessageUseSurveyorBlock.class,
         MessageModifySurveyorSession.class,
         MessageValidateSurveyorSession.class,
         MessageToClientOpenWorkerScreen.class,
