@@ -11,6 +11,7 @@ import com.talhanation.bannermod.client.military.render.layer.RecruitLodItemInHa
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelLayers;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
@@ -21,6 +22,11 @@ public class RecruitHumanRenderer extends AbstractRecruitRenderer<HumanoidModel<
             ResourceLocation.fromNamespaceAndPath(BannerModMain.MOD_ID, "textures/entity/human/human_new_0.png"),
             ResourceLocation.fromNamespaceAndPath(BannerModMain.MOD_ID, "textures/entity/human/human_new_1.png"),
             ResourceLocation.fromNamespaceAndPath(BannerModMain.MOD_ID, "textures/entity/human/human_new_2.png")
+    };
+    private static final RenderType[] CROWD_RENDER_TYPES = {
+            RenderType.entityCutoutNoCull(TEXTURES[0]),
+            RenderType.entityCutoutNoCull(TEXTURES[1]),
+            RenderType.entityCutoutNoCull(TEXTURES[2])
     };
 
     public RecruitHumanRenderer(EntityRendererProvider.Context mgr) {
@@ -42,8 +48,8 @@ public class RecruitHumanRenderer extends AbstractRecruitRenderer<HumanoidModel<
         return TEXTURES[Math.floorMod(recruit.getVariant(), TEXTURES.length)];
     }
 
-    public static ResourceLocation crowdTexture(AbstractRecruitEntity recruit) {
-        return TEXTURES[Math.floorMod(recruit.getVariant(), TEXTURES.length)];
+    public static RenderType crowdRenderType(AbstractRecruitEntity recruit) {
+        return CROWD_RENDER_TYPES[Math.floorMod(recruit.getVariant(), CROWD_RENDER_TYPES.length)];
     }
 
     @Override

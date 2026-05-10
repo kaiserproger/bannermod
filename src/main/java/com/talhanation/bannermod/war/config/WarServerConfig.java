@@ -26,6 +26,7 @@ public class WarServerConfig {
     public static final ModConfigSpec.BooleanValue SiegeProtectionAttackersExplosivesOnly;
     public static final ModConfigSpec.IntValue OccupationTaxAmountPerChunk;
     public static final ModConfigSpec.IntValue OccupationTaxIntervalDays;
+    public static final ModConfigSpec.IntValue TributeTreatyIntervalDays;
 
     static {
         RegulatedPvpEnabled = BUILDER.comment("""
@@ -98,6 +99,12 @@ public class WarServerConfig {
                         \tdefault: 1""")
                 .defineInRange("OccupationTaxIntervalDays", 1, 0, 365);
 
+        TributeTreatyIntervalDays = BUILDER.comment("""
+                        Real-day cadence between ongoing tribute treaty payments created by the
+                        \ttribute war outcome. Set to 0 to keep only the one-shot outcome payment.
+                        \tdefault: 1""")
+                .defineInRange("TributeTreatyIntervalDays", 1, 0, 365);
+
         SERVER = BUILDER.build();
     }
 
@@ -115,6 +122,10 @@ public class WarServerConfig {
 
     public static long occupationTaxIntervalTicks() {
         return Math.max(0L, OccupationTaxIntervalDays.get().longValue()) * WarCooldownPolicy.TICKS_PER_DAY;
+    }
+
+    public static long tributeTreatyIntervalTicks() {
+        return Math.max(0L, TributeTreatyIntervalDays.get().longValue()) * WarCooldownPolicy.TICKS_PER_DAY;
     }
 
     public static BattleWindowSchedule resolveSchedule() {

@@ -14,6 +14,10 @@ import com.talhanation.bannermod.settlement.SettlementTradeRouteHandoffSnapshot;
 import com.talhanation.bannermod.settlement.building.BuildingType;
 import com.talhanation.bannermod.settlement.building.BuildingValidationState;
 import com.talhanation.bannermod.settlement.building.ValidatedBuildingRecord;
+import com.talhanation.bannermod.war.runtime.EconomicObjectiveRecord;
+import com.talhanation.bannermod.war.runtime.EconomicObjectiveState;
+import com.talhanation.bannermod.war.runtime.EconomicObjectiveTargetKind;
+import com.talhanation.bannermod.war.runtime.EconomicObjectiveType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -168,7 +172,7 @@ class ClaimStrategicEconomySummaryServiceTest {
     }
 
     @Test
-    void unknownMineSiteDoesNotGrantYield() {
+    void unsupportedMineCategoryDoesNotMutateIronLine() {
         UUID claimUuid = UUID.randomUUID();
         UUID ownerUuid = UUID.randomUUID();
         SettlementSnapshot snapshot = snapshot(claimUuid, List.of(), 0, 0, 0);
@@ -182,8 +186,10 @@ class ClaimStrategicEconomySummaryServiceTest {
 
         ClaimStrategicEconomySummary.ResourceLine iron = line(summary, "iron");
         assertEquals(0, iron.productionHint());
-        assertTrue(iron.degraded());
-        assertTrue(iron.unknown());
+        assertFalse(iron.degraded());
+        assertFalse(iron.unknown());
+        assertTrue(summary.degraded());
+        assertTrue(summary.unknown());
     }
 
     @Test
@@ -307,6 +313,123 @@ class ClaimStrategicEconomySummaryServiceTest {
         assertTrue(iron.degraded());
     }
 
+    @Test
+    void mineObjectiveMarksMineResourceContestedInReadModel() {
+        UUID claimUuid = UUID.randomUUID();
+        UUID ownerUuid = UUID.randomUUID();
+        UUID mineSiteId = UUID.randomUUID();
+        StrategicMineSite mineSite = mineSite(
+                mineSiteId,
+                claimUuid,
+                ownerUuid,
+                VenaterraDepositCategory.IRON,
+                1.0F,
+                2,
+                false,
+                false
+        );
+
+        ClaimStrategicEconomySummary summary = ClaimStrategicEconomySummaryService.derive(
+                snapshot(claimUuid, List.of(), 0, 0, 0),
+                List.of(),
+                null,
+                List.of(mineSite),
+                2,
+                List.of(objective(EconomicObjectiveType.MINE_DISPUTE, EconomicObjectiveTargetKind.MINE, claimUuid, mineSiteId, 10L, 30L)),
+                20L
+        );
+
+        assertEquals(2, summary.fortLevel().level());
+        assertEquals(EconomicObjectiveState.CONTESTED, line(summary, "iron").objectiveState());
+        assertEquals(EconomicObjectiveState.CONTESTED, summary.objectiveState());
+    }
+
+    @Test
+    void outpostCaptureMarksOnlyClaimAggregateContested() {
+        UUID claimUuid = UUID.randomUUID();
+
+        ClaimStrategicEconomySummary summary = ClaimStrategicEconomySummaryService.derive(
+                snapshot(claimUuid, List.of(), 0, 0, 0),
+                List.of(),
+                null,
+                List.of(),
+                3,
+                List.of(objective(EconomicObjectiveType.OUTPOST_CAPTURE, EconomicObjectiveTargetKind.OUTPOST, claimUuid, UUID.randomUUID(), 10L, 30L)),
+                20L
+        );
+
+        assertEquals(3, summary.fortLevel().level());
+        assertEquals(EconomicObjectiveState.CONTESTED, summary.objectiveState());
+        assertTrue(summary.resources().stream().allMatch(line -> line.objectiveState() == EconomicObjectiveState.NORMAL));
+    }
+
+    @Test
+    void missingMineSiteObjectiveMarksOnlyClaimAggregateContested() {
+        UUID claimUuid = UUID.randomUUID();
+
+        ClaimStrategicEconomySummary summary = ClaimStrategicEconomySummaryService.derive(
+                snapshot(claimUuid, List.of(), 0, 0, 0),
+                List.of(),
+                null,
+                List.of(),
+                FortLevelDefinition.MIN_LEVEL,
+                List.of(objective(EconomicObjectiveType.MINE_DISPUTE, EconomicObjectiveTargetKind.MINE, claimUuid, UUID.randomUUID(), 10L, 30L)),
+                20L
+        );
+
+        assertEquals(EconomicObjectiveState.CONTESTED, summary.objectiveState());
+        assertTrue(summary.resources().stream().allMatch(line -> line.objectiveState() == EconomicObjectiveState.NORMAL));
+    }
+
+    @Test
+    void routeObjectiveMarksSupplyBlockedInReadModel() {
+        UUID claimUuid = UUID.randomUUID();
+
+        ClaimStrategicEconomySummary summary = ClaimStrategicEconomySummaryService.derive(
+                snapshot(claimUuid, List.of(), 0, 0, 0),
+                List.of(),
+                null,
+                List.of(),
+                FortLevelDefinition.MIN_LEVEL,
+                List.of(objective(EconomicObjectiveType.BLOCKADE, EconomicObjectiveTargetKind.ROUTE, claimUuid, UUID.randomUUID(), 10L, 30L)),
+                20L
+        );
+
+        assertEquals(EconomicObjectiveState.BLOCKED, summary.objectiveState());
+        assertTrue(summary.resources().stream().allMatch(line -> line.objectiveState() == EconomicObjectiveState.BLOCKED));
+    }
+
+    @Test
+    void expiredObjectiveReturnsReadModelToNormalWithoutRemovingMine() {
+        UUID claimUuid = UUID.randomUUID();
+        UUID ownerUuid = UUID.randomUUID();
+        UUID mineSiteId = UUID.randomUUID();
+        StrategicMineSite mineSite = mineSite(
+                mineSiteId,
+                claimUuid,
+                ownerUuid,
+                VenaterraDepositCategory.IRON,
+                1.0F,
+                2,
+                false,
+                false
+        );
+
+        ClaimStrategicEconomySummary summary = ClaimStrategicEconomySummaryService.derive(
+                snapshot(claimUuid, List.of(), 0, 0, 0),
+                List.of(),
+                null,
+                List.of(mineSite),
+                FortLevelDefinition.MIN_LEVEL,
+                List.of(objective(EconomicObjectiveType.MINE_DISPUTE, EconomicObjectiveTargetKind.MINE, claimUuid, mineSiteId, 10L, 30L)),
+                30L
+        );
+
+        assertEquals(3, line(summary, "iron").productionHint());
+        assertEquals(EconomicObjectiveState.NORMAL, line(summary, "iron").objectiveState());
+        assertEquals(EconomicObjectiveState.NORMAL, summary.objectiveState());
+    }
+
     private static ClaimStrategicEconomySummary.ResourceLine line(ClaimStrategicEconomySummary summary, String resourceId) {
         return summary.resources().stream()
                 .filter(line -> line.resourceId().equals(resourceId))
@@ -350,15 +473,35 @@ class ClaimStrategicEconomySummaryServiceTest {
     }
 
     private static StrategicMineSite mineSite(UUID claimUuid,
-                                             UUID ownerUuid,
-                                             VenaterraDepositCategory category,
-                                             float richness,
-                                             boolean degraded,
-                                             boolean unknown) {
+                                              UUID ownerUuid,
+                                              VenaterraDepositCategory category,
+                                              float richness,
+                                              boolean degraded,
+                                              boolean unknown) {
         return mineSite(claimUuid, ownerUuid, category, richness, 1, degraded, unknown);
     }
 
     private static StrategicMineSite mineSite(UUID claimUuid,
+                                              UUID ownerUuid,
+                                              VenaterraDepositCategory category,
+                                              float richness,
+                                              int assignedWorkerCount,
+                                              boolean degraded,
+                                              boolean unknown) {
+        return mineSite(
+                UUID.randomUUID(),
+                claimUuid,
+                ownerUuid,
+                category,
+                richness,
+                assignedWorkerCount,
+                degraded,
+                unknown
+        );
+    }
+
+    private static StrategicMineSite mineSite(UUID siteId,
+                                             UUID claimUuid,
                                              UUID ownerUuid,
                                              VenaterraDepositCategory category,
                                              float richness,
@@ -366,7 +509,7 @@ class ClaimStrategicEconomySummaryServiceTest {
                                              boolean degraded,
                                              boolean unknown) {
         return new StrategicMineSite(
-                UUID.randomUUID(),
+                siteId,
                 claimUuid,
                 ownerUuid,
                 Level.OVERWORLD,
@@ -378,6 +521,26 @@ class ClaimStrategicEconomySummaryServiceTest {
                 assignedWorkerCount,
                 degraded,
                 unknown
+        );
+    }
+
+    private static EconomicObjectiveRecord objective(EconomicObjectiveType type,
+                                                     EconomicObjectiveTargetKind targetKind,
+                                                     UUID claimUuid,
+                                                     UUID strategicObjectId,
+                                                     long createdGameTime,
+                                                     long expiresGameTime) {
+        return new EconomicObjectiveRecord(
+                UUID.randomUUID(),
+                type,
+                targetKind,
+                UUID.randomUUID(),
+                null,
+                claimUuid,
+                strategicObjectId,
+                createdGameTime,
+                expiresGameTime,
+                0L
         );
     }
 

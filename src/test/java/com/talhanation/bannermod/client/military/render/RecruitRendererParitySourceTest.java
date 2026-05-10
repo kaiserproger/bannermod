@@ -80,11 +80,20 @@ class RecruitRendererParitySourceTest {
         assertTrue(lodSource.contains("CROWDED_RECRUIT_COUNT = 48"));
         assertTrue(lodSource.contains("CROWD_IMPOSTOR_DISTANCE = 48.0D"));
         assertTrue(eventSource.contains("RuntimeProfilingCounters.increment(\"recruit.render.normal_skipped_for_impostor\")"));
+        assertTrue(eventSource.contains("isCachedImpostorCandidate(recruit)"));
+        assertTrue(eventSource.contains("cachedImpostorQueryIds.contains(recruit.getId())"));
+        assertTrue(eventSource.contains("ClientPlayerNetworkEvent.LoggingOut"));
+        assertTrue(eventSource.contains("clearCachedQuery()"));
         assertTrue(eventSource.contains("RuntimeProfilingCounters.add(\"recruit.render.crowd_query_results\", recruits.size())"));
+        assertTrue(eventSource.contains("RuntimeProfilingCounters.increment(\"recruit.render.crowd_query_cache_hits\")"));
+        assertTrue(eventSource.contains("RuntimeProfilingCounters.increment(\"recruit.render.crowd_query_cache_misses\")"));
+        assertTrue(eventSource.contains("RuntimeProfilingCounters.add(\"recruit.render.crowd_query_nanos\", System.nanoTime() - startNanos)"));
         assertTrue(eventSource.contains("RuntimeProfilingCounters.add(\"recruit.render.crowd_impostor_candidates\", candidates)"));
         assertTrue(eventSource.contains("RuntimeProfilingCounters.add(\"recruit.render.crowd_impostors\", rendered)"));
         assertTrue(eventSource.contains("RuntimeProfilingCounters.add(\"recruit.render.crowd_impostor_nanos\", System.nanoTime() - startNanos)"));
         assertTrue(eventSource.contains("RuntimeProfilingCounters.add(\"recruit.render.crowd_impostor_frustum_culled\", frustumCulled)"));
+        assertTrue(eventSource.contains("RuntimeProfilingCounters.add(\"recruit.render.crowd_impostor_range_culled\", rangeCulled)"));
+        assertTrue(eventSource.contains("RecruitHumanRenderer.crowdRenderType(recruit)"));
     }
 
     @Test

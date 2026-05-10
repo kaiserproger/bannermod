@@ -1,6 +1,8 @@
 package com.talhanation.bannermod.settlement.economy;
 
+import com.talhanation.bannermod.governance.BannerModTreasuryManager;
 import com.talhanation.bannermod.settlement.SettlementDesiredGoodsSnapshot;
+import com.talhanation.bannermod.settlement.SettlementManager;
 import com.talhanation.bannermod.settlement.SettlementMarketRecord;
 import com.talhanation.bannermod.settlement.SettlementMarketState;
 import com.talhanation.bannermod.settlement.SettlementProjectCandidateSnapshot;
@@ -10,13 +12,16 @@ import com.talhanation.bannermod.settlement.SettlementStockpileSummary;
 import com.talhanation.bannermod.settlement.SettlementSupplySignalState;
 import com.talhanation.bannermod.settlement.SettlementTradeRouteHandoffSnapshot;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.ChunkPos;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NpcDemandContractServiceTest {
@@ -98,6 +103,84 @@ class NpcDemandContractServiceTest {
         assertEquals(1, loaded.contracts(CLAIM).size(), "next eligible tick should persist across reload");
         loaded.tickClaim(isolatedSnapshot, 24_000L);
         assertEquals(2, loaded.contracts(CLAIM).size());
+    }
+
+    @Test
+    void completionConsumesRequestedBucketPaysRewardAndPreventsSecondPayout() {
+        NpcDemandContractService service = new NpcDemandContractService();
+        service.tickClaim(snapshot(SettlementMarketState.empty(), SettlementTradeRouteHandoffSnapshot.empty()), 0L);
+        NpcDemandContract contract = service.contracts(CLAIM).get(0);
+        BannerModTreasuryManager treasury = new BannerModTreasuryManager();
+        SettlementManager settlements = new SettlementManager();
+        settlements.putSnapshot(SettlementSnapshot.create(CLAIM, new ChunkPos(1, 2), "blueguild"));
+        StrategicResourceAccountingManager accounting = new StrategicResourceAccountingManager();
+        StrategicResourceBucket requestedBucket = bucketFor(contract);
+        accounting.credit(CLAIM, requestedBucket, contract.amount(), 10L);
+
+        NpcDemandContractService.CompletionResult result = service.completeContract(
+                treasury,
+                settlements,
+                accounting,
+                CLAIM,
+                contract.contractUuid(),
+                20L
+        );
+
+        assertTrue(result.success());
+        assertEquals(0, accounting.getAccount(CLAIM).balance(requestedBucket));
+        assertEquals(contract.rewardCoins(), treasury.getLedger(CLAIM).treasuryBalance());
+        assertEquals(NpcDemandContract.Status.FULFILLED, service.contracts(CLAIM).get(0).status());
+
+        NpcDemandContractService.CompletionResult second = service.completeContract(
+                treasury,
+                settlements,
+                accounting,
+                CLAIM,
+                contract.contractUuid(),
+                30L
+        );
+
+        assertFalse(second.success());
+        assertEquals("contract_fulfilled", second.reason());
+        assertEquals(0, accounting.getAccount(CLAIM).balance(requestedBucket));
+        assertEquals(contract.rewardCoins(), treasury.getLedger(CLAIM).treasuryBalance());
+    }
+
+    @Test
+    void failedCompletionLeavesGoodsAndRewardsUnchanged() {
+        NpcDemandContractService service = new NpcDemandContractService();
+        service.tickClaim(snapshot(SettlementMarketState.empty(), SettlementTradeRouteHandoffSnapshot.empty()), 0L);
+        NpcDemandContract contract = service.contracts(CLAIM).get(0);
+        BannerModTreasuryManager treasury = new BannerModTreasuryManager();
+        SettlementManager settlements = new SettlementManager();
+        settlements.putSnapshot(SettlementSnapshot.create(CLAIM, new ChunkPos(1, 2), "blueguild"));
+        StrategicResourceAccountingManager accounting = new StrategicResourceAccountingManager();
+        StrategicResourceBucket requestedBucket = bucketFor(contract);
+        accounting.credit(CLAIM, requestedBucket, contract.amount() - 1, 10L);
+
+        NpcDemandContractService.CompletionResult result = service.completeContract(
+                treasury,
+                settlements,
+                accounting,
+                CLAIM,
+                contract.contractUuid(),
+                20L
+        );
+
+        assertFalse(result.success());
+        assertEquals("shortage", result.reason());
+        assertEquals(contract.amount() - 1, accounting.getAccount(CLAIM).balance(requestedBucket));
+        assertNull(treasury.getLedger(CLAIM));
+        assertEquals(NpcDemandContract.Status.OPEN, service.contracts(CLAIM).get(0).status());
+    }
+
+    private static StrategicResourceBucket bucketFor(NpcDemandContract contract) {
+        for (StrategicResourceBucket bucket : StrategicResourceBucket.values()) {
+            if (bucket.id().equals(contract.resourceBucket())) {
+                return bucket;
+            }
+        }
+        throw new AssertionError("Unknown contract bucket " + contract.resourceBucket());
     }
 
     private static SettlementSnapshot snapshot(SettlementMarketState marketState,

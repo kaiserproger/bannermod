@@ -9,6 +9,9 @@ import com.talhanation.bannermod.settlement.SettlementSupplySignal;
 import com.talhanation.bannermod.settlement.building.BuildingType;
 import com.talhanation.bannermod.settlement.building.BuildingValidationState;
 import com.talhanation.bannermod.settlement.building.ValidatedBuildingRecord;
+import com.talhanation.bannermod.war.runtime.EconomicObjectiveRecord;
+import com.talhanation.bannermod.war.runtime.EconomicObjectiveState;
+import com.talhanation.bannermod.war.runtime.EconomicObjectiveTargetKind;
 
 import javax.annotation.Nullable;
 import java.util.EnumMap;
@@ -50,7 +53,17 @@ public final class ClaimStrategicEconomySummaryService {
                                                        @Nullable BannerModTreasuryLedgerSnapshot treasuryLedger,
                                                        @Nullable List<StrategicMineSite> mineSites,
                                                        int fortLevel) {
-        return derive(snapshot, validatedBuildings, treasuryLedger, mineSites, true, fortLevel);
+        return derive(snapshot, validatedBuildings, treasuryLedger, mineSites, true, fortLevel, List.of(), 0L);
+    }
+
+    public static ClaimStrategicEconomySummary derive(SettlementSnapshot snapshot,
+                                                       List<ValidatedBuildingRecord> validatedBuildings,
+                                                       @Nullable BannerModTreasuryLedgerSnapshot treasuryLedger,
+                                                       @Nullable List<StrategicMineSite> mineSites,
+                                                       int fortLevel,
+                                                       @Nullable List<EconomicObjectiveRecord> objectives,
+                                                       long gameTime) {
+        return derive(snapshot, validatedBuildings, treasuryLedger, mineSites, true, fortLevel, objectives, gameTime);
     }
 
     private static ClaimStrategicEconomySummary derive(SettlementSnapshot snapshot,
@@ -58,7 +71,7 @@ public final class ClaimStrategicEconomySummaryService {
                                                        @Nullable BannerModTreasuryLedgerSnapshot treasuryLedger,
                                                        @Nullable List<StrategicMineSite> mineSites,
                                                        boolean strategicMineSitesProvided) {
-        return derive(snapshot, validatedBuildings, treasuryLedger, mineSites, strategicMineSitesProvided, FortLevelDefinition.MIN_LEVEL);
+        return derive(snapshot, validatedBuildings, treasuryLedger, mineSites, strategicMineSitesProvided, FortLevelDefinition.MIN_LEVEL, List.of(), 0L);
     }
 
     private static ClaimStrategicEconomySummary derive(SettlementSnapshot snapshot,
@@ -66,7 +79,9 @@ public final class ClaimStrategicEconomySummaryService {
                                                        @Nullable BannerModTreasuryLedgerSnapshot treasuryLedger,
                                                        @Nullable List<StrategicMineSite> mineSites,
                                                        boolean strategicMineSitesProvided,
-                                                       int fortLevel) {
+                                                       int fortLevel,
+                                                       @Nullable List<EconomicObjectiveRecord> objectives,
+                                                       long gameTime) {
         Map<ResourceKey, MutableResource> resources = new EnumMap<>(ResourceKey.class);
         for (ResourceKey resource : RESOURCES) {
             resources.put(resource, new MutableResource());
@@ -74,6 +89,7 @@ public final class ClaimStrategicEconomySummaryService {
 
         List<ValidatedBuildingRecord> safeValidatedBuildings = validatedBuildings == null ? List.of() : validatedBuildings;
         List<StrategicMineSite> safeMineSites = mineSites == null ? List.of() : mineSites;
+        List<EconomicObjectiveRecord> safeObjectives = objectives == null ? List.of() : objectives;
         Set<UUID> validBuildingIds = new HashSet<>();
         Set<UUID> invalidBuildingIds = new HashSet<>();
         for (ValidatedBuildingRecord record : safeValidatedBuildings) {
@@ -92,10 +108,12 @@ public final class ClaimStrategicEconomySummaryService {
         applyTreasury(resources, treasuryLedger);
         applyBuildings(resources, snapshot, safeValidatedBuildings, validBuildingIds, invalidBuildingIds, strategicMineSitesProvided);
         applyMines(resources, snapshot, safeMineSites, mineMaintenance(resources, snapshot));
+        applyObjectives(resources, snapshot, safeMineSites, safeObjectives, gameTime);
 
         boolean anyShortage = false;
         boolean anyDegraded = false;
         boolean anyUnknown = false;
+        EconomicObjectiveState objectiveState = aggregateObjectiveState(snapshot, safeObjectives, gameTime);
         List<ClaimStrategicEconomySummary.ResourceLine> lines = RESOURCES.stream()
                 .map(resource -> {
                     MutableResource mutable = resources.get(resource);
@@ -108,7 +126,8 @@ public final class ClaimStrategicEconomySummaryService {
                             mutable.consumptionHint,
                             shortage,
                             mutable.degraded,
-                            mutable.unknown
+                            mutable.unknown,
+                            mutable.objectiveState
                     );
                 })
                 .toList();
@@ -116,6 +135,13 @@ public final class ClaimStrategicEconomySummaryService {
             anyShortage |= line.shortage();
             anyDegraded |= line.degraded();
             anyUnknown |= line.unknown();
+        }
+        for (StrategicMineSite site : safeMineSites) {
+            if (site != null && site.claimUuid().equals(snapshot.claimUuid()) && site.ownerPoliticalEntityId() != null
+                    && resourceForMineCategory(site.resourceCategory()) == null) {
+                anyDegraded |= site.degraded();
+                anyUnknown |= site.unknown();
+            }
         }
 
         return new ClaimStrategicEconomySummary(
@@ -126,7 +152,8 @@ public final class ClaimStrategicEconomySummaryService {
                 lines,
                 anyShortage,
                 anyDegraded,
-                anyUnknown
+                anyUnknown,
+                objectiveState
         );
     }
 
@@ -264,11 +291,6 @@ public final class ClaimStrategicEconomySummaryService {
             }
             ResourceKey resource = resourceForMineCategory(site.resourceCategory());
             if (resource == null) {
-                if (site.degraded() || site.unknown()) {
-                    MutableResource unknownMineResource = resources.get(ResourceKey.IRON);
-                    unknownMineResource.degraded = true;
-                    unknownMineResource.unknown = true;
-                }
                 continue;
             }
 
@@ -299,6 +321,60 @@ public final class ClaimStrategicEconomySummaryService {
             }
         }
         return new MineMaintenance(missingFood || missingWood || missingTools, disruptionUnits);
+    }
+
+    private static void applyObjectives(Map<ResourceKey, MutableResource> resources,
+                                        SettlementSnapshot snapshot,
+                                        List<StrategicMineSite> mineSites,
+                                        List<EconomicObjectiveRecord> objectives,
+                                        long gameTime) {
+        for (EconomicObjectiveRecord objective : objectives) {
+            if (objective == null || !snapshot.claimUuid().equals(objective.claimUuid()) || !objective.isActiveAt(gameTime)) {
+                continue;
+            }
+            EconomicObjectiveState state = objective.economyStateAt(gameTime);
+            if (objective.targetKind() == EconomicObjectiveTargetKind.MINE) {
+                applyMineObjective(resources, mineSites, objective, state);
+            } else if (objective.targetKind() == EconomicObjectiveTargetKind.ROUTE
+                    || objective.targetKind() == EconomicObjectiveTargetKind.STORAGE) {
+                for (MutableResource resource : resources.values()) {
+                    resource.objectiveState = resource.objectiveState.merge(state);
+                }
+            }
+        }
+    }
+
+    private static EconomicObjectiveState aggregateObjectiveState(SettlementSnapshot snapshot,
+                                                                  List<EconomicObjectiveRecord> objectives,
+                                                                  long gameTime) {
+        EconomicObjectiveState state = EconomicObjectiveState.NORMAL;
+        for (EconomicObjectiveRecord objective : objectives) {
+            if (objective != null && snapshot.claimUuid().equals(objective.claimUuid()) && objective.isActiveAt(gameTime)) {
+                state = state.merge(objective.economyStateAt(gameTime));
+            }
+        }
+        return state;
+    }
+
+    private static void applyMineObjective(Map<ResourceKey, MutableResource> resources,
+                                           List<StrategicMineSite> mineSites,
+                                           EconomicObjectiveRecord objective,
+                                           EconomicObjectiveState state) {
+        UUID siteId = objective.strategicObjectId();
+        if (siteId == null) {
+            return;
+        }
+        for (StrategicMineSite site : mineSites) {
+            if (site == null || !siteId.equals(site.siteId())) {
+                continue;
+            }
+            ResourceKey resource = resourceForMineCategory(site.resourceCategory());
+            if (resource != null) {
+                MutableResource mutable = resources.get(resource);
+                mutable.objectiveState = mutable.objectiveState.merge(state);
+            }
+            return;
+        }
     }
 
     private static BuildingContribution contributionForBuilding(SettlementBuildingRecord building) {
@@ -410,6 +486,7 @@ public final class ClaimStrategicEconomySummaryService {
         private boolean shortage;
         private boolean degraded;
         private boolean unknown;
+        private EconomicObjectiveState objectiveState = EconomicObjectiveState.NORMAL;
     }
 
     private record BuildingContribution(@Nullable ResourceKey resource,

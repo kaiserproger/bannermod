@@ -1,7 +1,13 @@
 package com.talhanation.bannermod.governance;
 
+import com.talhanation.bannermod.persistence.military.RecruitsClaim;
+import com.talhanation.bannermod.persistence.military.RecruitsClaimManager;
 import com.talhanation.bannermod.shared.logistics.BannerModSupplyStatus;
 import com.talhanation.bannermod.shared.settlement.BannerModSettlementBinding;
+import com.talhanation.bannermod.settlement.economy.StrategicResourceAccountingManager;
+import com.talhanation.bannermod.settlement.economy.StrategicResourceBucket;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.ChunkPos;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -9,6 +15,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BannerModGovernorHeartbeatTest {
@@ -164,6 +171,112 @@ class BannerModGovernorHeartbeatTest {
                         BannerModGovernorRecommendation.STRENGTHEN_FORTIFICATIONS,
                         BannerModGovernorRecommendation.RELIEVE_SUPPLY_PRESSURE
                 ))
+        );
+    }
+
+    @Test
+    void missingStrategicFoodAccountDoesNotCreateStarvationPressure() {
+        BannerModGovernorSnapshot snapshot = BannerModGovernorSnapshot.create(UUID.randomUUID(), new ChunkPos(4, 7), "blueguild");
+        BannerModSupplyStatus.RecruitSupplyStatus current = stableRecruitSupply();
+
+        BannerModSupplyStatus.RecruitSupplyStatus updated = BannerModGovernorHeartbeat.applyArmyUpkeepPressure(
+                null,
+                new StrategicResourceAccountingManager(),
+                snapshot,
+                current,
+                new BannerModGovernorHeartbeat.ArmyUpkeepDemand(3, 0),
+                0,
+                200L
+        );
+
+        assertSame(current, updated);
+    }
+
+    @Test
+    void foodShortageDoesNotPartiallyDrainStrategicFoodBalance() {
+        UUID claimUuid = UUID.randomUUID();
+        BannerModGovernorSnapshot snapshot = BannerModGovernorSnapshot.create(claimUuid, new ChunkPos(4, 7), "blueguild");
+        StrategicResourceAccountingManager resourceAccountingManager = new StrategicResourceAccountingManager();
+        resourceAccountingManager.credit(claimUuid, StrategicResourceBucket.FOOD, 2, 100L);
+
+        BannerModSupplyStatus.RecruitSupplyStatus updated = BannerModGovernorHeartbeat.applyArmyUpkeepPressure(
+                null,
+                resourceAccountingManager,
+                snapshot,
+                stableRecruitSupply(),
+                new BannerModGovernorHeartbeat.ArmyUpkeepDemand(3, 0),
+                0,
+                200L
+        );
+
+        assertTrue(updated.blocked());
+        assertTrue(updated.needsFood());
+        assertTrue(updated.accounting().starving());
+        assertEquals(2, resourceAccountingManager.getAccount(claimUuid).balance(StrategicResourceBucket.FOOD));
+    }
+
+    @Test
+    void successfulFoodUpkeepDebitsFullDemandWithoutShortagePressure() {
+        UUID claimUuid = UUID.randomUUID();
+        BannerModGovernorSnapshot snapshot = BannerModGovernorSnapshot.create(claimUuid, new ChunkPos(4, 7), "blueguild");
+        StrategicResourceAccountingManager resourceAccountingManager = new StrategicResourceAccountingManager();
+        resourceAccountingManager.credit(claimUuid, StrategicResourceBucket.FOOD, 3, 100L);
+        BannerModSupplyStatus.RecruitSupplyStatus current = stableRecruitSupply();
+
+        BannerModSupplyStatus.RecruitSupplyStatus updated = BannerModGovernorHeartbeat.applyArmyUpkeepPressure(
+                null,
+                resourceAccountingManager,
+                snapshot,
+                current,
+                new BannerModGovernorHeartbeat.ArmyUpkeepDemand(3, 0),
+                0,
+                200L
+        );
+
+        assertSame(current, updated);
+        assertEquals(0, resourceAccountingManager.getAccount(claimUuid).balance(StrategicResourceBucket.FOOD));
+    }
+
+    @Test
+    void upkeepAttributionRequiresMatchingClaimForUpkeepPosition() {
+        RecruitsClaim governedClaim = claimAt("Keep", new ChunkPos(0, 0));
+        RecruitsClaim foreignClaim = claimAt("Outpost", new ChunkPos(2, 0));
+        RecruitsClaimManager claimManager = new RecruitsClaimManager();
+        claimManager.testInsertClaim(governedClaim);
+        claimManager.testInsertClaim(foreignClaim);
+
+        assertTrue(BannerModGovernorHeartbeat.upkeepPosBelongsToClaim(
+                claimManager,
+                governedClaim.getUUID(),
+                new BlockPos(8, 64, 8)
+        ));
+        assertFalse(BannerModGovernorHeartbeat.upkeepPosBelongsToClaim(
+                claimManager,
+                governedClaim.getUUID(),
+                new BlockPos(40, 64, 8)
+        ));
+        assertFalse(BannerModGovernorHeartbeat.upkeepPosBelongsToClaim(
+                claimManager,
+                governedClaim.getUUID(),
+                null
+        ));
+    }
+
+    private static RecruitsClaim claimAt(String name, ChunkPos chunkPos) {
+        RecruitsClaim claim = new RecruitsClaim(name, UUID.randomUUID());
+        claim.setCenter(chunkPos);
+        claim.addChunk(chunkPos);
+        return claim;
+    }
+
+    private static BannerModSupplyStatus.RecruitSupplyStatus stableRecruitSupply() {
+        return new BannerModSupplyStatus.RecruitSupplyStatus(
+                BannerModSupplyStatus.RecruitSupplyState.READY,
+                false,
+                false,
+                false,
+                null,
+                BannerModSupplyStatus.armyUpkeepStatus(false, false, 100.0F)
         );
     }
 
