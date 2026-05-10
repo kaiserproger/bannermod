@@ -102,7 +102,7 @@ This repository wires the tool into common agent entrypoints:
 
 The Claude hook blocks common raw context dumps through `cat`, `sed`, `find`, `rg`, and `grep`, and points the agent at the equivalent `ctx` command. It is intentionally a nudge, not a security boundary.
 
-Backlog access is intentionally routed through `tools/backlog` rather than direct `docs/BANNERMOD_BACKLOG.json` reads. The same Claude Bash hook blocks direct backlog JSON access and points agents at bounded commands such as `tools/backlog batch --limit 5`.
+Backlog access is intentionally routed through `tools/backlog` rather than direct `docs/BANNERMOD_BACKLOG.sqlite` reads. The same Bash hook blocks direct backlog access and points agents at bounded commands such as `tools/backlog batch --limit 5` and `tools/backlog stage`.
 
 Additional agent guardrails live under `tools/agent-hooks/`, `.codex/config.toml`, and `.opencode/plugins/`. They reuse the same policy where supported by the host agent: bounded backlog access and context-proxy-first repository inspection.
 

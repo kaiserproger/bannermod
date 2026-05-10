@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Small JSON-backed backlog tool for BannerMod agents.
+"""Small SQLite-backed backlog tool for BannerMod agents.
 
 The goal is intentionally modest: keep the backlog ordered, validate required
-fields, and return bounded task batches without dumping the whole JSON file into
+fields, and return bounded task batches without dumping the whole database into
 agent context.
 """
 
@@ -11,8 +11,9 @@ from __future__ import annotations
 import argparse
 from copy import deepcopy
 import json
-import os
 import re
+import sqlite3
+import subprocess
 import sys
 from datetime import date
 from pathlib import Path
@@ -20,18 +21,22 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parents[1]
-BACKLOG_PATH = ROOT / "docs" / "BANNERMOD_BACKLOG.json"
+BACKLOG_DB_PATH = ROOT / "docs" / "BANNERMOD_BACKLOG.sqlite"
+BACKLOG_JSON_PATH = ROOT / "docs" / "BANNERMOD_BACKLOG.json"
 VALID_STATUSES = {"open", "in_progress", "done"}
 SCHEMA_VERSION = 2
+DB_SCHEMA_VERSION = 1
 REQUIRED_TASK_FIELDS = ("id", "title", "status", "why", "scope", "acceptance", "dependencies", "updated")
 TASK_ID_RE = re.compile(r"^[A-Z][A-Z0-9]+-[0-9]+[A-Z0-9-]*$")
-MAX_BACKLOG_BYTES = 5 * 1024 * 1024
+MAX_BACKLOG_JSON_BYTES = 5 * 1024 * 1024
+MAX_BACKLOG_DB_BYTES = 20 * 1024 * 1024
 MAX_BATCH_LIMIT = 50
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="BannerMod backlog mini-Jira")
-    parser.add_argument("--file", default=str(BACKLOG_PATH), help="Backlog JSON path")
+    parser.add_argument("--db", default=str(BACKLOG_DB_PATH), help="Backlog SQLite database path")
+    parser.add_argument("--file", dest="legacy_file", help=argparse.SUPPRESS)
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_list = sub.add_parser("list", help="List task summaries")
@@ -91,10 +96,23 @@ def main() -> int:
     p_validate = sub.add_parser("validate", help="Validate backlog structure")
     p_validate.add_argument("--json", action="store_true", help="Print machine-readable JSON")
 
+    p_stage = sub.add_parser("stage", help="Stage canonical backlog files with git")
+    p_stage.add_argument("--no-validate", action="store_true", help="Skip validation before staging")
+
+    p_migrate_json = sub.add_parser("migrate-json", help="Import legacy JSON backlog into SQLite")
+    p_migrate_json.add_argument("--json-file", default=str(BACKLOG_JSON_PATH), help="Legacy JSON backlog path")
+    p_migrate_json.add_argument("--force", action="store_true", help="Overwrite an existing SQLite backlog")
+    p_migrate_json.add_argument("--remove-json", action="store_true", help="Remove the legacy JSON file after import")
+
     sub.add_parser("migrate-schema2", help="Upgrade schema 1 backlog to schema 2 dependencies format")
 
     args = parser.parse_args()
-    path = Path(args.file)
+    path = Path(args.legacy_file or args.db)
+    if args.command == "migrate-json":
+        return cmd_migrate_json(path, args)
+    if args.command == "stage":
+        return cmd_stage(path, args)
+
     data = load(path)
 
     if args.command == "list":
@@ -132,11 +150,20 @@ def add_common_filters(parser: argparse.ArgumentParser) -> None:
 
 
 def load(path: Path) -> dict[str, Any]:
+    return load_sqlite(path)
+
+
+def save(path: Path, data: dict[str, Any]) -> None:
+    validate_or_exit(data)
+    save_sqlite(path, data)
+
+
+def load_json(path: Path) -> dict[str, Any]:
     try:
         size = path.stat().st_size
-        if size > MAX_BACKLOG_BYTES:
+        if size > MAX_BACKLOG_JSON_BYTES:
             raise SystemExit(
-                f"backlog is {size} bytes, over the {MAX_BACKLOG_BYTES} byte safety limit; "
+                f"backlog JSON is {size} bytes, over the {MAX_BACKLOG_JSON_BYTES} byte safety limit; "
                 "split/archive old entries before using tools/backlog"
             )
         with path.open("r", encoding="utf-8") as fh:
@@ -150,18 +177,85 @@ def load(path: Path) -> dict[str, Any]:
     return data
 
 
-def save(path: Path, data: dict[str, Any]) -> None:
-    validate_or_exit(data)
-    rendered = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
-    encoded = rendered.encode("utf-8")
-    if len(encoded) > MAX_BACKLOG_BYTES:
+def load_sqlite(path: Path) -> dict[str, Any]:
+    if not path.exists():
         raise SystemExit(
-            f"refusing to write {len(encoded)} bytes, over the {MAX_BACKLOG_BYTES} byte safety limit"
+            f"backlog database not found: {path}\n"
+            f"Run: tools/backlog migrate-json --json-file {BACKLOG_JSON_PATH.relative_to(ROOT)}"
         )
-    tmp_path = path.with_suffix(path.suffix + ".tmp")
-    with tmp_path.open("w", encoding="utf-8") as fh:
-        fh.write(rendered)
-    os.replace(tmp_path, path)
+    size = path.stat().st_size
+    if size > MAX_BACKLOG_DB_BYTES:
+        raise SystemExit(
+            f"backlog database is {size} bytes, over the {MAX_BACKLOG_DB_BYTES} byte safety limit"
+        )
+    try:
+        with sqlite3.connect(path) as conn:
+            conn.row_factory = sqlite3.Row
+            metadata = dict(conn.execute("SELECT key, value FROM metadata").fetchall())
+            task_rows = conn.execute(
+                "SELECT task_json FROM tasks ORDER BY sort_order ASC, id ASC"
+            ).fetchall()
+    except sqlite3.DatabaseError as exc:
+        raise SystemExit(f"invalid backlog database {path}: {exc}")
+
+    try:
+        schema = int(metadata.get("schema", "0"))
+        rules = json.loads(metadata.get("rules", "[]"))
+        loaded_tasks = [json.loads(row["task_json"]) for row in task_rows]
+    except (TypeError, ValueError, json.JSONDecodeError) as exc:
+        raise SystemExit(f"invalid backlog database payload {path}: {exc}")
+
+    return {
+        "schema": schema,
+        "description": metadata.get("description", ""),
+        "rules": rules,
+        "tasks": loaded_tasks,
+    }
+
+
+def save_sqlite(path: Path, data: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with sqlite3.connect(path) as conn:
+            init_db(conn)
+            conn.execute("DELETE FROM metadata")
+            conn.executemany(
+                "INSERT INTO metadata(key, value) VALUES (?, ?)",
+                [
+                    ("schema", str(data.get("schema", SCHEMA_VERSION))),
+                    ("description", str(data.get("description", ""))),
+                    ("rules", json.dumps(data.get("rules", []), ensure_ascii=False)),
+                ],
+            )
+            conn.execute("DELETE FROM tasks")
+            for index, task in enumerate(tasks(data)):
+                conn.execute(
+                    "INSERT INTO tasks(id, sort_order, task_json) VALUES (?, ?, ?)",
+                    (
+                        str(task.get("id", "")),
+                        index,
+                        json.dumps(task, ensure_ascii=False),
+                    ),
+                )
+            conn.execute(f"PRAGMA user_version = {DB_SCHEMA_VERSION}")
+    except sqlite3.DatabaseError as exc:
+        raise SystemExit(f"failed to write backlog database {path}: {exc}")
+
+
+def init_db(conn: sqlite3.Connection) -> None:
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS metadata ("
+        "key TEXT PRIMARY KEY, "
+        "value TEXT NOT NULL"
+        ")"
+    )
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS tasks ("
+        "id TEXT PRIMARY KEY, "
+        "sort_order INTEGER NOT NULL, "
+        "task_json TEXT NOT NULL"
+        ")"
+    )
 
 
 def tasks(data: dict[str, Any]) -> list[dict[str, Any]]:
@@ -385,6 +479,13 @@ def cmd_done(path: Path, data: dict[str, Any], args: argparse.Namespace) -> int:
 
 
 def cmd_migrate_schema2(path: Path, data: dict[str, Any]) -> int:
+    migrate_schema2_data(data)
+    save(path, data)
+    print(f"Migrated backlog to schema {SCHEMA_VERSION}")
+    return 0
+
+
+def migrate_schema2_data(data: dict[str, Any]) -> None:
     schema = data.get("schema")
     if schema not in (1, SCHEMA_VERSION):
         raise SystemExit(f"unsupported schema for migration: {schema!r}")
@@ -392,8 +493,8 @@ def cmd_migrate_schema2(path: Path, data: dict[str, Any]) -> int:
     rules = list(data.get("rules") or [])
     if not rules:
         rules = [
-            "This JSON file is the single canonical backlog; docs/BANNERMOD_BACKLOG.md is only a human-facing pointer.",
-            "Use tools/backlog.py batch/list/show to inspect work instead of dumping the whole JSON file into context.",
+            "The SQLite database is the single canonical backlog; docs/BANNERMOD_BACKLOG.md is only a human-facing pointer.",
+            "Use tools/backlog.py batch/list/show to inspect work instead of dumping the whole database into context.",
             "Every task must include id, title, status, why, scope, acceptance, dependencies, and updated date.",
             "DONE means every acceptance item is observably satisfied in the current codebase, not merely supported by a lower-level policy or partial slice.",
             "Before marking a task done, run the relevant verification and record the result in verification. If a check cannot be run, record why.",
@@ -403,6 +504,11 @@ def cmd_migrate_schema2(path: Path, data: dict[str, Any]) -> int:
         ]
     else:
         rules = [
+            "The SQLite database is the single canonical backlog; docs/BANNERMOD_BACKLOG.md is only a human-facing pointer."
+            if rule == "This JSON file is the single canonical backlog; docs/BANNERMOD_BACKLOG.md is only a human-facing pointer."
+            else "Use tools/backlog.py batch/list/show to inspect work instead of dumping the whole database into context."
+            if rule == "Use tools/backlog.py batch/list/show to inspect work instead of dumping the whole JSON file into context."
+            else
             "Every task must include id, title, status, why, scope, acceptance, dependencies, and updated date."
             if rule == "Every task must include id, title, status, why, scope, acceptance, and updated date."
             else "Add new work as an open task with concrete deliverables, explicit dependencies, and verifiable acceptance checks. Do not add vague reminders."
@@ -416,9 +522,6 @@ def cmd_migrate_schema2(path: Path, data: dict[str, Any]) -> int:
     data["rules"] = rules
     for task in tasks(data):
         task.setdefault("dependencies", [])
-    save(path, data)
-    print(f"Migrated backlog to schema {SCHEMA_VERSION}")
-    return 0
 
 
 def cmd_validate(data: dict[str, Any], args: argparse.Namespace) -> int:
@@ -435,6 +538,63 @@ def cmd_validate(data: dict[str, Any], args: argparse.Namespace) -> int:
         done_count = sum(1 for task in tasks(data) if task.get("status") == "done")
         print(f"Backlog OK: {open_count} open, {in_progress_count} in_progress, {done_count} done")
     return 1 if errors else 0
+
+
+def cmd_migrate_json(db_path: Path, args: argparse.Namespace) -> int:
+    json_path = Path(args.json_file)
+    if db_path.exists() and not args.force:
+        raise SystemExit(f"backlog database already exists: {db_path}; use --force to replace it")
+    data = load_json(json_path)
+    if data.get("schema") == 1:
+        migrate_schema2_data(data)
+    validate_or_exit(data)
+    if db_path.exists():
+        db_path.unlink()
+    save_sqlite(db_path, data)
+    if args.remove_json:
+        json_path.unlink()
+    print(f"Migrated {len(tasks(data))} tasks to {db_path}")
+    if args.remove_json:
+        print(f"Removed legacy JSON backlog: {json_path}")
+    return 0
+
+
+def cmd_stage(db_path: Path, args: argparse.Namespace) -> int:
+    if not args.no_validate:
+        validate_or_exit(load(db_path))
+    paths = [repo_relative(db_path)]
+    if BACKLOG_JSON_PATH.exists() or git_tracks(BACKLOG_JSON_PATH):
+        paths.append(repo_relative(BACKLOG_JSON_PATH))
+    completed = subprocess.run(
+        ["git", "add", "--", *paths],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        message = completed.stderr.strip() or completed.stdout.strip() or "git add failed"
+        raise SystemExit(message)
+    print("Staged backlog files: " + ", ".join(paths))
+    return 0
+
+
+def repo_relative(path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(ROOT))
+    except ValueError:
+        raise SystemExit(f"path is outside repository root: {path}")
+
+
+def git_tracks(path: Path) -> bool:
+    relative = repo_relative(path)
+    return subprocess.run(
+        ["git", "ls-files", "--error-unmatch", "--", relative],
+        cwd=ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    ).returncode == 0
 
 
 def validate_or_exit(data: dict[str, Any]) -> None:

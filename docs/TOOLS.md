@@ -19,7 +19,7 @@ Full tool notes live in `../tools/ai-context-proxy/README.md`.
 
 ## Backlog Tool
 
-`tools/backlog` is the bounded interface to the canonical backlog at `docs/BANNERMOD_BACKLOG.json`. Use it instead of reading the full JSON during normal agent work.
+`tools/backlog` is the bounded interface to the canonical backlog at `docs/BANNERMOD_BACKLOG.sqlite`. Use it instead of reading the SQLite DB directly during normal agent work.
 
 ```bash
 tools/backlog batch --limit 5
@@ -31,13 +31,14 @@ tools/backlog add UI-008 "Readable title" --why "Why this matters" --scope "Conc
 tools/backlog set-deps UI-008 --depends-on WAR-007
 tools/backlog split BIG-001 --child-file /tmp/big-001-children.json --progress "landed: initial fix; moved: remaining checks into BIG-001A/BIG-001B; blocks: child tasks" --dry-run
 tools/backlog validate
+tools/backlog stage
 ```
 
 `tools/backlog add` validates new tasks before writing: ID format, duplicate IDs, non-empty `why`, at least one `scope`, at least one `acceptance` item, and the schema-required `dependencies` field. Use `--dry-run` to preview a task without mutating the backlog.
 
-Safety limits are deliberate: the tool refuses backlog files over 5 MB, caps `batch --limit` at 50 tasks, and writes through an atomic temp-file replace. This keeps normal use from producing huge outputs or partial JSON writes.
+Safety limits are deliberate: the tool caps `batch --limit` at 50 tasks and uses SQLite transactions for backlog writes. This keeps normal use from producing huge outputs or partial writes.
 
-Mutate the backlog sequentially, not in parallel. Each individual write is atomic, but concurrent `tools/backlog add/progress/done` calls can race each other and leave one writer operating on stale file contents.
+Mutate the backlog sequentially, not in parallel. Each individual write is transactional, but concurrent `tools/backlog add/progress/done` calls can race each other and leave one writer operating on stale file contents.
 
 Backlog tasks that change UI, change mechanics, or add player-facing mechanics should include guide-update work for both `MULTIPLAYER_GUIDE_RU.md` and `MULTIPLAYER_GUIDE_EN.md`.
 
@@ -79,7 +80,7 @@ Shared local guardrail scripts live in `tools/agent-hooks/`.
 
 - Claude Code uses `.claude/settings.local.json`, which runs `tools/ai-context-proxy/hooks/claude-pre-bash.py`; that wrapper delegates to `tools/agent-hooks/pre-bash-guardrails.py`.
 - Codex supports project hooks through `.codex/config.toml` with `[features].codex_hooks = true`; this repo wires `PreToolUse` for Bash to the shared guardrail script.
-- OpenCode supports project plugins under `.opencode/plugins/`; this repo uses `.opencode/plugins/project-guardrails.js` to block direct backlog JSON access and raw context dumps before Bash execution.
+- OpenCode supports project plugins under `.opencode/plugins/`; this repo uses `.opencode/plugins/project-guardrails.js` to block direct backlog access and raw context dumps before Bash execution.
 - `code-simplifier` and `code-reviewer` are required quality gates for every completed feature/task. Run `code-simplifier` first, verify any cleanup, then run `code-reviewer` and resolve or record findings before marking the task done.
 - Cursor, Windsurf, Gemini, and Copilot rule files currently provide instruction-level guardrails only; no repo-local executable hook format is configured here for them.
 

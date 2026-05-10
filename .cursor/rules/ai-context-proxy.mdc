@@ -24,8 +24,8 @@ export PATH="$PWD/tools/ai-context-proxy/wrappers:$PWD/tools/ai-context-proxy/bi
 
 ## Backlog
 
-- Use `tools/backlog` instead of reading `docs/BANNERMOD_BACKLOG.json` directly.
-- Use `tools/backlog batch --limit 5`, `tools/backlog show <ID>`, `tools/backlog add ... --dry-run`, and `tools/backlog validate` for normal backlog work.
+- Use `tools/backlog` instead of reading `docs/BANNERMOD_BACKLOG.sqlite` directly.
+- Use `tools/backlog batch --limit 5`, `tools/backlog show <ID>`, `tools/backlog add ... --dry-run`, `tools/backlog validate`, and `tools/backlog stage` for normal backlog work.
 - Before marking a task done, self-verify every acceptance item and record the result with `tools/backlog done <ID> --verification "..."`.
 - If a task changes UI, changes gameplay mechanics, or adds player-facing mechanics, update both `MULTIPLAYER_GUIDE_RU.md` and `MULTIPLAYER_GUIDE_EN.md` before marking it done.
 

@@ -6,7 +6,7 @@
 - Active code lives under `src/**`.
 - The only live mod entrypoint is `src/main/java/com/talhanation/bannermod/bootstrap/BannerModMain.java`.
 - Active planning lives under `.planning/`.
-- Unfinished work lives in `docs/BANNERMOD_BACKLOG.json` only; use `tools/backlog` to inspect or update it.
+- Unfinished work lives in `docs/BANNERMOD_BACKLOG.sqlite` only; use `tools/backlog` to inspect or update it.
 
 ## Ignore By Default
 

@@ -91,6 +91,11 @@ class CriticalUiStateVerificationTest {
         assertTrue(perkTreeScreen.contains("if (!snapshotReady) return null"));
         assertTrue(perkTreeScreen.contains("respecButton.active = progress != null"));
         assertTrue(perkTreeScreen.contains("setScreen(null)"));
+        assertTrue(perkTreeScreen.contains("MilitaryGuiStyle.parchmentPanel"));
+        assertTrue(perkTreeScreen.contains("MilitaryGuiStyle.parchmentInset"));
+        assertTrue(perkTreeScreen.contains("MilitaryGuiStyle.clampLabel(font, feedback, 170)"));
+        assertTrue(perkTreeScreen.contains("new ExtendedButton(guiLeft + 10, guiTop + ySize - 28, 70, 20"));
+        assertTrue(perkTreeScreen.contains("new ExtendedButton(guiLeft + xSize - 106, guiTop + ySize - 28, 96, 20"));
         assertTrue(perkTreeScreen.contains("PerkState.LOCKED"));
         assertTrue(perkTreeScreen.contains("PerkState.AVAILABLE"));
         assertTrue(perkTreeScreen.contains("PerkState.OWNED"));

@@ -8,7 +8,7 @@ Last updated: 2026-04-28.
 - Active source tree: root `src/**` under `com.talhanation.bannermod`.
 - Archive source trees: `recruits/` and `workers/`; use them only as references.
 - Active planning root: `.planning/`.
-- Active backlog: `docs/BANNERMOD_BACKLOG.json` via `tools/backlog`.
+- Active backlog: `docs/BANNERMOD_BACKLOG.sqlite` via `tools/backlog`.
 
 ## Done Recently
 
