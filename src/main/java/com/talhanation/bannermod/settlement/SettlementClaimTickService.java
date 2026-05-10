@@ -64,6 +64,7 @@ final class SettlementClaimTickService {
         state.marketStateSupplier.set(snapshot.marketState());
         tickSellerDispatches(state.sellerRuntime, snapshot.marketState(), gameTime);
         publishBuildingWorkOrders(state, snapshot, level, gameTime);
+        state.npcDemandContractService.tickClaim(snapshot, gameTime);
 
         for (SettlementResidentRecord resident : snapshot.residents()) {
             if (resident == null || resident.residentUuid() == null) {

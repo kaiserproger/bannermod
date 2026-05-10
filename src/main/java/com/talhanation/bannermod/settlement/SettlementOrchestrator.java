@@ -4,6 +4,8 @@ import com.talhanation.bannermod.governance.BannerModGovernorManager;
 import com.talhanation.bannermod.governance.BannerModGovernorSnapshot;
 import com.talhanation.bannermod.settlement.dispatch.BannerModSellerDispatchRuntime;
 import com.talhanation.bannermod.settlement.dispatch.BannerModSellerDispatchSavedData;
+import com.talhanation.bannermod.settlement.economy.NpcDemandContractSavedData;
+import com.talhanation.bannermod.settlement.economy.NpcDemandContractService;
 import com.talhanation.bannermod.settlement.goal.BannerModResidentGoalScheduler;
 import com.talhanation.bannermod.settlement.household.BannerModHomeAssignmentRuntime;
 import com.talhanation.bannermod.settlement.household.BannerModHomeAssignmentSavedData;
@@ -91,6 +93,13 @@ public final class SettlementOrchestrator {
         return runtimeState(level).workOrderRuntime;
     }
 
+    public static NpcDemandContractService npcDemandContractService(ServerLevel level) {
+        if (level == null) {
+            return null;
+        }
+        return runtimeState(level).npcDemandContractService;
+    }
+
     static LevelRuntimeState detachedStateForTests(JobHandlerRegistry jobHandlerRegistry) {
         return LevelRuntimeState.create(SettlementProjectRuntime.detachedForTests(), jobHandlerRegistry);
     }
@@ -117,7 +126,8 @@ public final class SettlementOrchestrator {
                         JobHandlerRegistry.defaults(),
                         SettlementWorkOrderSavedData.get(level).runtime(),
                         BannerModHomeAssignmentSavedData.get(level).runtime(),
-                        BannerModSellerDispatchSavedData.get(level).runtime()
+                        BannerModSellerDispatchSavedData.get(level).runtime(),
+                        NpcDemandContractSavedData.get(level).service()
                 ));
     }
 
@@ -131,6 +141,7 @@ public final class SettlementOrchestrator {
         final Map<UUID, Long> jobCooldownExpiries;
         final SettlementWorkOrderRuntime workOrderRuntime;
         final SettlementWorkOrderPublisherRegistry publisherRegistry;
+        final NpcDemandContractService npcDemandContractService;
         private final List<UUID> orchestratorSnapshotOrder = new ArrayList<>();
 
         private LevelRuntimeState(SettlementProjectRuntime projectRuntime,
@@ -141,7 +152,8 @@ public final class SettlementOrchestrator {
                                   JobHandlerRegistry jobHandlerRegistry,
                                   Map<UUID, Long> jobCooldownExpiries,
                                   SettlementWorkOrderRuntime workOrderRuntime,
-                                  SettlementWorkOrderPublisherRegistry publisherRegistry) {
+                                  SettlementWorkOrderPublisherRegistry publisherRegistry,
+                                  NpcDemandContractService npcDemandContractService) {
             this.projectRuntime = projectRuntime;
             this.homeRuntime = homeRuntime;
             this.sellerRuntime = sellerRuntime;
@@ -151,6 +163,7 @@ public final class SettlementOrchestrator {
             this.jobCooldownExpiries = jobCooldownExpiries;
             this.workOrderRuntime = workOrderRuntime;
             this.publisherRegistry = publisherRegistry;
+            this.npcDemandContractService = npcDemandContractService;
         }
 
         List<UUID> snapshotOrderForBatch(SettlementManager settlementManager, int startIndex) {
@@ -180,10 +193,19 @@ public final class SettlementOrchestrator {
         }
 
         private static LevelRuntimeState create(SettlementProjectRuntime projectRuntime,
+                                                 JobHandlerRegistry jobHandlerRegistry,
+                                                 SettlementWorkOrderRuntime workOrderRuntime,
+                                                 BannerModHomeAssignmentRuntime homeRuntime,
+                                                 BannerModSellerDispatchRuntime sellerRuntime) {
+            return create(projectRuntime, jobHandlerRegistry, workOrderRuntime, homeRuntime, sellerRuntime, new NpcDemandContractService());
+        }
+
+        private static LevelRuntimeState create(SettlementProjectRuntime projectRuntime,
                                                 JobHandlerRegistry jobHandlerRegistry,
                                                 SettlementWorkOrderRuntime workOrderRuntime,
                                                 BannerModHomeAssignmentRuntime homeRuntime,
-                                                BannerModSellerDispatchRuntime sellerRuntime) {
+                                                BannerModSellerDispatchRuntime sellerRuntime,
+                                                NpcDemandContractService npcDemandContractService) {
             BannerModHomeAssignmentRuntime effectiveHomeRuntime = homeRuntime == null
                     ? new BannerModHomeAssignmentRuntime()
                     : homeRuntime;
@@ -200,7 +222,8 @@ public final class SettlementOrchestrator {
                     jobHandlerRegistry == null ? JobHandlerRegistry.defaults() : jobHandlerRegistry,
                     new HashMap<>(),
                     workOrderRuntime == null ? new SettlementWorkOrderRuntime() : workOrderRuntime,
-                    SettlementWorkOrderPublisherRegistry.defaults()
+                    SettlementWorkOrderPublisherRegistry.defaults(),
+                    npcDemandContractService == null ? new NpcDemandContractService() : npcDemandContractService
             );
         }
     }

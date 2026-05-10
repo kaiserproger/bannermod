@@ -92,6 +92,19 @@ After coding, provide:
 - If the user invokes `/backlog-execute [N]`, treat it as an execution command, not a planning request: default `N=5`, run `tools/backlog ready N`, pick that batch as the active queue, and begin execution under the backlog dependency, worktree, feature-branch, and finish-or-split rules.
 - For `/backlog-execute [N]` with parallel subagents, create one dedicated worktree and one dedicated feature branch per task before any edits. For dependency chains, complete the first task and branch the dependent task from the updated tip of the first task branch.
 
+Documentation index for agents:
+- `docs/README.md` - top-level documentation index.
+- `docs/STATUS.md` - current developer status, known open areas, and live system references.
+- `docs/CONTRIBUTING.md` - contribution, verification, and review flow.
+- `docs/DEVELOPMENT.md` - codebase map, hot spots, and validation shortcuts.
+- `docs/TOOLS.md` - local tools, context proxy, backlog helper, and repo skills.
+- `docs/BANNERMOD_BACKLOG.sqlite` - canonical backlog; use `tools/backlog`, not raw SQLite reads/writes.
+- `docs/BANNERMOD_TECHNICAL_DESIGN.md` - architecture, state model, authority model, invariants, and target end state.
+- `docs/STRATEGIC_ECONOMY_INTEGRATION.md` - VenaTerra-backed strategic economy, mine-site, yield, backlog, and verification notes.
+- `docs/AI_MINECRAFT_UI_STYLE_GUIDE.md` - required style rules for Minecraft-native UI/HUD work.
+- `MULTIPLAYER_GUIDE_RU.md` / `MULTIPLAYER_GUIDE_EN.md` - player-facing guides; update them for shipped player-visible mechanics.
+- `docs/BANNERMOD_ALMANAC.html` - compact player almanac; update it with player-facing UI/mechanic changes.
+
 12. Minecraft UI design
 - For Minecraft GUI/HUD work, load and apply the repo skill `minecraft-ui-design` from `.agents/skills/minecraft-ui-design/SKILL.md`.
 - UI must be Minecraft-native, minimal, readable, server-authoritative for gameplay mutations, localized, and checked for overlap with hotbar/chat/crosshair/boss bars/existing BannerMod overlays.

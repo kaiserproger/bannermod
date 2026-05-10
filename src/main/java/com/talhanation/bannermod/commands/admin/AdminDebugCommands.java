@@ -13,12 +13,23 @@ import com.talhanation.bannermod.entity.military.RecruitIndex;
 import com.talhanation.bannermod.governance.BannerModGovernorManager;
 import com.talhanation.bannermod.governance.BannerModTreasuryManager;
 import com.talhanation.bannermod.persistence.military.RecruitPlayerUnitSaveData;
+import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.persistence.military.RecruitsClaimSaveData;
 import com.talhanation.bannermod.persistence.military.RecruitsGroupsSaveData;
 import com.talhanation.bannermod.settlement.SettlementManager;
+import com.talhanation.bannermod.settlement.SettlementOrchestrator;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
 import com.talhanation.bannermod.settlement.bootstrap.SettlementRegistryData;
+import com.talhanation.bannermod.settlement.building.ValidatedBuildingRecord;
 import com.talhanation.bannermod.settlement.building.ValidatedBuildingRegistryData;
 import com.talhanation.bannermod.settlement.dispatch.BannerModSellerDispatchSavedData;
+import com.talhanation.bannermod.settlement.economy.ClaimStrategicEconomySummary;
+import com.talhanation.bannermod.settlement.economy.ClaimStrategicEconomySummaryService;
+import com.talhanation.bannermod.settlement.economy.FortLevelDefinition;
+import com.talhanation.bannermod.settlement.economy.NpcDemandContractSavedData;
+import com.talhanation.bannermod.settlement.economy.NpcDemandContractService;
+import com.talhanation.bannermod.settlement.economy.StrategicMineSite;
+import com.talhanation.bannermod.settlement.economy.StrategicMineSiteService;
 import com.talhanation.bannermod.settlement.household.BannerModHomeAssignmentSavedData;
 import com.talhanation.bannermod.settlement.prefab.player.PlayerBuildingRegistrySavedData;
 import com.talhanation.bannermod.settlement.project.SettlementProjectSavedData;
@@ -44,6 +55,7 @@ import net.minecraft.world.level.ChunkPos;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public final class AdminDebugCommands {
     private static final SimpleCommandExceptionType INVALID_CHUNK = new SimpleCommandExceptionType(
@@ -76,6 +88,7 @@ public final class AdminDebugCommands {
             BuildingInvalidationQueueData.class,
             ValidatedBuildingRegistryData.class,
             SettlementProjectSavedData.class,
+            NpcDemandContractSavedData.class,
             PlayerBuildingRegistrySavedData.class
     );
 
@@ -95,6 +108,16 @@ public final class AdminDebugCommands {
                 .then(Commands.literal("counters")
                         .then(Commands.literal("dump")
                                 .executes(AdminDebugCommands::countersDump)))
+                .then(Commands.literal("economy")
+                        .then(Commands.literal("claim")
+                                .then(Commands.argument("claimUuid", StringArgumentType.word())
+                                        .executes(AdminDebugCommands::claimEconomySummary)))
+                        .then(Commands.literal("mines")
+                                .then(Commands.argument("claimUuid", StringArgumentType.word())
+                                        .executes(AdminDebugCommands::claimMineSites)))
+                        .then(Commands.literal("contracts")
+                                .then(Commands.argument("claimUuid", StringArgumentType.word())
+                                        .executes(AdminDebugCommands::claimContracts))))
                 .then(Commands.literal("save-versions")
                         .executes(AdminDebugCommands::saveVersions));
     }
@@ -158,6 +181,98 @@ public final class AdminDebugCommands {
             context.getSource().sendSuccess(() -> Component.literal(savedDataClass.getSimpleName() + "=" + version), false);
         }
         return reported;
+    }
+
+    private static int claimEconomySummary(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerLevel level = serverLevel(context.getSource());
+        UUID claimUuid;
+        try {
+            claimUuid = UUID.fromString(StringArgumentType.getString(context, "claimUuid"));
+        } catch (IllegalArgumentException exception) {
+            context.getSource().sendFailure(Component.literal("claimUuid must be a UUID"));
+            return 0;
+        }
+        SettlementSnapshot snapshot = SettlementManager.get(level).getSnapshot(claimUuid);
+        if (snapshot == null) {
+            context.getSource().sendFailure(Component.literal("No settlement snapshot for claim " + claimUuid));
+            return 0;
+        }
+        List<ValidatedBuildingRecord> validatedBuildings = ValidatedBuildingRegistryData.get(level).allRecords().stream()
+                .filter(record -> record.settlementId().equals(claimUuid))
+                .toList();
+        RecruitsClaim claim = RecruitsClaimSaveData.get(level).getAllClaims().stream()
+                .filter(candidate -> candidate.getUUID().equals(claimUuid))
+                .findFirst()
+                .orElse(null);
+        List<StrategicMineSite> mineSites = claim == null
+                ? List.of()
+                : StrategicMineSiteService.derive(level, claim, snapshot, validatedBuildings);
+        ClaimStrategicEconomySummary summary = ClaimStrategicEconomySummaryService.derive(
+                snapshot,
+                validatedBuildings,
+                BannerModTreasuryManager.get(level).getLedger(claimUuid),
+                mineSites,
+                claim == null ? FortLevelDefinition.MIN_LEVEL : claim.getFortLevel()
+        );
+        for (String line : summary.debugLines()) {
+            context.getSource().sendSuccess(() -> Component.literal(line), false);
+        }
+        return summary.resources().size();
+    }
+
+    private static int claimMineSites(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerLevel level = serverLevel(context.getSource());
+        UUID claimUuid;
+        try {
+            claimUuid = UUID.fromString(StringArgumentType.getString(context, "claimUuid"));
+        } catch (IllegalArgumentException exception) {
+            context.getSource().sendFailure(Component.literal("claimUuid must be a UUID"));
+            return 0;
+        }
+
+        RecruitsClaim claim = RecruitsClaimSaveData.get(level).getAllClaims().stream()
+                .filter(candidate -> candidate.getUUID().equals(claimUuid))
+                .findFirst()
+                .orElse(null);
+        if (claim == null) {
+            context.getSource().sendFailure(Component.literal("No claim " + claimUuid));
+            return 0;
+        }
+
+        SettlementSnapshot snapshot = SettlementManager.get(level).getSnapshot(claimUuid);
+        List<ValidatedBuildingRecord> validatedBuildings = ValidatedBuildingRegistryData.get(level).allRecords().stream()
+                .filter(record -> record.settlementId().equals(claimUuid))
+                .toList();
+        List<StrategicMineSite> sites = StrategicMineSiteService.derive(level, claim, snapshot, validatedBuildings);
+        if (sites.isEmpty()) {
+            context.getSource().sendSuccess(() -> Component.literal("No strategic mine sites for claim " + claimUuid), false);
+            return 0;
+        }
+        for (StrategicMineSite site : sites) {
+            context.getSource().sendSuccess(() -> Component.literal(site.debugLine()), false);
+        }
+        return sites.size();
+    }
+
+    private static int claimContracts(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerLevel level = serverLevel(context.getSource());
+        UUID claimUuid;
+        try {
+            claimUuid = UUID.fromString(StringArgumentType.getString(context, "claimUuid"));
+        } catch (IllegalArgumentException exception) {
+            context.getSource().sendFailure(Component.literal("claimUuid must be a UUID"));
+            return 0;
+        }
+        NpcDemandContractService service = SettlementOrchestrator.npcDemandContractService(level);
+        if (service == null) {
+            context.getSource().sendFailure(Component.literal("NPC demand contract service unavailable"));
+            return 0;
+        }
+        List<String> lines = service.statusLines(claimUuid);
+        for (String line : lines) {
+            context.getSource().sendSuccess(() -> Component.literal(line), false);
+        }
+        return Math.max(0, lines.size() - 1);
     }
 
     private static Integer currentVersion(Class<?> savedDataClass) {
