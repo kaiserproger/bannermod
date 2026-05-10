@@ -8,6 +8,7 @@ import com.talhanation.bannermod.settlement.SettlementMarketState;
 import com.talhanation.bannermod.settlement.SettlementProjectCandidateSnapshot;
 import com.talhanation.bannermod.settlement.SettlementSnapshot;
 import com.talhanation.bannermod.settlement.SettlementStockpileSummary;
+import com.talhanation.bannermod.settlement.SettlementSupplySignal;
 import com.talhanation.bannermod.settlement.SettlementSupplySignalState;
 import com.talhanation.bannermod.settlement.SettlementTradeRouteHandoffSnapshot;
 import com.talhanation.bannermod.settlement.building.BuildingType;
@@ -229,6 +230,83 @@ class ClaimStrategicEconomySummaryServiceTest {
         assertEquals(0, line(summary, "stone").productionHint());
     }
 
+    @Test
+    void unstaffedMineSiteYieldsLessThanStaffedValidMine() {
+        UUID claimUuid = UUID.randomUUID();
+        UUID ownerUuid = UUID.randomUUID();
+        SettlementSnapshot snapshot = snapshot(claimUuid, List.of(), 0, 0, 0);
+
+        ClaimStrategicEconomySummary staffed = ClaimStrategicEconomySummaryService.derive(
+                snapshot,
+                List.of(),
+                null,
+                List.of(mineSite(claimUuid, ownerUuid, VenaterraDepositCategory.IRON, 1.0F, 2, false, false))
+        );
+        ClaimStrategicEconomySummary unstaffed = ClaimStrategicEconomySummaryService.derive(
+                snapshot,
+                List.of(),
+                null,
+                List.of(mineSite(claimUuid, ownerUuid, VenaterraDepositCategory.IRON, 1.0F, 0, false, false))
+        );
+
+        assertEquals(3, line(staffed, "iron").productionHint());
+        assertEquals(1, line(unstaffed, "iron").productionHint());
+        assertTrue(line(unstaffed, "iron").degraded());
+    }
+
+    @Test
+    void missingMineMaintenanceInputsDegradeMineYield() {
+        UUID claimUuid = UUID.randomUUID();
+        UUID ownerUuid = UUID.randomUUID();
+
+        for (String missingGood : List.of("food", "wood", "tools")) {
+            SettlementSnapshot snapshot = snapshot(
+                    claimUuid,
+                    List.of(),
+                    0,
+                    0,
+                    0,
+                    List.of(new SettlementSupplySignal(missingGood, 1, 0, 1, 0))
+            );
+
+            ClaimStrategicEconomySummary summary = ClaimStrategicEconomySummaryService.derive(
+                    snapshot,
+                    List.of(),
+                    null,
+                    List.of(mineSite(claimUuid, ownerUuid, VenaterraDepositCategory.IRON, 1.0F, 2, false, false))
+            );
+
+            ClaimStrategicEconomySummary.ResourceLine iron = line(summary, "iron");
+            assertEquals(1, iron.productionHint(), missingGood);
+            assertTrue(iron.degraded(), missingGood);
+        }
+    }
+
+    @Test
+    void reservedMineDisruptionReducesYieldWithoutRemovingMineRecord() {
+        UUID claimUuid = UUID.randomUUID();
+        UUID ownerUuid = UUID.randomUUID();
+        SettlementSnapshot snapshot = snapshot(
+                claimUuid,
+                List.of(),
+                0,
+                0,
+                0,
+                List.of(new SettlementSupplySignal("mine_disruption", 0, 0, 0, 1))
+        );
+
+        ClaimStrategicEconomySummary summary = ClaimStrategicEconomySummaryService.derive(
+                snapshot,
+                List.of(),
+                null,
+                List.of(mineSite(claimUuid, ownerUuid, VenaterraDepositCategory.IRON, 1.0F, 2, false, false))
+        );
+
+        ClaimStrategicEconomySummary.ResourceLine iron = line(summary, "iron");
+        assertEquals(2, iron.productionHint());
+        assertTrue(iron.degraded());
+    }
+
     private static ClaimStrategicEconomySummary.ResourceLine line(ClaimStrategicEconomySummary summary, String resourceId) {
         return summary.resources().stream()
                 .filter(line -> line.resourceId().equals(resourceId))
@@ -277,6 +355,16 @@ class ClaimStrategicEconomySummaryServiceTest {
                                              float richness,
                                              boolean degraded,
                                              boolean unknown) {
+        return mineSite(claimUuid, ownerUuid, category, richness, 1, degraded, unknown);
+    }
+
+    private static StrategicMineSite mineSite(UUID claimUuid,
+                                             UUID ownerUuid,
+                                             VenaterraDepositCategory category,
+                                             float richness,
+                                             int assignedWorkerCount,
+                                             boolean degraded,
+                                             boolean unknown) {
         return new StrategicMineSite(
                 UUID.randomUUID(),
                 claimUuid,
@@ -287,6 +375,7 @@ class ClaimStrategicEconomySummaryServiceTest {
                 StrategicMineSite.SourceType.VALIDATED_MINE_BUILDING,
                 category,
                 richness,
+                assignedWorkerCount,
                 degraded,
                 unknown
         );
@@ -297,6 +386,15 @@ class ClaimStrategicEconomySummaryServiceTest {
                                                int assignedResidents,
                                                int assignedWorkers,
                                                int missingAssignments) {
+        return snapshot(claimUuid, buildings, assignedResidents, assignedWorkers, missingAssignments, List.of());
+    }
+
+    private static SettlementSnapshot snapshot(UUID claimUuid,
+                                               List<SettlementBuildingRecord> buildings,
+                                               int assignedResidents,
+                                               int assignedWorkers,
+                                               int missingAssignments,
+                                               List<SettlementSupplySignal> supplySignals) {
         return new SettlementSnapshot(
                 claimUuid,
                 1,
@@ -314,9 +412,22 @@ class ClaimStrategicEconomySummaryServiceTest {
                 SettlementDesiredGoodsSnapshot.empty(),
                 SettlementProjectCandidateSnapshot.empty(),
                 SettlementTradeRouteHandoffSnapshot.empty(),
-                SettlementSupplySignalState.empty(),
+                supplySignalState(supplySignals),
                 List.of(),
                 buildings
+        );
+    }
+
+    private static SettlementSupplySignalState supplySignalState(List<SettlementSupplySignal> supplySignals) {
+        if (supplySignals.isEmpty()) {
+            return SettlementSupplySignalState.empty();
+        }
+        return new SettlementSupplySignalState(
+                supplySignals.size(),
+                (int) supplySignals.stream().filter(signal -> signal.shortageUnits() > 0).count(),
+                supplySignals.stream().mapToInt(SettlementSupplySignal::shortageUnits).sum(),
+                supplySignals.stream().mapToInt(SettlementSupplySignal::reservationHintUnits).sum(),
+                supplySignals
         );
     }
 }

@@ -18,9 +18,11 @@ import net.minecraft.world.phys.AABB;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -52,12 +54,17 @@ public final class StrategicMineSiteService {
         deposits = deposits == null ? List.of() : deposits;
         List<StrategicMineSite> sites = new ArrayList<>();
         Set<UUID> knownMineBuildingIds = new HashSet<>();
+        Map<UUID, Integer> assignedWorkerCounts = assignedWorkersByBuildingId(snapshot);
 
         for (ValidatedBuildingRecord record : records) {
             if (!record.settlementId().equals(claim.getUUID()) || record.type() != BuildingType.MINE) {
                 continue;
             }
+            SettlementBuildingRecord snapshotMine = snapshotMineForRecord(record, snapshot);
             knownMineBuildingIds.add(record.buildingId());
+            if (snapshotMine != null) {
+                knownMineBuildingIds.add(snapshotMine.buildingUuid());
+            }
             if (record.state() != BuildingValidationState.VALID) {
                 continue;
             }
@@ -68,6 +75,7 @@ public final class StrategicMineSiteService {
                     centerOf(record.bounds(), record.anchorPos()),
                     radiusOf(record.bounds()),
                     StrategicMineSite.SourceType.VALIDATED_MINE_BUILDING,
+                    snapshotMine == null ? assignedWorkerCounts.getOrDefault(record.buildingId(), 0) : snapshotMine.assignedWorkerCount(),
                     deposits
             ));
         }
@@ -85,6 +93,7 @@ public final class StrategicMineSiteService {
                         building.originPos(),
                         SNAPSHOT_MINE_RADIUS,
                         StrategicMineSite.SourceType.CLAIM_MINE_WORK_AREA,
+                        building.assignedWorkerCount(),
                         deposits
                 ));
             }
@@ -93,12 +102,32 @@ public final class StrategicMineSiteService {
         return List.copyOf(sites);
     }
 
+    @Nullable
+    private static SettlementBuildingRecord snapshotMineForRecord(ValidatedBuildingRecord record,
+                                                                  @Nullable SettlementSnapshot snapshot) {
+        if (snapshot == null) {
+            return null;
+        }
+        for (SettlementBuildingRecord building : snapshot.buildings()) {
+            if (record.buildingId().equals(building.buildingUuid())) {
+                return building;
+            }
+        }
+        for (SettlementBuildingRecord building : snapshot.buildings()) {
+            if (isMineLike(building.buildingTypeId()) && contains(record.bounds(), building.originPos())) {
+                return building;
+            }
+        }
+        return null;
+    }
+
     private static StrategicMineSite createSite(UUID siteId,
                                                 RecruitsClaim claim,
                                                 ResourceKey<Level> dimension,
                                                 BlockPos center,
                                                 int radius,
                                                 StrategicMineSite.SourceType sourceType,
+                                                int assignedWorkerCount,
                                                 List<VenaterraDepositCandidate> deposits) {
         VenaterraDepositCandidate deposit = closestReliableDeposit(dimension, center, radius, deposits);
         if (deposit == null) {
@@ -112,6 +141,7 @@ public final class StrategicMineSiteService {
                     sourceType,
                     VenaterraDepositCategory.UNKNOWN_OTHER,
                     0.0F,
+                    assignedWorkerCount,
                     true,
                     true
             );
@@ -127,9 +157,21 @@ public final class StrategicMineSiteService {
                 sourceType,
                 deposit.category(),
                 deposit.richness(),
+                assignedWorkerCount,
                 false,
                 false
         );
+    }
+
+    private static Map<UUID, Integer> assignedWorkersByBuildingId(@Nullable SettlementSnapshot snapshot) {
+        if (snapshot == null) {
+            return Map.of();
+        }
+        Map<UUID, Integer> assignedWorkers = new HashMap<>();
+        for (SettlementBuildingRecord building : snapshot.buildings()) {
+            assignedWorkers.put(building.buildingUuid(), building.assignedWorkerCount());
+        }
+        return assignedWorkers;
     }
 
     @Nullable
@@ -154,6 +196,15 @@ public final class StrategicMineSiteService {
         int dx = first.getX() - second.getX();
         int dz = first.getZ() - second.getZ();
         return (dx * dx) + (dz * dz);
+    }
+
+    private static boolean contains(AABB bounds, BlockPos pos) {
+        double x = pos.getX() + 0.5D;
+        double y = pos.getY() + 0.5D;
+        double z = pos.getZ() + 0.5D;
+        return x >= bounds.minX && x <= bounds.maxX
+                && y >= bounds.minY && y <= bounds.maxY
+                && z >= bounds.minZ && z <= bounds.maxZ;
     }
 
     private static boolean isMineLike(@Nullable String buildingTypeId) {

@@ -3,6 +3,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.world.level.ChunkPos;
+import com.talhanation.bannermod.settlement.economy.FortLevelDefinition;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -17,6 +18,7 @@ public class RecruitsClaim {
     private boolean allowBlockInteraction = false;
     private boolean allowBlockPlacement   = false;
     private boolean allowBlockBreaking    = false;
+    private int fortLevel = FortLevelDefinition.MIN_LEVEL;
     private final List<RecruitsPlayerInfo> trustedPlayers = new ArrayList<>();
     public ChunkPos center;
     public RecruitsPlayerInfo playerInfo;
@@ -97,6 +99,10 @@ public class RecruitsClaim {
         return trustedPlayers;
     }
 
+    public int getFortLevel() {
+        return fortLevel;
+    }
+
     public boolean isTrustedPlayer(@Nullable UUID playerUuid) {
         if (playerUuid == null) {
             return false;
@@ -131,6 +137,10 @@ public class RecruitsClaim {
 
     public void setBlockBreakingAllowed(boolean allow) {
         this.allowBlockBreaking = allow;
+    }
+
+    public void setFortLevel(int fortLevel) {
+        this.fortLevel = FortLevelDefinition.clampLevel(fortLevel);
     }
 
     public void setTrustedPlayers(@Nullable List<RecruitsPlayerInfo> players) {
@@ -169,6 +179,7 @@ public class RecruitsClaim {
         nbt.putBoolean("allowInteraction", allowBlockInteraction);
         nbt.putBoolean("allowPlacement", allowBlockPlacement);
         nbt.putBoolean("allowBreaking", allowBlockBreaking);
+        nbt.putInt("fortLevel", fortLevel);
         nbt.putBoolean("isAdmin", isAdmin);
         nbt.putBoolean("isRemoved", isRemoved);
         ListTag chunkList = new ListTag();
@@ -203,6 +214,9 @@ public class RecruitsClaim {
         claim.setBlockInteractionAllowed(nbt.getBoolean("allowInteraction"));
         claim.setBlockPlacementAllowed(nbt.getBoolean("allowPlacement"));
         claim.setBlockBreakingAllowed(nbt.getBoolean("allowBreaking"));
+        if (nbt.contains("fortLevel", Tag.TAG_INT)) {
+            claim.setFortLevel(nbt.getInt("fortLevel"));
+        }
         claim.setAdminClaim(nbt.getBoolean("isAdmin"));
         claim.isRemoved = nbt.getBoolean("isRemoved");
 

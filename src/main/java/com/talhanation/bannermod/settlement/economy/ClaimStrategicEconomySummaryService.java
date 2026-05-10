@@ -42,7 +42,15 @@ public final class ClaimStrategicEconomySummaryService {
                                                        List<ValidatedBuildingRecord> validatedBuildings,
                                                        @Nullable BannerModTreasuryLedgerSnapshot treasuryLedger,
                                                        @Nullable List<StrategicMineSite> mineSites) {
-        return derive(snapshot, validatedBuildings, treasuryLedger, mineSites, true);
+        return derive(snapshot, validatedBuildings, treasuryLedger, mineSites, FortLevelDefinition.MIN_LEVEL);
+    }
+
+    public static ClaimStrategicEconomySummary derive(SettlementSnapshot snapshot,
+                                                       List<ValidatedBuildingRecord> validatedBuildings,
+                                                       @Nullable BannerModTreasuryLedgerSnapshot treasuryLedger,
+                                                       @Nullable List<StrategicMineSite> mineSites,
+                                                       int fortLevel) {
+        return derive(snapshot, validatedBuildings, treasuryLedger, mineSites, true, fortLevel);
     }
 
     private static ClaimStrategicEconomySummary derive(SettlementSnapshot snapshot,
@@ -50,6 +58,15 @@ public final class ClaimStrategicEconomySummaryService {
                                                        @Nullable BannerModTreasuryLedgerSnapshot treasuryLedger,
                                                        @Nullable List<StrategicMineSite> mineSites,
                                                        boolean strategicMineSitesProvided) {
+        return derive(snapshot, validatedBuildings, treasuryLedger, mineSites, strategicMineSitesProvided, FortLevelDefinition.MIN_LEVEL);
+    }
+
+    private static ClaimStrategicEconomySummary derive(SettlementSnapshot snapshot,
+                                                       List<ValidatedBuildingRecord> validatedBuildings,
+                                                       @Nullable BannerModTreasuryLedgerSnapshot treasuryLedger,
+                                                       @Nullable List<StrategicMineSite> mineSites,
+                                                       boolean strategicMineSitesProvided,
+                                                       int fortLevel) {
         Map<ResourceKey, MutableResource> resources = new EnumMap<>(ResourceKey.class);
         for (ResourceKey resource : RESOURCES) {
             resources.put(resource, new MutableResource());
@@ -74,7 +91,7 @@ public final class ClaimStrategicEconomySummaryService {
         applyMarket(resources, snapshot);
         applyTreasury(resources, treasuryLedger);
         applyBuildings(resources, snapshot, safeValidatedBuildings, validBuildingIds, invalidBuildingIds, strategicMineSitesProvided);
-        applyMines(resources, snapshot, safeMineSites);
+        applyMines(resources, snapshot, safeMineSites, mineMaintenance(resources, snapshot));
 
         boolean anyShortage = false;
         boolean anyDegraded = false;
@@ -105,6 +122,7 @@ public final class ClaimStrategicEconomySummaryService {
                 snapshot.claimUuid(),
                 snapshot.anchorChunkX(),
                 snapshot.anchorChunkZ(),
+                FortLevelDefinition.forLevel(fortLevel),
                 lines,
                 anyShortage,
                 anyDegraded,
@@ -238,7 +256,8 @@ public final class ClaimStrategicEconomySummaryService {
 
     private static void applyMines(Map<ResourceKey, MutableResource> resources,
                                    SettlementSnapshot snapshot,
-                                   List<StrategicMineSite> mineSites) {
+                                   List<StrategicMineSite> mineSites,
+                                   MineMaintenance maintenance) {
         for (StrategicMineSite site : mineSites) {
             if (site == null || !site.claimUuid().equals(snapshot.claimUuid()) || site.ownerPoliticalEntityId() == null) {
                 continue;
@@ -254,15 +273,32 @@ public final class ClaimStrategicEconomySummaryService {
             }
 
             MutableResource mutable = resources.get(resource);
-            if (site.degraded()) {
+            boolean lowEfficiency = site.degraded() || site.assignedWorkerCount() <= 0 || maintenance.missingInputs();
+            boolean degraded = lowEfficiency || maintenance.disruptionUnits() > 0;
+            if (degraded) {
                 mutable.degraded = true;
             }
             if (site.unknown()) {
                 mutable.unknown = true;
                 continue;
             }
-            mutable.productionHint += mineProductionHint(site);
+            mutable.productionHint += mineProductionHint(site, lowEfficiency, maintenance.disruptionUnits());
         }
+    }
+
+    private static MineMaintenance mineMaintenance(Map<ResourceKey, MutableResource> resources, SettlementSnapshot snapshot) {
+        boolean missingFood = resources.get(ResourceKey.FOOD).shortage;
+        boolean missingWood = resources.get(ResourceKey.WOOD).shortage;
+        boolean missingTools = false;
+        int disruptionUnits = 0;
+        for (SettlementSupplySignal signal : snapshot.supplySignalState().signals()) {
+            String goodId = signal.goodId().toLowerCase(Locale.ROOT);
+            missingTools |= goodId.contains("tool") && signal.shortageUnits() > 0;
+            if (goodId.contains("mine_disruption") || goodId.contains("disruption")) {
+                disruptionUnits += signal.reservationHintUnits();
+            }
+        }
+        return new MineMaintenance(missingFood || missingWood || missingTools, disruptionUnits);
     }
 
     private static BuildingContribution contributionForBuilding(SettlementBuildingRecord building) {
@@ -315,6 +351,9 @@ public final class ClaimStrategicEconomySummaryService {
         if (normalized.contains("iron")) {
             return ResourceKey.IRON;
         }
+        if (normalized.contains("tool")) {
+            return ResourceKey.IRON;
+        }
         if (normalized.contains("wood") || normalized.contains("lumber")) {
             return ResourceKey.WOOD;
         }
@@ -337,12 +376,16 @@ public final class ClaimStrategicEconomySummaryService {
         };
     }
 
-    private static int mineProductionHint(StrategicMineSite site) {
-        if (site.degraded()) {
-            return 1;
-        }
+    private static int mineProductionHint(StrategicMineSite site, boolean lowEfficiency, int disruptionUnits) {
         int richnessYield = (int) Math.floor(site.richness() * 3.0F);
-        return Math.max(1, Math.min(3, richnessYield));
+        int baseYield = Math.max(1, Math.min(3, richnessYield));
+        if (lowEfficiency) {
+            baseYield = Math.min(baseYield, 1);
+        }
+        return Math.max(0, baseYield - disruptionUnits);
+    }
+
+    private record MineMaintenance(boolean missingInputs, int disruptionUnits) {
     }
 
     private enum ResourceKey {

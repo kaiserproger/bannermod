@@ -18,6 +18,7 @@ public record StrategicMineSite(
         SourceType sourceType,
         VenaterraDepositCategory resourceCategory,
         float richness,
+        int assignedWorkerCount,
         boolean degraded,
         boolean unknown
 ) {
@@ -30,6 +31,7 @@ public record StrategicMineSite(
         sourceType = sourceType == null ? SourceType.CLAIM_MINE_WORK_AREA : sourceType;
         resourceCategory = resourceCategory == null ? VenaterraDepositCategory.UNKNOWN_OTHER : resourceCategory;
         richness = Math.max(0.0F, richness);
+        assignedWorkerCount = Math.max(0, assignedWorkerCount);
     }
 
     public String debugLine() {
@@ -42,6 +44,7 @@ public record StrategicMineSite(
                 + " source=" + this.sourceType
                 + " resource=" + this.resourceCategory
                 + " richness=" + this.richness
+                + " workers=" + this.assignedWorkerCount
                 + " degraded=" + this.degraded
                 + " unknown=" + this.unknown;
     }

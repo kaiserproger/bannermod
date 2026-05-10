@@ -144,6 +144,8 @@ Messenger, noble-trade, governor, patrol, and scout screens now keep their prima
 
 The logistics panel also labels the settlement's strategic role and route cost. Farms plus storage can make a surplus hub, market plus routes can make a junction market, fort plus route storage can make a chokepoint fort, and ports/water access become a water gate. Landlocked settlements with food or material production may show a specialty such as preserved food or worked materials. These labels are warnings and planning hints first: they expose logistics objectives and loyalty pressure before applying destructive penalties.
 
+Strategic economy status now treats the starter fort as level 1 and exposes the next fort-level requirements in food, iron, wood, stone, and coins through server status/debug output. Mines are not infinite passive income: a mine with no assigned worker, missing food, missing wood supports, missing tools, or a reserved disruption pressure can show degraded yield. Server-side NPC demand contracts can appear even with one player online; markets and trading posts improve their cadence or quality. Use `/bannermod economy contracts <claimUuid>` for the server-backed contract list, or the admin debug economy commands for deeper inspection.
+
 ### Code-backed settlement mechanics reference
 
 The settlement stack is not a single magic block. It is a pipeline of records and snapshots:

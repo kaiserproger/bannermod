@@ -199,6 +199,59 @@ class StrategicMineSiteServiceTest {
     }
 
     @Test
+    void validatedMineUsesOverlappingSnapshotWorkersWithoutDuplicateSite() {
+        RecruitsClaim claim = claim(UUID.randomUUID());
+        UUID validatedMineId = UUID.randomUUID();
+        UUID liveMineId = UUID.randomUUID();
+
+        List<StrategicMineSite> sites = StrategicMineSiteService.derive(
+                null,
+                claim,
+                snapshot(claim.getUUID(), List.of(miningArea(liveMineId, 0))),
+                List.of(validated(claim.getUUID(), validatedMineId, BuildingType.MINE, BuildingValidationState.VALID)),
+                deposits(List.of(new VenaterraDepositCandidate(
+                        VenaterraDepositCategory.IRON,
+                        ResourceLocation.withDefaultNamespace("iron_ore"),
+                        ResourceLocation.withDefaultNamespace("raw_iron"),
+                        new BlockPos(0, 64, 0),
+                        0.75F,
+                        0.8D,
+                        new VenaterraDepositCandidate.SourceMetadata("venaterra", "test", Level.OVERWORLD.location())
+                )))
+        );
+
+        assertEquals(1, sites.size());
+        StrategicMineSite site = sites.getFirst();
+        assertEquals(validatedMineId, site.siteId());
+        assertEquals(0, site.assignedWorkerCount());
+    }
+
+    @Test
+    void invalidValidatedMineSuppressesOverlappingLiveSnapshotFallback() {
+        RecruitsClaim claim = claim(UUID.randomUUID());
+        UUID validatedMineId = UUID.randomUUID();
+        UUID liveMineId = UUID.randomUUID();
+
+        List<StrategicMineSite> sites = StrategicMineSiteService.derive(
+                null,
+                claim,
+                snapshot(claim.getUUID(), List.of(miningArea(liveMineId, 1))),
+                List.of(validated(claim.getUUID(), validatedMineId, BuildingType.MINE, BuildingValidationState.INVALID)),
+                deposits(List.of(new VenaterraDepositCandidate(
+                        VenaterraDepositCategory.IRON,
+                        ResourceLocation.withDefaultNamespace("iron_ore"),
+                        ResourceLocation.withDefaultNamespace("raw_iron"),
+                        new BlockPos(0, 64, 0),
+                        0.75F,
+                        0.8D,
+                        new VenaterraDepositCandidate.SourceMetadata("venaterra", "test", Level.OVERWORLD.location())
+                )))
+        );
+
+        assertTrue(sites.isEmpty());
+    }
+
+    @Test
     void nonMineBuildingIsNotIncluded() {
         RecruitsClaim claim = claim(UUID.randomUUID());
 
@@ -241,10 +294,18 @@ class StrategicMineSiteServiceTest {
     }
 
     private static SettlementBuildingRecord miningArea(UUID buildingUuid) {
-        return building(buildingUuid, "bannermod:mining_area");
+        return miningArea(buildingUuid, 1);
+    }
+
+    private static SettlementBuildingRecord miningArea(UUID buildingUuid, int assignedWorkers) {
+        return building(buildingUuid, "bannermod:mining_area", assignedWorkers);
     }
 
     private static SettlementBuildingRecord building(UUID buildingUuid, String typeId) {
+        return building(buildingUuid, typeId, 1);
+    }
+
+    private static SettlementBuildingRecord building(UUID buildingUuid, String typeId, int assignedWorkers) {
         return new SettlementBuildingRecord(
                 buildingUuid,
                 typeId,
@@ -253,7 +314,7 @@ class StrategicMineSiteServiceTest {
                 "blueguild",
                 0,
                 1,
-                1,
+                assignedWorkers,
                 List.of()
         );
     }
