@@ -1,8 +1,13 @@
 package com.talhanation.bannermod.network.messages.military;
 
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
+import com.talhanation.bannermod.entity.military.HorsemanEntity;
+import com.talhanation.bannermod.entity.military.IRangedRecruit;
+import com.talhanation.bannermod.entity.military.ScoutEntity;
+import com.talhanation.bannermod.entity.military.runtime.RecruitEvents;
 import com.talhanation.bannermod.network.compat.BannerModNetworkContext;
 import com.talhanation.bannermod.network.payload.BannerModMessage;
+import com.talhanation.bannermod.persistence.military.RecruitsGroup;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -54,6 +59,7 @@ public class MessageAdminRecruitSpawn implements BannerModMessage<MessageAdminRe
             }
             int spawnCount = Math.max(1, Math.min(16, this.count));
             int spawned = 0;
+            RecruitsGroup defaultGroup = defaultGroupFor(player);
             for (int i = 0; i < spawnCount; i++) {
                 if (!(resolvedType.create(level) instanceof AbstractRecruitEntity recruit)) {
                     continue;
@@ -63,6 +69,7 @@ public class MessageAdminRecruitSpawn implements BannerModMessage<MessageAdminRe
                 recruit.finalizeSpawn(level, level.getCurrentDifficultyAt(spawnPos), MobSpawnType.COMMAND, null, null);
                 recruit.setPersistenceRequired();
                 level.addFreshEntity(recruit);
+                recruit.assignSpawnedToPlayer(player, groupForRecruit(player, recruit, defaultGroup));
                 spawned++;
             }
             player.sendSystemMessage(Component.translatable("gui.bannermod.admin_recruit_spawn.feedback.spawned", spawned, rawType.getDescription())
@@ -96,5 +103,22 @@ public class MessageAdminRecruitSpawn implements BannerModMessage<MessageAdminRe
             }
         }
         return base.above();
+    }
+
+    private static RecruitsGroup defaultGroupFor(ServerPlayer player) {
+        return RecruitEvents.groupsManager().getPlayersGroupByName(player, "Infantry");
+    }
+
+    private static RecruitsGroup groupForRecruit(ServerPlayer player, AbstractRecruitEntity recruit, RecruitsGroup fallbackGroup) {
+        String targetGroupName = "Infantry";
+        if (recruit instanceof ScoutEntity) {
+            targetGroupName = "Ranged Cavalry";
+        } else if (recruit instanceof HorsemanEntity) {
+            targetGroupName = "Cavalry";
+        } else if (recruit instanceof IRangedRecruit) {
+            targetGroupName = "Ranged";
+        }
+        RecruitsGroup group = RecruitEvents.groupsManager().getPlayersGroupByName(player, targetGroupName);
+        return group != null ? group : fallbackGroup;
     }
 }

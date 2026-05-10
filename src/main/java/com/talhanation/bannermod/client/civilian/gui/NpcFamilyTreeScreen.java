@@ -18,9 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class NpcFamilyTreeScreen extends Screen {
-    private static final int WIDTH = 278;
-    private static final int HEIGHT = 260;
-    private static final int CARD_W = 76;
+    private static final int WIDTH = 320;
+    private static final int HEIGHT = 276;
+    private static final int CARD_W = 88;
     private static final int CARD_H = 84;
     private static final int CHILD_CARD_H = 34;
 
@@ -54,18 +54,19 @@ public class NpcFamilyTreeScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         this.clickableCards.clear();
-        this.renderBackground(graphics, mouseX, mouseY, partialTick);
+        super.renderBackground(graphics, mouseX, mouseY, partialTick);
+        graphics.fill(0, 0, this.width, this.height, 0x54160E08);
         MilitaryGuiStyle.parchmentPanel(graphics, this.left, this.top, WIDTH, HEIGHT);
         MilitaryGuiStyle.titleStrip(graphics, this.left + 8, this.top + 8, WIDTH - 16, 16);
         MilitaryGuiStyle.drawCenteredTitle(graphics, this.font, this.title, this.left + 8, this.top + 12, WIDTH - 16);
         graphics.drawString(this.font, Component.translatable("gui.bannermod.family_tree.click_hint"), this.left + 14, this.top + 28, MilitaryGuiStyle.TEXT_MUTED, false);
 
         renderMemberCard(graphics, this.left + 14, this.top + 34, CARD_W, CARD_H, this.snapshot.mother(), "mother", true);
-        renderMemberCard(graphics, this.left + 101, this.top + 26, CARD_W, 96, this.snapshot.self(), "self", true);
-        renderMemberCard(graphics, this.left + 188, this.top + 34, CARD_W, CARD_H, this.snapshot.father(), "father", true);
-        renderMemberCard(graphics, this.left + 101, this.top + 128, CARD_W, 44, this.snapshot.spouse(), "spouse", true);
+        renderMemberCard(graphics, this.left + 107, this.top + 26, 106, 96, this.snapshot.self(), "self", true);
+        renderMemberCard(graphics, this.left + 218, this.top + 34, CARD_W, CARD_H, this.snapshot.father(), "father", true);
+        renderMemberCard(graphics, this.left + 118, this.top + 128, 84, 44, this.snapshot.spouse(), "spouse", true);
 
-        MilitaryGuiStyle.parchmentInset(graphics, this.left + 14, this.top + 182, WIDTH - 28, 52);
+        MilitaryGuiStyle.parchmentInset(graphics, this.left + 14, this.top + 182, WIDTH - 28, 60);
         graphics.drawString(this.font, Component.translatable("gui.bannermod.family_tree.children"), this.left + 20, this.top + 188, MilitaryGuiStyle.TEXT_MUTED, false);
         if (this.snapshot.children().isEmpty()) {
             graphics.drawString(this.font, Component.translatable("gui.bannermod.family_tree.children.none"), this.left + 20, this.top + 202, MilitaryGuiStyle.TEXT_DARK, false);
@@ -79,9 +80,9 @@ public class NpcFamilyTreeScreen extends Screen {
                 int col = i % columns;
                 renderMemberCard(
                         graphics,
-                        startX + col * 82,
-                        startY + row * 18,
-                        CARD_W,
+                        startX + col * 92,
+                        startY + row * 20,
+                        86,
                         CHILD_CARD_H,
                         this.snapshot.children().get(i),
                         "child",
@@ -92,8 +93,8 @@ public class NpcFamilyTreeScreen extends Screen {
                 graphics.drawString(
                         this.font,
                         Component.translatable("gui.bannermod.family_tree.children.more", this.snapshot.children().size() - shown),
-                        this.left + WIDTH - 86,
-                        this.top + 216,
+                        this.left + WIDTH - 94,
+                        this.top + 228,
                         MilitaryGuiStyle.TEXT_MUTED,
                         false
                 );
@@ -101,6 +102,10 @@ public class NpcFamilyTreeScreen extends Screen {
         }
 
         super.render(graphics, mouseX, mouseY, partialTick);
+    }
+
+    @Override
+    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
     }
 
     @Override

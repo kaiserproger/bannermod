@@ -44,8 +44,8 @@ public final class StockpileTransportWorkOrderPublisher implements SettlementWor
         if (level == null) {
             return;
         }
-        Entity sourceEntity = level.getEntity(ctx.building().buildingUuid());
-        if (!(sourceEntity instanceof StorageArea source) || !source.isAlive()) {
+        StorageArea source = ctx.resolveBuildingEntity(StorageArea.class);
+        if (source == null) {
             return;
         }
         BannerModLogisticsAuthoringState authoring = source.getLogisticsRouteAuthoringState();

@@ -189,7 +189,7 @@ public abstract class AbstractWorkerEntity extends AbstractChunkLoaderEntity imp
                 workerOwnerLabel(),
                 workerPoliticalLabel(),
                 workerClaimRelationKey(),
-                workerAssignmentLabel(),
+                workerAssignmentLabel(phaseOneSnapshot),
                 workerProblemLabel(),
                 this.transportService.inspectionMessage().getString(),
                 phaseOneSnapshot,
@@ -206,19 +206,23 @@ public abstract class AbstractWorkerEntity extends AbstractChunkLoaderEntity imp
             return owner.getName().getString();
         }
         UUID ownerUuid = this.getOwnerUUID();
-        return ownerUuid == null ? "none" : ownerUuid.toString();
+        return ownerUuid == null ? "none" : NpcPhaseOneSnapshot.shortId(ownerUuid);
     }
 
     private String workerPoliticalLabel() {
         return this.getTeam() == null ? "none" : this.getTeam().getName();
     }
 
-    private String workerAssignmentLabel() {
+    private String workerAssignmentLabel(NpcPhaseOneSnapshot phaseOneSnapshot) {
+        UUID assignedWorkUuid = phaseOneSnapshot == null ? null : phaseOneSnapshot.workBuildingUuid();
+        if (assignedWorkUuid == null) {
+            return "unassigned";
+        }
         AbstractWorkAreaEntity workArea = this.getCurrentWorkArea();
         if (workArea != null) {
             return workArea.getType().getDescription().getString();
         }
-        return this.getBoundWorkAreaUUID() == null ? "unassigned" : "missing work area";
+        return NpcPhaseOneSnapshot.shortId(assignedWorkUuid);
     }
 
     private String workerClaimRelationKey() {

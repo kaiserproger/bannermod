@@ -84,7 +84,6 @@ public class WarListScreen extends Screen {
     private Button declareBtn;
     private Button statesBtn;
     private Button housingBtn;
-    private Button hamletsBtn;
     private Button refreshBtn;
     private Button closeBtn;
     private Button adminRecruitSpawnBtn;
@@ -103,25 +102,23 @@ public class WarListScreen extends Screen {
         // Nav buttons remain plain (different tier from outcome resolution).
         statesBtn = actionButton(0, text("gui.bannermod.war_list.states"), btn -> this.minecraft.setScreen(new PoliticalEntityListScreen(this)));
         housingBtn = actionButton(1, text("gui.bannermod.war_list.housing"), btn -> this.minecraft.setScreen(new HousingLedgerScreen(this)));
-        hamletsBtn = actionButton(2, text("gui.bannermod.war_list.hamlets"), btn -> this.minecraft.setScreen(new HamletListScreen(this)));
-        refreshBtn = actionButton(3, text("gui.bannermod.common.refresh"), btn -> refresh());
-        declareBtn = actionButton(4, text("gui.bannermod.war_list.declare"), btn -> this.minecraft.setScreen(new WarDeclareScreen(this)));
-        alliesBtn = actionButton(5, text("gui.bannermod.war_list.allies"), btn -> openAllies());
-        openAttackerBtn = actionButton(6, text("gui.bannermod.war_list.attacker_info"), btn -> openEntity(selected != null ? selected.attackerPoliticalEntityId() : null));
-        openDefenderBtn = actionButton(7, text("gui.bannermod.war_list.defender_info"), btn -> openEntity(selected != null ? selected.defenderPoliticalEntityId() : null));
-        closeBtn = actionButton(8, text("gui.bannermod.common.close"), btn -> onClose());
-        adminRecruitSpawnBtn = actionButton(9, text("gui.bannermod.war_list.admin_recruit_spawn"), btn -> openAdminRecruitSpawner());
+        refreshBtn = actionButton(2, text("gui.bannermod.common.refresh"), btn -> refresh());
+        declareBtn = actionButton(3, text("gui.bannermod.war_list.declare"), btn -> this.minecraft.setScreen(new WarDeclareScreen(this)));
+        alliesBtn = actionButton(4, text("gui.bannermod.war_list.allies"), btn -> openAllies());
+        openAttackerBtn = actionButton(5, text("gui.bannermod.war_list.attacker_info"), btn -> openEntity(selected != null ? selected.attackerPoliticalEntityId() : null));
+        openDefenderBtn = actionButton(6, text("gui.bannermod.war_list.defender_info"), btn -> openEntity(selected != null ? selected.defenderPoliticalEntityId() : null));
+        closeBtn = actionButton(7, text("gui.bannermod.common.close"), btn -> onClose());
+        adminRecruitSpawnBtn = actionButton(8, text("gui.bannermod.war_list.admin_recruit_spawn"), btn -> openAdminRecruitSpawner());
 
         // Resolve-outcome ledger collapses 7 same-tier outcome buttons under one menu.
         resolveOutcomeMenu = new ActionMenuButton(
-                actionButtonX(10), actionButtonY(10), actionButtonW(), BUTTON_H,
+                actionButtonX(9), actionButtonY(9), actionButtonW(), BUTTON_H,
                 text("gui.bannermod.war_list.menu.resolve_outcome"),
                 buildResolveOutcomeEntries());
         resolveOutcomeMenu.setOpenUpward(true);
 
         addRenderableWidget(statesBtn);
         addRenderableWidget(housingBtn);
-        addRenderableWidget(hamletsBtn);
         addRenderableWidget(refreshBtn);
         addRenderableWidget(declareBtn);
         addRenderableWidget(alliesBtn);
@@ -229,8 +226,8 @@ public class WarListScreen extends Screen {
     }
 
     private int actionButtonCount() {
-        // 9 nav buttons + 1 resolve-outcome dropdown trigger.
-        return 11;
+        // 8 nav buttons + 1 admin button + 1 resolve-outcome dropdown trigger.
+        return 10;
     }
 
     private int actionLedgerX() {

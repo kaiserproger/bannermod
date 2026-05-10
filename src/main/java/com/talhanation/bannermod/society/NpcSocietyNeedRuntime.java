@@ -22,18 +22,15 @@ public final class NpcSocietyNeedRuntime {
         }
         int hungerNeed = profile.hungerNeed();
         int fatigueNeed = profile.fatigueNeed();
-        int socialNeed = profile.socialNeed();
         int safetyNeed = profile.safetyNeed();
 
         if (restPhase) {
             hungerNeed += 1;
             fatigueNeed -= homeBuildingUuid == null ? 1 : 4;
-            socialNeed += homeBuildingUuid == null ? 1 : 0;
             safetyNeed -= homeBuildingUuid == null ? 0 : 3;
         } else if (activePhase) {
             hungerNeed += 2;
             fatigueNeed += 2;
-            socialNeed += 1;
             safetyNeed -= 1;
         } else {
             hungerNeed += 1;
@@ -46,13 +43,9 @@ public final class NpcSocietyNeedRuntime {
             fatigueNeed -= 3;
             safetyNeed -= homeBuildingUuid == null ? 1 : 5;
         }
-        if (activeIntent == NpcIntent.WORK || activeIntent == NpcIntent.FETCH || activeIntent == NpcIntent.DELIVER || activeIntent == NpcIntent.SELL) {
+        if (NpcSocietyIntentRules.isWorkFamilyIntent(activeIntent)) {
             fatigueNeed += 2;
             hungerNeed += 1;
-        }
-        if (activeIntent == NpcIntent.SOCIALISE) {
-            socialNeed -= 5;
-            safetyNeed -= 2;
         }
         if (activeIntent == NpcIntent.EAT) {
             hungerNeed -= 8;
@@ -67,7 +60,6 @@ public final class NpcSocietyNeedRuntime {
         }
         if (homeBuildingUuid == null) {
             fatigueNeed += 1;
-            socialNeed += 1;
             safetyNeed += 1;
         }
 
@@ -77,13 +69,11 @@ public final class NpcSocietyNeedRuntime {
 
         if (underThreat) {
             safetyNeed += canDefend ? 18 : 26;
-            socialNeed += canDefend ? 0 : 2;
         }
 
         return profile.withNeedState(
                 clampNeed(hungerNeed),
                 clampNeed(fatigueNeed),
-                clampNeed(socialNeed),
                 clampNeed(safetyNeed),
                 gameTime
         );

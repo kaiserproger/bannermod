@@ -2,11 +2,24 @@ package com.talhanation.bannermod.society;
 
 import com.talhanation.bannermod.entity.citizen.CitizenEntity;
 import com.talhanation.bannermod.entity.civilian.AbstractWorkerEntity;
+import com.talhanation.bannermod.entity.civilian.workarea.AbstractWorkAreaEntity;
 import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
+import com.talhanation.bannermod.events.ClaimEvents;
+import com.talhanation.bannermod.persistence.military.RecruitsClaim;
+import com.talhanation.bannermod.settlement.SettlementService;
+import com.talhanation.bannermod.settlement.bootstrap.SettlementRecord;
+import com.talhanation.bannermod.settlement.bootstrap.SettlementRegistryData;
+import com.talhanation.bannermod.settlement.building.BuildingValidationState;
+import com.talhanation.bannermod.settlement.building.ValidatedBuildingRecord;
+import com.talhanation.bannermod.settlement.building.ValidatedBuildingRegistryData;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.server.level.ServerLevel;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -67,57 +80,35 @@ public final class NpcSocietyAccess {
                                                        UUID residentUuid,
                                                        int hungerNeed,
                                                        int fatigueNeed,
-                                                       int socialNeed,
                                                        int safetyNeed,
                                                        long gameTime) {
         return NpcSocietySavedData.get(level).runtime().reconcileNeedState(
                 residentUuid,
                 hungerNeed,
                 fatigueNeed,
-                socialNeed,
                 safetyNeed,
                 gameTime
         );
     }
 
-    public static NpcSocietyProfile reconcileSocialState(ServerLevel level,
-                                                         UUID residentUuid,
-                                                         int trustScore,
-                                                         int fearScore,
-                                                         int angerScore,
-                                                         int gratitudeScore,
-                                                         int loyaltyScore,
-                                                         long gameTime) {
-        return NpcSocietySavedData.get(level).runtime().reconcileSocialState(
-                residentUuid,
-                trustScore,
-                fearScore,
-                angerScore,
-                gratitudeScore,
-                loyaltyScore,
-                gameTime
-        );
-    }
-
     public static NpcSocietyProfile moveResidentProfile(ServerLevel level,
-                                                          UUID fromResidentUuid,
-                                                          UUID toResidentUuid,
-                                                          long gameTime) {
+                                                            UUID fromResidentUuid,
+                                                            UUID toResidentUuid,
+                                                           long gameTime) {
         NpcHouseholdAccess.moveResident(level, fromResidentUuid, toResidentUuid, gameTime);
         NpcFamilyAccess.moveResident(level, fromResidentUuid, toResidentUuid, gameTime);
-        NpcMemorySavedData.get(level).runtime().moveResident(fromResidentUuid, toResidentUuid, gameTime);
         return NpcSocietySavedData.get(level).runtime().moveResident(fromResidentUuid, toResidentUuid, gameTime);
     }
 
     public static NpcPhaseOneSnapshot phaseOneSnapshot(ServerLevel level,
                                                        UUID residentUuid,
                                                        @Nullable UUID fallbackWorkBuildingUuid) {
-        NpcSocietyProfile profile = NpcMemoryAccess.tickResidentState(
+        NpcSocietyProfile profile = ensureResident(level, residentUuid, level.getGameTime());
+        UUID workBuildingUuid = authoritativeFallbackWorkBuildingUuid(
                 level,
-                ensureResident(level, residentUuid, level.getGameTime()),
-                level.getGameTime()
+                residentUuid,
+                profile.workBuildingUuid() != null ? profile.workBuildingUuid() : fallbackWorkBuildingUuid
         );
-        UUID workBuildingUuid = profile.workBuildingUuid() != null ? profile.workBuildingUuid() : fallbackWorkBuildingUuid;
         NpcHouseholdRecord household = NpcHouseholdAccess.householdForResident(level, residentUuid).orElse(null);
         UUID householdId = household == null ? profile.householdId() : household.householdId();
         NpcHousingRequestRecord housingRequest = householdId == null ? null : NpcHousingRequestAccess.requestForHousehold(level, householdId);
@@ -163,19 +154,55 @@ public final class NpcSocietyAccess {
                 household == null ? NpcHouseholdHousingState.HOMELESS.name() : household.housingState().name(),
                 profile.hungerNeed(),
                 profile.fatigueNeed(),
-                profile.socialNeed(),
                 profile.safetyNeed(),
-                profile.trustScore(),
-                profile.fearScore(),
-                profile.angerScore(),
-                profile.gratitudeScore(),
-                profile.loyaltyScore(),
                 NpcHousingRequestAccess.statusFor(level, residentUuid).name(),
                 housingUrgencyTag,
                 housingReasonTag,
-                housingWaitingDays,
-                NpcMemoryAccess.summarySnapshots(level, residentUuid, level.getGameTime())
+                housingWaitingDays
         );
+    }
+
+    private static @Nullable UUID authoritativeFallbackWorkBuildingUuid(ServerLevel level,
+                                                                        UUID residentUuid,
+                                                                        @Nullable UUID fallbackWorkBuildingUuid) {
+        if (level == null || residentUuid == null || fallbackWorkBuildingUuid == null || ClaimEvents.claimManager() == null) {
+            return fallbackWorkBuildingUuid;
+        }
+        Entity fallbackWorkBuilding = level.getEntity(fallbackWorkBuildingUuid);
+        RecruitsClaim claim = fallbackWorkBuilding == null
+                ? null
+                : ClaimEvents.claimManager().getClaim(new ChunkPos(fallbackWorkBuilding.blockPosition()));
+        if (claim == null) {
+            Entity residentEntity = level.getEntity(residentUuid);
+            if (residentEntity == null) {
+                return fallbackWorkBuildingUuid;
+            }
+            claim = ClaimEvents.claimManager().getClaim(new ChunkPos(residentEntity.blockPosition()));
+        }
+        if (claim == null) {
+            return fallbackWorkBuildingUuid;
+        }
+        RecruitsClaim authoritativeClaim = claim;
+        SettlementRecord settlementRecord = SettlementRegistryData.get(level).getSettlementByClaimId(claim.getUUID());
+        if (settlementRecord == null) {
+            return fallbackWorkBuildingUuid;
+        }
+        List<AbstractWorkAreaEntity> workAreas = level.getEntitiesOfClass(
+                AbstractWorkAreaEntity.class,
+                SettlementService.claimBounds(level, authoritativeClaim),
+                area -> area != null && area.isAlive() && authoritativeClaim.containsChunk(area.chunkPosition())
+        );
+        List<ValidatedBuildingRecord> validatedBuildings = new ArrayList<>();
+        for (ValidatedBuildingRecord record : ValidatedBuildingRegistryData.get(level).allRecords()) {
+            if (record != null
+                    && record.state() == BuildingValidationState.VALID
+                    && level.dimension().equals(record.dimension())
+                    && settlementRecord.settlementId().equals(record.settlementId())) {
+                validatedBuildings.add(record);
+            }
+        }
+        Map<UUID, UUID> authoritativeBindings = SettlementService.buildAuthoritativeWorkBuildingBindings(validatedBuildings, workAreas);
+        return authoritativeBindings.getOrDefault(fallbackWorkBuildingUuid, fallbackWorkBuildingUuid);
     }
 
     public static NpcFamilyTreeSnapshot familyTreeSnapshot(ServerLevel level, UUID residentUuid) {

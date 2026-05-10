@@ -14,7 +14,7 @@ public final class RestResidentGoal implements ResidentGoal {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(BannerModMain.MOD_ID, "resident/goal/rest");
 
     private static final int REST_PRIORITY = 90;
-    private static final int REST_DURATION_TICKS = 200;
+    private static final int REST_DURATION_TICKS = 400;
     private static final int REST_COOLDOWN_TICKS = 600;
 
     @Override
@@ -33,7 +33,7 @@ public final class RestResidentGoal implements ResidentGoal {
 
     @Override
     public boolean canStart(ResidentGoalContext ctx) {
-        return this.computePriority(ctx) > 0;
+        return ctx.isRestPhase() || (ctx.hasHome() && ctx.fatigueNeed() >= 85);
     }
 
     @Override

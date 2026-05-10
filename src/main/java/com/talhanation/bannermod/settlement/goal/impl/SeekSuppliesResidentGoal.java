@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 public final class SeekSuppliesResidentGoal implements ResidentGoal {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(BannerModMain.MOD_ID, "resident/goal/seek_supplies");
 
-    private static final int SEEK_SUPPLIES_DURATION_TICKS = 180;
+    private static final int SEEK_SUPPLIES_DURATION_TICKS = 240;
     private static final int SEEK_SUPPLIES_COOLDOWN_TICKS = 200;
 
     @Override
@@ -26,7 +26,7 @@ public final class SeekSuppliesResidentGoal implements ResidentGoal {
 
     @Override
     public boolean canStart(ResidentGoalContext ctx) {
-        return this.computePriority(ctx) > 0;
+        return ctx.hasSupplyAccess();
     }
 
     @Override

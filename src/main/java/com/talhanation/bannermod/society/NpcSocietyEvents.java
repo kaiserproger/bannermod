@@ -3,6 +3,8 @@ package com.talhanation.bannermod.society;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.entity.citizen.AbstractCitizenEntity;
 import com.talhanation.bannermod.entity.citizen.CitizenEntity;
+import com.talhanation.bannermod.entity.civilian.AbstractWorkerEntity;
+import com.talhanation.bannermod.entity.military.AbstractRecruitEntity;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -18,7 +20,10 @@ public final class NpcSocietyEvents {
         if (!(event.getLevel() instanceof ServerLevel serverLevel)) {
             return;
         }
-        if (!(event.getEntity() instanceof CitizenEntity) && !(event.getEntity() instanceof AbstractCitizenEntity)) {
+        if (!(event.getEntity() instanceof CitizenEntity)
+                && !(event.getEntity() instanceof AbstractCitizenEntity)
+                && !(event.getEntity() instanceof AbstractWorkerEntity)
+                && !(event.getEntity() instanceof AbstractRecruitEntity)) {
             return;
         }
         NpcSocietyAccess.ensureResidentForEntity(serverLevel, event.getEntity());

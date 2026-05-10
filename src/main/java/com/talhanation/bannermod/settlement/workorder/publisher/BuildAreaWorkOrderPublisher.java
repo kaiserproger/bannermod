@@ -38,8 +38,8 @@ public final class BuildAreaWorkOrderPublisher implements SettlementWorkOrderPub
         if (level == null) {
             return;
         }
-        Entity entity = level.getEntity(ctx.building().buildingUuid());
-        if (!(entity instanceof BuildArea buildArea) || !buildArea.isAlive()) {
+        BuildArea buildArea = ctx.resolveBuildingEntity(BuildArea.class);
+        if (buildArea == null) {
             return;
         }
         if (!buildArea.hasPendingBuildWork()) {

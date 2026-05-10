@@ -2,12 +2,12 @@ package com.talhanation.bannermod.society;
 
 import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingProfileSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentAssignmentState;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRole;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementBuildingProfileSeed;
+import com.talhanation.bannermod.settlement.SettlementBuildingRecord;
+import com.talhanation.bannermod.settlement.SettlementResidentAssignmentState;
+import com.talhanation.bannermod.settlement.SettlementResidentRecord;
+import com.talhanation.bannermod.settlement.SettlementResidentRole;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
 import com.talhanation.bannermod.settlement.growth.PendingProject;
 import com.talhanation.bannermod.settlement.growth.ProjectBlocker;
 import com.talhanation.bannermod.settlement.growth.ProjectKind;
@@ -23,7 +23,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -38,59 +37,75 @@ public final class NpcLivelihoodProjectPlanner {
     }
 
     public static List<PendingProject> collectApprovedProjects(ServerLevel level,
-                                                               BannerModSettlementSnapshot snapshot,
+                                                               SettlementSnapshot snapshot,
                                                                long gameTime) {
         if (level == null || snapshot == null || snapshot.claimUuid() == null) {
             return List.of();
         }
-        UUID lordUuid = resolveLordUuid(level, snapshot.claimUuid());
-        List<PendingProject> projects = new ArrayList<>();
         for (NpcLivelihoodRequestType type : NpcLivelihoodRequestType.values()) {
-            if (!shouldRequest(snapshot, type)) {
-                continue;
-            }
             if (hasLivelihoodBuilding(snapshot, type)) {
-                NpcLivelihoodRequestAccess.fulfill(level, snapshot.claimUuid(), type, gameTime);
+                NpcLivelihoodRequestRecord existing = NpcLivelihoodRequestAccess.requestFor(level, snapshot.claimUuid(), type);
+                if (existing != null && existing.status() == NpcLivelihoodRequestStatus.APPROVED) {
+                    NpcLivelihoodRequestAccess.fulfill(level, snapshot.claimUuid(), type, gameTime);
+                }
                 continue;
             }
-            UUID requester = pickRepresentative(snapshot, type);
-            if (requester == null) {
+            if (NpcLivelihoodRequestAccess.requestFor(level, snapshot.claimUuid(), type) != null || !shouldRequest(snapshot, type)) {
                 continue;
             }
-            NpcLivelihoodRequestRecord request = NpcLivelihoodRequestAccess.request(
+            UUID representative = pickRepresentative(snapshot);
+            if (representative == null) {
+                continue;
+            }
+            NpcLivelihoodRequestRecord created = NpcLivelihoodRequestAccess.request(
                     level,
                     snapshot.claimUuid(),
-                    requester,
+                    representative,
                     type,
-                    lordUuid,
+                    resolveLordUuid(level, snapshot.claimUuid()),
                     gameTime
             );
-            if (request.status() == NpcLivelihoodRequestStatus.REQUESTED && request.requestedAtGameTime() == gameTime) {
-                notifyLord(level, request);
+            if (created.status() == NpcLivelihoodRequestStatus.REQUESTED && created.requestedAtGameTime() == gameTime) {
+                notifyLord(level, created);
             }
-            if (request.status() == NpcLivelihoodRequestStatus.APPROVED) {
-                projects.add(new PendingProject(
-                        request.projectId(),
-                        ProjectKind.NEW_BUILDING,
-                        null,
-                        request.type().prefabId(),
-                        request.type().profileSeed().category(),
-                        request.type().profileSeed(),
-                        priorityFor(type),
-                        gameTime,
-                        PROJECT_TICK_COST,
-                        ProjectBlocker.NONE
-                ));
+        }
+        List<PendingProject> projects = new java.util.ArrayList<>();
+        for (NpcLivelihoodRequestRecord request : NpcLivelihoodRequestSavedData.get(level).runtime().requestsForClaim(snapshot.claimUuid())) {
+            if (request == null || request.status() == NpcLivelihoodRequestStatus.DENIED) {
+                continue;
             }
+            if (hasLivelihoodBuilding(snapshot, request.type())) {
+                if (request.status() == NpcLivelihoodRequestStatus.APPROVED) {
+                    NpcLivelihoodRequestAccess.fulfill(level, snapshot.claimUuid(), request.type(), gameTime);
+                }
+                continue;
+            }
+            if (request.status() != NpcLivelihoodRequestStatus.APPROVED) {
+                continue;
+            }
+            projects.add(new PendingProject(
+                    request.projectId(),
+                    ProjectKind.NEW_BUILDING,
+                    null,
+                    request.type().prefabId(),
+                    request.type().profileSeed().category(),
+                    request.type().profileSeed(),
+                    priorityFor(request.type()),
+                    gameTime,
+                    PROJECT_TICK_COST,
+                    ProjectBlocker.NONE
+            ));
         }
         return projects;
     }
 
-    private static boolean shouldRequest(BannerModSettlementSnapshot snapshot, NpcLivelihoodRequestType type) {
+    private static boolean shouldRequest(SettlementSnapshot snapshot,
+                                         NpcLivelihoodRequestType type) {
         if (snapshot == null) {
             return false;
         }
-        if (snapshot.unassignedWorkerCount() <= 0 && snapshot.missingWorkAreaAssignmentCount() <= 0) {
+        boolean laborPressure = snapshot.unassignedWorkerCount() > 0 || snapshot.missingWorkAreaAssignmentCount() > 0;
+        if (!laborPressure) {
             return false;
         }
         return switch (type) {
@@ -99,8 +114,8 @@ public final class NpcLivelihoodProjectPlanner {
         };
     }
 
-    private static boolean hasLivelihoodBuilding(BannerModSettlementSnapshot snapshot, NpcLivelihoodRequestType type) {
-        for (BannerModSettlementBuildingRecord building : snapshot.buildings()) {
+    private static boolean hasLivelihoodBuilding(SettlementSnapshot snapshot, NpcLivelihoodRequestType type) {
+        for (SettlementBuildingRecord building : snapshot.buildings()) {
             if (matchesType(building, type)) {
                 return true;
             }
@@ -108,7 +123,7 @@ public final class NpcLivelihoodProjectPlanner {
         return false;
     }
 
-    private static boolean matchesType(@Nullable BannerModSettlementBuildingRecord building,
+    private static boolean matchesType(@Nullable SettlementBuildingRecord building,
                                        NpcLivelihoodRequestType type) {
         if (building == null || building.buildingTypeId() == null) {
             return false;
@@ -123,20 +138,20 @@ public final class NpcLivelihoodProjectPlanner {
     }
 
     @Nullable
-    private static UUID pickRepresentative(BannerModSettlementSnapshot snapshot, NpcLivelihoodRequestType type) {
+    private static UUID pickRepresentative(SettlementSnapshot snapshot) {
         UUID fallback = null;
-        for (BannerModSettlementResidentRecord resident : snapshot.residents()) {
+        for (SettlementResidentRecord resident : snapshot.residents()) {
             if (resident == null || resident.residentUuid() == null) {
                 continue;
             }
             if (fallback == null) {
                 fallback = resident.residentUuid();
             }
-            if (resident.role() != BannerModSettlementResidentRole.CONTROLLED_WORKER) {
+            if (resident.role() != SettlementResidentRole.CONTROLLED_WORKER) {
                 continue;
             }
-            if (resident.assignmentState() != BannerModSettlementResidentAssignmentState.UNASSIGNED
-                    && resident.assignmentState() != BannerModSettlementResidentAssignmentState.ASSIGNED_MISSING_BUILDING) {
+            if (resident.assignmentState() != SettlementResidentAssignmentState.UNASSIGNED
+                    && resident.assignmentState() != SettlementResidentAssignmentState.ASSIGNED_MISSING_BUILDING) {
                 continue;
             }
             return resident.residentUuid();

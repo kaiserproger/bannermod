@@ -33,41 +33,43 @@ public class MessageApproveHousingRequest implements BannerModMessage<MessageApp
 
     @Override
     public void executeServerSide(BannerModNetworkContext context) {
-        ServerPlayer player = context.getSender();
-        ServerLevel level = MessageRequestHamletSnapshot.serverLevel(player);
-        if (player == null || level == null || this.householdId == null) {
-            return;
-        }
-        NpcHousingRequestRecord request = NpcHousingRequestAccess.requestForHousehold(level, this.householdId);
-        if (request == null) {
-            MessageRequestHamletSnapshot.sendSystemMessage(player, Component.translatable("gui.bannermod.society.housing_request.command.not_found"));
+        context.enqueueWork(() -> {
+            ServerPlayer player = context.getSender();
+            ServerLevel level = MessageRequestHousingSnapshot.serverLevel(player);
+            if (player == null || level == null || this.householdId == null) {
+                return;
+            }
+            NpcHousingRequestRecord request = NpcHousingRequestAccess.requestForHousehold(level, this.householdId);
+            if (request == null) {
+                MessageRequestHousingSnapshot.sendSystemMessage(player, Component.translatable("gui.bannermod.society.housing_request.command.not_found"));
+                MessageRequestHousingSnapshot.sendSnapshot(player, MessageRequestHousingSnapshot.buildSnapshot(player));
+                return;
+            }
+            RecruitsClaim claim = MessageRequestHousingSnapshot.claimById(request.claimUuid());
+            PoliticalEntityRecord owner = MessageRequestHousingSnapshot.ownerRecord(level, claim);
+            if (!PoliticalEntityAuthority.canAct(player, owner)) {
+                MessageRequestHousingSnapshot.sendSystemMessage(player, PoliticalEntityAuthority.denialReason(player.getUUID(), player.hasPermissions(2), owner));
+                MessageRequestHousingSnapshot.sendSnapshot(player, MessageRequestHousingSnapshot.buildSnapshot(player));
+                return;
+            }
+            if (request.status() == NpcHousingRequestStatus.FULFILLED) {
+                MessageRequestHousingSnapshot.sendSystemMessage(player, Component.translatable("gui.bannermod.society.housing_request.command.fulfilled_locked"));
+                MessageRequestHousingSnapshot.sendSnapshot(player, MessageRequestHousingSnapshot.buildSnapshot(player));
+                return;
+            }
+            NpcHousingRequestRecord updated = NpcHousingRequestAccess.approveHousehold(level, this.householdId, level.getGameTime());
+            Component plot = updated.reservedPlotPos() == null
+                    ? Component.literal("-")
+                    : Component.literal(updated.reservedPlotPos().getX() + " "
+                    + updated.reservedPlotPos().getY() + " "
+                    + updated.reservedPlotPos().getZ());
+            MessageRequestHousingSnapshot.sendSystemMessage(player, Component.translatable(
+                    "gui.bannermod.society.housing_request.command.approved",
+                    shortId(updated.residentUuid()),
+                    plot
+            ));
             MessageRequestHousingSnapshot.sendSnapshot(player, MessageRequestHousingSnapshot.buildSnapshot(player));
-            return;
-        }
-        RecruitsClaim claim = MessageRequestHamletSnapshot.claimById(request.claimUuid());
-        PoliticalEntityRecord owner = MessageRequestHamletSnapshot.ownerRecord(level, claim);
-        if (!PoliticalEntityAuthority.canAct(player, owner)) {
-            MessageRequestHamletSnapshot.sendSystemMessage(player, PoliticalEntityAuthority.denialReason(player.getUUID(), player.hasPermissions(2), owner));
-            MessageRequestHousingSnapshot.sendSnapshot(player, MessageRequestHousingSnapshot.buildSnapshot(player));
-            return;
-        }
-        if (request.status() == NpcHousingRequestStatus.FULFILLED) {
-            MessageRequestHamletSnapshot.sendSystemMessage(player, Component.translatable("gui.bannermod.society.housing_request.command.fulfilled_locked"));
-            MessageRequestHousingSnapshot.sendSnapshot(player, MessageRequestHousingSnapshot.buildSnapshot(player));
-            return;
-        }
-        NpcHousingRequestRecord updated = NpcHousingRequestAccess.approveHousehold(level, this.householdId, level.getGameTime());
-        Component plot = updated.reservedPlotPos() == null
-                ? Component.literal("-")
-                : Component.literal(updated.reservedPlotPos().getX() + " "
-                + updated.reservedPlotPos().getY() + " "
-                + updated.reservedPlotPos().getZ());
-        MessageRequestHamletSnapshot.sendSystemMessage(player, Component.translatable(
-                "gui.bannermod.society.housing_request.command.approved",
-                shortId(updated.residentUuid()),
-                plot
-        ));
-        MessageRequestHousingSnapshot.sendSnapshot(player, MessageRequestHousingSnapshot.buildSnapshot(player));
+        });
     }
 
     @Override

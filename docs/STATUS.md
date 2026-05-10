@@ -1,6 +1,6 @@
 # Developer Status
 
-Last updated: 2026-05-03.
+Last updated: 2026-05-09.
 
 ## Runtime State
 
@@ -8,17 +8,21 @@ Last updated: 2026-05-03.
 - Active source tree: root `src/**` under `com.talhanation.bannermod`.
 - Archive source trees: `recruits/` and `workers/`; use them only as references.
 - Active planning root: `.planning/`.
-- Active backlog: `docs/BANNERMOD_BACKLOG.json` via `tools/backlog`.
+- Active backlog: `docs/BANNERMOD_BACKLOG.sqlite` via `tools/backlog`.
+- Per-screen UI audit: `docs/UI_AUDIT_FINDINGS.md`.
 
 ## Done Recently
 
 - Compact Phase 25 settlement runtime is live enough to publish and persist work-order claims, growth/project hints, job scheduling gates, market/stockpile snapshots, and targeted mutation refreshes.
 - Compact Phase 26 combat AI is live: stance control, shield-wall behavior, reach weapons, second-rank poke, flank/cohesion/brace rules, unit counters, and Better Combat metadata/attack-presentation integration.
 - NPC housing requests now require explicit ruler approval in the first shipped slice: new petitions stay pending, rulers get clickable chat actions plus `/bannermod society housing list`, denied state is persisted, and only approved petitions enter the house-project path.
+- Housing petitions now also run through a shared fairness queue: homelessness, overcrowding, household size, wait age, and request state feed one server-side priority scorer, `/bannermod society housing list` uses that order, and the `U` War Room now includes a dedicated `Housing` ledger screen for ruler-side approval/denial.
 - Settlements can now raise ruler-approved livelihood requests for `lumber camp`, `mine`, and `animal pen`; the new requests stay pending until approved via clickable chat or `/bannermod society livelihood list`, then flow into the prefab project path with exact prefab ids.
+- Kinlot Staff remains the family-lot inspector for reserved household plots and active build markers, while housing and livelihood petitions continue to flow through ruler-approved ledgers and commands.
 - Workers now craft first-slice replacement stone tools for themselves at nearby crafting tables when they can obtain the needed materials, reducing permanent idle states after tool loss.
 - Settlement-spawned workers now start with basic profession tools and auto-bind to existing friendly claim work areas for farmer/lumberjack/miner/fisherman/animal-farmer paths when those zones already exist.
-- NPC society Phase 3 is now live: bounded resident memory saved data, derived trust/fear/anger/gratitude/loyalty state, family/household memory spread for player harm/protection, memory-driven intent pressure, and a dedicated social-memory ledger for citizen/worker inspection.
+- Claim-grown workers now follow the same cheap work-area rule as starter workers: they bind to existing friendly claim work areas when those zones already exist, otherwise they wait and report the missing assignment instead of auto-creating starter fields or fishing areas.
+- NPC society currently stays on the cheap resident model from the simulation plan: homes, workplaces, coarse day states, hunger/fatigue/danger pressure, housing metadata, and readable citizen/AI screens without deep social-memory or hamlet runtime.
 - War Room and political UI now cover political entity list/detail actions, siege-standard placement, siege-zone HUD status, government form toggles, cooldown-backed war spam protection, a synced battle-window phase banner with humanized open/close countdown, and a consent-based ally invite flow (leader-or-op invite, leader accept/decline/cancel, picker filtered by the shared `WarAllyPolicy`).
 - War runtime is partially live beyond declarations: outcome actions can create occupations/annexations/tribute/vassalization/demilitarization, occupation tax accrues from a server ticker, due revolts auto-resolve from objective presence during battle windows, and recruits can attack enemy siege standards or escort same-side standards.
 - Worker/settlement claim binding is being normalized away from legacy faction IDs toward political-entity UUIDs and scoreboard team names.

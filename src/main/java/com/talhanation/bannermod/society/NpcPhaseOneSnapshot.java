@@ -1,10 +1,9 @@
 package com.talhanation.bannermod.society;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -30,18 +29,11 @@ public record NpcPhaseOneSnapshot(
         String householdHousingStateTag,
         int hungerNeed,
         int fatigueNeed,
-        int socialNeed,
         int safetyNeed,
-        int trustScore,
-        int fearScore,
-        int angerScore,
-        int gratitudeScore,
-        int loyaltyScore,
         String housingRequestStatusTag,
         String housingUrgencyTag,
         String housingReasonTag,
-        int housingWaitingDays,
-        List<NpcMemorySummarySnapshot> recentMemories
+        int housingWaitingDays
 ) {
     public static NpcPhaseOneSnapshot empty() {
         return new NpcPhaseOneSnapshot(
@@ -67,17 +59,10 @@ public record NpcPhaseOneSnapshot(
                 0,
                 0,
                 0,
-                0,
-                50,
-                0,
-                0,
-                0,
-                50,
                 NpcHousingRequestStatus.NONE.name(),
                 "LOW",
                 "STABLE",
-                0,
-                List.of()
+                0
         );
     }
 
@@ -103,27 +88,14 @@ public record NpcPhaseOneSnapshot(
         buf.writeUtf(safeTag(this.householdHousingStateTag));
         buf.writeVarInt(Math.max(0, this.hungerNeed));
         buf.writeVarInt(Math.max(0, this.fatigueNeed));
-        buf.writeVarInt(Math.max(0, this.socialNeed));
         buf.writeVarInt(Math.max(0, this.safetyNeed));
-        buf.writeVarInt(Math.max(0, this.trustScore));
-        buf.writeVarInt(Math.max(0, this.fearScore));
-        buf.writeVarInt(Math.max(0, this.angerScore));
-        buf.writeVarInt(Math.max(0, this.gratitudeScore));
-        buf.writeVarInt(Math.max(0, this.loyaltyScore));
         buf.writeUtf(safeTag(this.housingRequestStatusTag));
         buf.writeUtf(safeTag(this.housingUrgencyTag));
         buf.writeUtf(safeTag(this.housingReasonTag));
         buf.writeVarInt(Math.max(0, this.housingWaitingDays));
-        buf.writeVarInt(this.recentMemories == null ? 0 : this.recentMemories.size());
-        if (this.recentMemories != null) {
-            for (NpcMemorySummarySnapshot memory : this.recentMemories) {
-                (memory == null ? new NpcMemorySummarySnapshot("UNSPECIFIED", "PERSONAL", null, 0, false) : memory).toBytes(buf);
-            }
-        }
     }
 
     public static NpcPhaseOneSnapshot fromBytes(FriendlyByteBuf buf) {
-        List<NpcMemorySummarySnapshot> memories = new ArrayList<>();
         String lifeStageTag = buf.readUtf();
         String sexTag = buf.readUtf();
         UUID householdId = readNullableUuid(buf);
@@ -145,21 +117,11 @@ public record NpcPhaseOneSnapshot(
         String householdHousingStateTag = buf.readUtf();
         int hungerNeed = buf.readVarInt();
         int fatigueNeed = buf.readVarInt();
-        int socialNeed = buf.readVarInt();
         int safetyNeed = buf.readVarInt();
-        int trustScore = buf.readVarInt();
-        int fearScore = buf.readVarInt();
-        int angerScore = buf.readVarInt();
-        int gratitudeScore = buf.readVarInt();
-        int loyaltyScore = buf.readVarInt();
         String housingRequestStatusTag = buf.readUtf();
         String housingUrgencyTag = buf.readUtf();
         String housingReasonTag = buf.readUtf();
         int housingWaitingDays = buf.readVarInt();
-        int memoryCount = buf.readVarInt();
-        for (int i = 0; i < memoryCount; i++) {
-            memories.add(NpcMemorySummarySnapshot.fromBytes(buf));
-        }
         return new NpcPhaseOneSnapshot(
                 lifeStageTag,
                 sexTag,
@@ -182,18 +144,11 @@ public record NpcPhaseOneSnapshot(
                 householdHousingStateTag,
                 hungerNeed,
                 fatigueNeed,
-                socialNeed,
                 safetyNeed,
-                trustScore,
-                fearScore,
-                angerScore,
-                gratitudeScore,
-                loyaltyScore,
                 housingRequestStatusTag,
                 housingUrgencyTag,
                 housingReasonTag,
-                housingWaitingDays,
-                List.copyOf(memories)
+                housingWaitingDays
         );
     }
 
@@ -231,6 +186,22 @@ public record NpcPhaseOneSnapshot(
 
     public String aiRouteReasonTranslationKey() {
         return "gui.bannermod.society.ai.route." + safeTag(this.aiRouteReasonTag).toLowerCase(Locale.ROOT);
+    }
+
+    public boolean isRecoveringState() {
+        return "RECOVERING".equalsIgnoreCase(this.aiStateTag);
+    }
+
+    public boolean isBlockedState() {
+        return "BLOCKED".equalsIgnoreCase(this.aiStateTag) || this.isRecoveringState();
+    }
+
+    public boolean hasAiCurrentGoal() {
+        return this.aiCurrentGoalId != null && !this.aiCurrentGoalId.isBlank();
+    }
+
+    public boolean hasAiBlockedGoal() {
+        return this.aiBlockedGoalId != null && !this.aiBlockedGoalId.isBlank();
     }
 
     public String householdHousingStateTranslationKey() {
@@ -279,8 +250,38 @@ public record NpcPhaseOneSnapshot(
         return NpcSocietyDecisionSnapshot.goalLabelOrDash(this.aiBlockedGoalId);
     }
 
-    public List<NpcMemorySummarySnapshot> safeRecentMemories() {
-        return this.recentMemories == null ? List.of() : this.recentMemories;
+    public Component aiCurrentGoalComponent() {
+        return goalComponent(this.aiCurrentGoalId);
+    }
+
+    public Component aiBlockedGoalComponent() {
+        return goalComponent(this.aiBlockedGoalId);
+    }
+
+    public Component aiRouteSecondaryComponent() {
+        if ((this.isBlockedState() || !this.hasAiCurrentGoal()) && this.hasAiBlockedGoal()) {
+            return Component.translatable(
+                    "gui.bannermod.society.ai.route.blocked_detail",
+                    this.aiBlockedGoalComponent(),
+                    Component.translatable(this.aiBlockedReasonTranslationKey())
+            );
+        }
+        return Component.translatable(
+                "gui.bannermod.society.ai.route.target",
+                Component.translatable(this.currentAnchorTranslationKey())
+        );
+    }
+
+    public Component aiReadableRoutineReasonComponent() {
+        Component route = Component.translatable(this.aiRouteReasonTranslationKey());
+        if ((this.isBlockedState() || !this.hasAiCurrentGoal()) && this.hasAiBlockedGoal()) {
+            return Component.translatable(
+                    "gui.bannermod.society.ai.route.blocked_summary",
+                    this.aiBlockedGoalComponent(),
+                    Component.translatable(this.aiBlockedReasonTranslationKey())
+            );
+        }
+        return route;
     }
 
     private static void writeNullableUuid(FriendlyByteBuf buf, @Nullable UUID value) {
@@ -307,5 +308,25 @@ public record NpcPhaseOneSnapshot(
 
     private static String safeTag(@Nullable String value) {
         return value == null || value.isBlank() ? "UNSPECIFIED" : value;
+    }
+
+    private static Component goalComponent(@Nullable String goalId) {
+        String label = NpcSocietyDecisionSnapshot.goalLabelOrDash(goalId);
+        return switch (label) {
+            case "-" -> Component.translatable("gui.bannermod.common.none");
+            case "go_home" -> Component.translatable("gui.bannermod.society.ai.goal.go_home");
+            case "leave_home" -> Component.translatable("gui.bannermod.society.ai.goal.leave_home");
+            case "rest" -> Component.translatable("gui.bannermod.society.ai.goal.rest");
+            case "eat" -> Component.translatable("gui.bannermod.society.ai.goal.eat");
+            case "seek_supplies" -> Component.translatable("gui.bannermod.society.ai.goal.seek_supplies");
+            case "hide" -> Component.translatable("gui.bannermod.society.ai.goal.hide");
+            case "defend" -> Component.translatable("gui.bannermod.society.ai.goal.defend");
+            case "work" -> Component.translatable("gui.bannermod.society.ai.goal.work");
+            case "sell", "seller" -> Component.translatable("gui.bannermod.society.ai.goal.sell");
+            case "fetch" -> Component.translatable("gui.bannermod.society.ai.goal.fetch");
+            case "deliver" -> Component.translatable("gui.bannermod.society.ai.goal.deliver");
+            case "idle" -> Component.translatable("gui.bannermod.society.ai.goal.idle");
+            default -> Component.literal(label.replace('_', ' '));
+        };
     }
 }

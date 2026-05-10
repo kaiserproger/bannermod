@@ -30,7 +30,6 @@ public class KinlotStaffItem extends Item {
     private static final String TAG_RENDER_PLOT = "bannermod:kinlot_plot";
     private static final String TAG_RENDER_LABEL = "bannermod:kinlot_label";
     private static final String TAG_RENDER_HOUSEHOLD = "bannermod:kinlot_household";
-    private static final String TAG_RENDER_STATUS = "bannermod:kinlot_status";
 
     public KinlotStaffItem(Properties properties) {
         super(properties);
@@ -98,6 +97,7 @@ public class KinlotStaffItem extends Item {
                         ? Component.literal("-")
                         : Component.translatable("gui.bannermod.society.household_housing."
                         + info.household().housingState().name().toLowerCase(Locale.ROOT)),
+                residentDisplayName(player, info.request()),
                 info.plotPos().getX(),
                 info.plotPos().getZ()
         ).withStyle(ChatFormatting.GOLD), true);
@@ -122,11 +122,6 @@ public class KinlotStaffItem extends Item {
     public static String renderHouseholdId(ItemStack stack) {
         CompoundTag tag = ItemStackComponentData.read(stack);
         return tag != null && tag.contains(TAG_RENDER_HOUSEHOLD) ? tag.getString(TAG_RENDER_HOUSEHOLD) : null;
-    }
-
-    public static String renderStatus(ItemStack stack) {
-        CompoundTag tag = ItemStackComponentData.read(stack);
-        return tag != null && tag.contains(TAG_RENDER_STATUS) ? tag.getString(TAG_RENDER_STATUS) : null;
     }
 
     private static void sendDetails(ServerPlayer player, NpcHousingPlotPlanner.HousingPlotInfo info) {
@@ -171,7 +166,6 @@ public class KinlotStaffItem extends Item {
             tag.putLong(TAG_RENDER_PLOT, info.plotPos().asLong());
             tag.putString(TAG_RENDER_LABEL, label);
             tag.putString(TAG_RENDER_HOUSEHOLD, shortId(info.request().householdId()));
-            tag.putString(TAG_RENDER_STATUS, info.request().status().name().toLowerCase(Locale.ROOT));
         });
     }
 
@@ -183,7 +177,6 @@ public class KinlotStaffItem extends Item {
             tag.remove(TAG_RENDER_PLOT);
             tag.remove(TAG_RENDER_LABEL);
             tag.remove(TAG_RENDER_HOUSEHOLD);
-            tag.remove(TAG_RENDER_STATUS);
         });
     }
 

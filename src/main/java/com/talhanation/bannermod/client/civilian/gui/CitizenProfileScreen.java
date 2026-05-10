@@ -68,18 +68,6 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
                 }
         ));
         this.addRenderableWidget(new LedgerButton(
-                this.leftPos + this.imageWidth - 116,
-                this.topPos + 10,
-                48,
-                16,
-                MilitaryGuiStyle.clampLabel(this.font, Component.translatable("gui.bannermod.society.memory.button"), 42),
-                button -> {
-                    if (this.minecraft != null) {
-                        this.minecraft.setScreen(new NpcMemoryLedgerScreen(this, this.phaseOneSnapshot));
-                    }
-                }
-        ));
-        this.addRenderableWidget(new LedgerButton(
                 this.leftPos + this.imageWidth - 62,
                 this.topPos + 10,
                 48,
@@ -95,9 +83,13 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(graphics, mouseX, mouseY, partialTick);
+        super.renderBackground(graphics, mouseX, mouseY, partialTick);
         super.render(graphics, mouseX, mouseY, partialTick);
         this.renderTooltip(graphics, mouseX, mouseY);
+    }
+
+    @Override
+    public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
     }
 
     @Override
@@ -136,8 +128,8 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
                 assignmentLabel().getString()), 92, 53, textBoxWidth, 0xFF6E5535);
         drawClamped(graphics, Component.translatable("gui.bannermod.citizen_profile.home",
                 homeSummary().getString()), 92, 62, textBoxWidth, 0xFF6E5535);
-        drawClamped(graphics, Component.translatable("gui.bannermod.citizen_profile.family",
-                familySummary().getString()), 92, 71, textBoxWidth, 0xFF6E5535);
+        drawClamped(graphics, Component.translatable("gui.bannermod.citizen_profile.household",
+                householdSummary().getString()), 92, 71, textBoxWidth, 0xFF6E5535);
         drawClamped(graphics, Component.translatable("gui.bannermod.citizen_profile.routine",
                 routineSummary().getString()), 92, 80, textBoxWidth, 0xFF6E5535);
         drawClamped(graphics, Component.translatable("gui.bannermod.citizen_profile.housing",
@@ -195,7 +187,7 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
     }
 
     private Component assignmentLabel() {
-        @Nullable UUID boundArea = this.citizen.getBoundWorkAreaUUID();
+        @Nullable UUID boundArea = this.phaseOneSnapshot.workBuildingUuid();
         if (boundArea == null) {
             return Component.translatable("gui.bannermod.citizen_profile.assignment.none");
         }
@@ -209,28 +201,29 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
         return Component.translatable(
                 "gui.bannermod.citizen_profile.home.summary",
                 NpcPhaseOneSnapshot.shortId(this.phaseOneSnapshot.homeBuildingUuid()),
-                NpcPhaseOneSnapshot.shortId(this.phaseOneSnapshot.householdId()),
                 Component.translatable(this.phaseOneSnapshot.lifeStageTranslationKey()).getString(),
                 Component.translatable(this.phaseOneSnapshot.sexTranslationKey()).getString()
         );
     }
 
-    private Component familySummary() {
+    private Component householdSummary() {
         return Component.translatable(
-                "gui.bannermod.citizen_profile.family.summary",
-                NpcPhaseOneSnapshot.shortId(this.phaseOneSnapshot.householdHeadResidentUuid()),
-                Component.translatable(this.phaseOneSnapshot.householdRoleTranslationKey(this.citizen.getUUID())).getString(),
-                this.phaseOneSnapshot.householdSize()
+                "gui.bannermod.citizen_profile.household.summary",
+                this.phaseOneSnapshot.householdSize(),
+                Component.translatable(this.phaseOneSnapshot.householdHousingStateTranslationKey()).getString()
         );
     }
 
     private Component routineSummary() {
+        String phaseLabel = this.phaseOneSnapshot.isBlockedState()
+                ? Component.translatable(this.phaseOneSnapshot.aiStateTranslationKey()).getString()
+                : Component.translatable(this.phaseOneSnapshot.dailyPhaseTranslationKey()).getString();
         return Component.translatable(
                 "gui.bannermod.citizen_profile.routine.summary",
-                Component.translatable(this.phaseOneSnapshot.dailyPhaseTranslationKey()).getString(),
+                phaseLabel,
                 Component.translatable(this.phaseOneSnapshot.currentIntentTranslationKey()).getString(),
                 Component.translatable(this.phaseOneSnapshot.currentAnchorTranslationKey()).getString(),
-                Component.translatable(this.phaseOneSnapshot.aiRouteReasonTranslationKey()).getString()
+                this.phaseOneSnapshot.aiReadableRoutineReasonComponent()
         );
     }
 
@@ -249,7 +242,6 @@ public class CitizenProfileScreen extends AbstractContainerScreen<CitizenProfile
                 "gui.bannermod.citizen_profile.needs.summary",
                 this.phaseOneSnapshot.hungerNeed(),
                 this.phaseOneSnapshot.fatigueNeed(),
-                this.phaseOneSnapshot.socialNeed(),
                 this.phaseOneSnapshot.safetyNeed()
         );
     }

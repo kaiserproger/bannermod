@@ -71,20 +71,6 @@ public class WorkerStatusScreen extends Screen {
         ));
         ai.setTooltip(Tooltip.create(text("gui.bannermod.society.ai.tooltip")));
 
-        SmallCommandButton memory = this.addRenderableWidget(new SmallCommandButton(
-                this.left + WIDTH - 72,
-                this.top + 90,
-                56,
-                18,
-                MilitaryGuiStyle.clampLabel(this.font, text("gui.bannermod.society.memory.button"), 50),
-                button -> {
-                    if (this.minecraft != null) {
-                        this.minecraft.setScreen(new NpcMemoryLedgerScreen(this, this.snapshot.phaseOne()));
-                    }
-                }
-        ));
-        memory.setTooltip(Tooltip.create(text("gui.bannermod.society.memory.tooltip")));
-
         // Bottom action row: 4 evenly spaced buttons inside WIDTH.
         // Stride between centers = (WIDTH - 16) / 4 = 59 -> stays inside parchment frame.
         int rowY = this.top + HEIGHT - 26;
@@ -160,6 +146,7 @@ public class WorkerStatusScreen extends Screen {
     @Override
     public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.renderBackground(graphics, mouseX, mouseY, partialTick);
+        graphics.fill(0, 0, this.width, this.height, 0x54160E08);
         MilitaryGuiStyle.parchmentPanel(graphics, this.left, this.top, WIDTH, HEIGHT);
         MilitaryGuiStyle.titleStrip(graphics, this.left + 8, this.top + 8, WIDTH - 16, 16);
         MilitaryGuiStyle.drawCenteredTitle(graphics, this.font, this.title, this.left + 8, this.top + 12, WIDTH - 16);
@@ -195,27 +182,32 @@ public class WorkerStatusScreen extends Screen {
                 MilitaryGuiStyle.TEXT_DARK);
     }
 
+    @Override
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        renderBackground(graphics, mouseX, mouseY, partialTick);
+        super.render(graphics, mouseX, mouseY, partialTick);
+    }
+
     private Component identitySummary() {
         NpcPhaseOneSnapshot phaseOne = this.snapshot.phaseOne();
         return Component.translatable(
                 "gui.bannermod.worker_screen.identity.summary",
                 Component.translatable(phaseOne.lifeStageTranslationKey()).getString(),
                 Component.translatable(phaseOne.sexTranslationKey()).getString(),
-                NpcPhaseOneSnapshot.shortId(phaseOne.householdHeadResidentUuid()),
-                Component.translatable(phaseOne.householdRoleTranslationKey(this.snapshot.workerUuid())).getString(),
-                phaseOne.householdSize(),
-                NpcPhaseOneSnapshot.shortId(phaseOne.homeBuildingUuid())
+                NpcPhaseOneSnapshot.shortId(phaseOne.homeBuildingUuid()),
+                Component.translatable(phaseOne.householdHousingStateTranslationKey()).getString()
         );
     }
 
     private Component routineSummary() {
         NpcPhaseOneSnapshot phaseOne = this.snapshot.phaseOne();
+        String phaseLabel = Component.translatable(phaseOne.dailyPhaseTranslationKey()).getString();
         return Component.translatable(
                 "gui.bannermod.worker_screen.routine.summary",
-                Component.translatable(phaseOne.dailyPhaseTranslationKey()).getString(),
+                phaseLabel,
                 Component.translatable(phaseOne.currentIntentTranslationKey()).getString(),
                 Component.translatable(phaseOne.currentAnchorTranslationKey()).getString(),
-                Component.translatable(phaseOne.aiRouteReasonTranslationKey()).getString()
+                phaseOne.aiReadableRoutineReasonComponent()
         );
     }
 
@@ -225,7 +217,6 @@ public class WorkerStatusScreen extends Screen {
                 "gui.bannermod.worker_screen.needs.summary",
                 phaseOne.hungerNeed(),
                 phaseOne.fatigueNeed(),
-                phaseOne.socialNeed(),
                 phaseOne.safetyNeed()
         );
     }

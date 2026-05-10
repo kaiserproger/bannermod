@@ -48,6 +48,18 @@ public record PendingProject(
         }
     }
 
+    public PendingProject(UUID projectId,
+                          ProjectKind kind,
+                          @Nullable UUID targetBuildingUuid,
+                          SettlementBuildingCategory buildingCategory,
+                          SettlementBuildingProfileSeed profileSeed,
+                          int priorityScore,
+                          long proposedAtGameTime,
+                          int estimatedTickCost,
+                          ProjectBlocker blockerReason) {
+        this(projectId, kind, targetBuildingUuid, null, buildingCategory, profileSeed, priorityScore, proposedAtGameTime, estimatedTickCost, blockerReason);
+    }
+
     public CompoundTag toTag() {
         CompoundTag tag = new CompoundTag();
         tag.putUUID("Id", projectId);

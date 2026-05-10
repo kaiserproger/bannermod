@@ -9,7 +9,6 @@ public enum NpcIntent {
     EAT,
     WORK,
     SEEK_SUPPLIES,
-    SOCIALISE,
     HIDE,
     DEFEND,
     SELL,

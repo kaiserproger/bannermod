@@ -34,8 +34,8 @@ public final class AnimalPenWorkOrderPublisher implements SettlementWorkOrderPub
         if (level == null) {
             return;
         }
-        Entity entity = level.getEntity(ctx.building().buildingUuid());
-        if (!(entity instanceof AnimalPenArea pen) || !pen.isAlive()) {
+        AnimalPenArea pen = ctx.resolveBuildingEntity(AnimalPenArea.class);
+        if (pen == null) {
             return;
         }
 

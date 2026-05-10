@@ -25,8 +25,8 @@ public final class FishingAreaWorkOrderPublisher implements SettlementWorkOrderP
         if (level == null) {
             return;
         }
-        Entity entity = level.getEntity(ctx.building().buildingUuid());
-        if (!(entity instanceof FishingArea fishingArea) || !fishingArea.isAlive()) {
+        FishingArea fishingArea = ctx.resolveBuildingEntity(FishingArea.class);
+        if (fishingArea == null) {
             return;
         }
 

@@ -681,6 +681,10 @@ public abstract class AbstractRecruitEntity extends AbstractCitizenEntity implem
         return RecruitLifecycleService.hire(this, player, group, message, INFO_RECRUITING_MAX(name), List.of(TEXT_RECRUITED1(name), TEXT_RECRUITED2(name), TEXT_RECRUITED3(name)));
     }
 
+    public void assignSpawnedToPlayer(Player player, @Nullable RecruitsGroup group) {
+        RecruitLifecycleService.assignSpawnedToPlayer(this, player, group);
+    }
+
     public void dialogue(String name, Player player) {
         int i = this.random.nextInt(4);
         switch (i) {

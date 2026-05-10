@@ -264,8 +264,18 @@ public record SettlementResidentRecord(
         );
     }
 
+    public @Nullable UUID effectiveWorkBuildingUuid() {
+        if (this.serviceContract != null && this.serviceContract.serviceBuildingUuid() != null) {
+            return this.serviceContract.serviceBuildingUuid();
+        }
+        if (this.jobDefinition != null && this.jobDefinition.targetBuildingUuid() != null) {
+            return this.jobDefinition.targetBuildingUuid();
+        }
+        return this.boundWorkAreaUuid;
+    }
+
     private static SettlementResidentAssignmentState defaultAssignmentState(SettlementResidentRole role,
-                                                                                     @Nullable UUID boundWorkAreaUuid) {
+                                                                                      @Nullable UUID boundWorkAreaUuid) {
         if (role != SettlementResidentRole.CONTROLLED_WORKER) {
             return SettlementResidentAssignmentState.NOT_APPLICABLE;
         }

@@ -3,11 +3,11 @@ package com.talhanation.bannermod.settlement.dispatch;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.society.NpcIntent;
 import com.talhanation.bannermod.society.NpcSocietyPhaseTwoIntentScorer;
-import com.talhanation.bannermod.settlement.BannerModSettlementMarketState;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentServiceContract;
-import com.talhanation.bannermod.settlement.BannerModSettlementSellerDispatchRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementSellerDispatchState;
-import com.talhanation.bannermod.settlement.BannerModSettlementServiceActorState;
+import com.talhanation.bannermod.settlement.SettlementMarketState;
+import com.talhanation.bannermod.settlement.SettlementResidentServiceContract;
+import com.talhanation.bannermod.settlement.SettlementSellerDispatchRecord;
+import com.talhanation.bannermod.settlement.SettlementSellerDispatchState;
+import com.talhanation.bannermod.settlement.SettlementServiceActorState;
 import com.talhanation.bannermod.settlement.goal.ResidentGoal;
 import com.talhanation.bannermod.settlement.goal.ResidentGoalContext;
 import com.talhanation.bannermod.settlement.goal.ResidentTask;
@@ -60,7 +60,7 @@ public final class SellerResidentGoal implements ResidentGoal {
                     + BannerModSellerDispatchRuntime.SELLING_MAX_TICKS
                     + BannerModSellerDispatchRuntime.RETURNING_MAX_TICKS;
 
-    private final Supplier<BannerModSettlementMarketState> marketStateSupplier;
+    private final Supplier<SettlementMarketState> marketStateSupplier;
     private final BannerModSellerDispatchRuntime runtime;
 
     /**
@@ -68,16 +68,16 @@ public final class SellerResidentGoal implements ResidentGoal {
      * concrete supplier to the settlement manager's live state.
      */
     public SellerResidentGoal() {
-        this(BannerModSettlementMarketState::empty, new BannerModSellerDispatchRuntime());
+        this(SettlementMarketState::empty, new BannerModSellerDispatchRuntime());
     }
 
     public SellerResidentGoal(
-            Supplier<BannerModSettlementMarketState> marketStateSupplier,
+            Supplier<SettlementMarketState> marketStateSupplier,
             BannerModSellerDispatchRuntime runtime
     ) {
         this.marketStateSupplier = marketStateSupplier != null
                 ? marketStateSupplier
-                : BannerModSettlementMarketState::empty;
+                : SettlementMarketState::empty;
         this.runtime = runtime != null ? runtime : new BannerModSellerDispatchRuntime();
     }
 
@@ -95,9 +95,14 @@ public final class SellerResidentGoal implements ResidentGoal {
         if (ctx == null || !ctx.isActivePhase()) {
             return 0;
         }
-        return this.findReadyMarketUuid(ctx) != null
-                ? Math.max(SELLER_PRIORITY, NpcSocietyPhaseTwoIntentScorer.scoreIntent(ctx, NpcIntent.WORK) + 8)
-                : 0;
+        if (this.findReadyMarketUuid(ctx) == null) {
+            return 0;
+        }
+        int score = NpcSocietyPhaseTwoIntentScorer.scoreIntent(ctx, NpcIntent.WORK) + 8;
+        if (score <= 8) {
+            return 0;
+        }
+        return Math.max(SELLER_PRIORITY, score);
     }
 
     @Override
@@ -112,7 +117,8 @@ public final class SellerResidentGoal implements ResidentGoal {
         if (this.runtime.isActive(residentUuid)) {
             return false;
         }
-        return this.findReadyMarketUuid(ctx) != null;
+        SettlementResidentServiceContract contract = ctx.resident().serviceContract();
+        return contract != null && contract.actorState() == SettlementServiceActorState.LOCAL_BUILDING_SERVICE;
     }
 
     @Override
@@ -136,20 +142,20 @@ public final class SellerResidentGoal implements ResidentGoal {
 
     @Nullable
     private UUID findReadyMarketUuid(ResidentGoalContext ctx) {
-        BannerModSettlementResidentServiceContract contract = ctx.resident().serviceContract();
-        if (contract == null || contract.actorState() != BannerModSettlementServiceActorState.LOCAL_BUILDING_SERVICE) {
+        SettlementResidentServiceContract contract = ctx.resident().serviceContract();
+        if (contract == null || contract.actorState() != SettlementServiceActorState.LOCAL_BUILDING_SERVICE) {
             return null;
         }
-        BannerModSettlementMarketState state = this.marketStateSupplier.get();
+        SettlementMarketState state = this.marketStateSupplier.get();
         if (state == null) {
             return null;
         }
         UUID residentUuid = ctx.residentId();
-        for (BannerModSettlementSellerDispatchRecord record : state.sellerDispatches()) {
+        for (SettlementSellerDispatchRecord record : state.sellerDispatches()) {
             if (record == null) {
                 continue;
             }
-            if (record.dispatchState() != BannerModSettlementSellerDispatchState.READY) {
+            if (record.dispatchState() != SettlementSellerDispatchState.READY) {
                 continue;
             }
             if (residentUuid.equals(record.residentUuid())) {

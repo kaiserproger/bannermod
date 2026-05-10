@@ -74,6 +74,27 @@ final class RecruitLifecycleService {
         return true;
     }
 
+    static void assignSpawnedToPlayer(AbstractRecruitEntity recruit, Player player, @Nullable RecruitsGroup group) {
+        RecruitUpkeepService.resetPaymentTimer(recruit);
+        recruit.setOwnerUUID(Optional.of(player.getUUID()));
+        recruit.setIsOwned(true);
+        recruit.stopNavigation();
+        recruit.setTarget(null);
+        recruit.setFollowState(2);
+        recruit.setAggroState(0);
+        if (group != null) {
+            recruit.setGroupUUID(group.getUUID());
+        }
+        recruit.despawnTimer = -1;
+        if (!recruit.getCommandSenderWorld().isClientSide()) {
+            RecruitEvents.playerUnitManager().addRecruits(player.getUUID(), 1);
+            if (group != null) {
+                RecruitEvents.groupsManager().addMember(group.getUUID(), recruit.getUUID(), (ServerLevel) recruit.getCommandSenderWorld());
+                RecruitEvents.groupsManager().broadCastGroupsToPlayer(player);
+            }
+        }
+    }
+
     static void onDeath(AbstractRecruitEntity recruit, DamageSource dmg, Component deathMessage) {
         recruit.superDie(dmg);
         if (!recruit.isDeadOrDying() || recruit.getCommandSenderWorld().isClientSide()) return;

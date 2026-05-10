@@ -6,13 +6,13 @@ import com.talhanation.bannermod.settlement.goal.ResidentTask;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import net.minecraft.resources.ResourceLocation;
 
-/** Lowest-priority fallback. Always startable; runs for 40 ticks. */
+/** Lowest-priority fallback. Always startable; runs on a coarse heartbeat. */
 public final class IdleResidentGoal implements ResidentGoal {
 
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(BannerModMain.MOD_ID, "resident/goal/idle");
 
     private static final int IDLE_PRIORITY = 1;
-    private static final int IDLE_DURATION_TICKS = 40;
+    private static final int IDLE_DURATION_TICKS = 160;
 
     @Override
     public ResourceLocation id() {

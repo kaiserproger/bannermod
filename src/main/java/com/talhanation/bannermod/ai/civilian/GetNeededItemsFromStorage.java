@@ -4,9 +4,11 @@ import com.talhanation.bannermod.entity.civilian.AbstractWorkerEntity;
 import com.talhanation.bannermod.entity.civilian.WorkerStorageRequestState;
 import com.talhanation.bannermod.entity.civilian.workarea.StorageArea;
 import com.talhanation.bannermod.persistence.civilian.NeededItem;
+import com.talhanation.bannermod.shared.logistics.BannerModCourierTask;
 import com.talhanation.bannermod.shared.logistics.BannerModLogisticsBlockedReason;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 
@@ -31,6 +33,20 @@ public class GetNeededItemsFromStorage extends AbstractChestGoal {
                 && !worker.needsToDeposit()
                 && worker.needsToGetItems()
                 && super.canUse();
+    }
+
+    @Override
+    public boolean canContinueToUse() {
+        if (!worker.hasActiveCourierTask()) {
+            return super.canContinueToUse();
+        }
+        if (!super.canUse() || this.state == null) {
+            return false;
+        }
+        return switch (this.state) {
+            case DONE, ERROR_NO_STORAGE_FOUND, ERROR_ITEM_NOT_IN_STORAGE, ERROR_STORAGE_NO_CONTAINERS, ERROR_OWN_INVENTORY_FULL -> false;
+            default -> true;
+        };
     }
 
     @Override
@@ -84,6 +100,13 @@ public class GetNeededItemsFromStorage extends AbstractChestGoal {
                     return;
                 }
 
+                if (worker.hasActiveCourierTask()) {
+                    this.chestPos = null;
+                    this.container = null;
+                    setState(State.TAKE_NEEDED_ITEMS);
+                    return;
+                }
+
                 setState(State.SELECT_CHEST);
             }
 
@@ -133,7 +156,18 @@ public class GetNeededItemsFromStorage extends AbstractChestGoal {
             }
 
             case TAKE_NEEDED_ITEMS -> {
-                worker.getLookControl().setLookAt(chestPos.getCenter());
+                if (chestPos != null) {
+                    worker.getLookControl().setLookAt(chestPos.getCenter());
+                }
+
+                if (worker.hasActiveCourierTask()) {
+                    if (takeNeededItems()) {
+                        setState(State.DONE);
+                    } else {
+                        setState(State.ERROR_ITEM_NOT_IN_STORAGE);
+                    }
+                    return;
+                }
 
                 if(takeNeededItems()){
                     setState(State.CLOSE_CHEST_DONE);
@@ -243,10 +277,35 @@ public class GetNeededItemsFromStorage extends AbstractChestGoal {
     }
 
     private boolean takeNeededItems() {
-        SimpleContainer inventory = worker.getInventory();
-
         if (container == null || container.isEmpty()) {
             return false;
+        }
+
+        BannerModCourierTask activeCourierTask = worker.getActiveCourierTask();
+        if (activeCourierTask != null) {
+            int missingCount = worker.getActiveCourierPickupMissingCount();
+            if (missingCount <= 0) {
+                return true;
+            }
+            int moved = 0;
+            Collection<Container> sources = this.storageArea == null
+                    ? List.of(container)
+                    : this.storageArea.storageMap.values();
+            for (Container source : sources) {
+                if (source == null || moved >= missingCount) {
+                    continue;
+                }
+                moved += TransportContainerExchange.withdrawInto(
+                        source,
+                        worker.getInventory(),
+                        activeCourierTask.reservation().filter(),
+                        missingCount - moved
+                );
+            }
+            if (moved <= 0) {
+                return false;
+            }
+            return !worker.hasActiveCourierPickupPending();
         }
 
         List<NeededItem> neededItems = worker.neededItems;
@@ -266,16 +325,29 @@ public class GetNeededItemsFromStorage extends AbstractChestGoal {
                     int toExtract = Math.min(neededCount, availableCount);
 
                     ItemStack extracted = itemInChest.split(toExtract);
-                    ItemStack leftover = inventory.addItem(extracted);
+                    ItemStack applied = extracted.copy();
+                    ItemStack leftover = worker.addItem(extracted);
+                    int movedCount = Math.max(0, applied.getCount() - leftover.getCount());
 
                     if (!leftover.isEmpty()) {
-                        itemInChest.grow(toExtract);
+                        itemInChest.grow(leftover.getCount());
+                    }
+                    container.setItem(i, itemInChest);
+                    if (movedCount <= 0) {
+                        container.setChanged();
                         return false;
                     }
 
-
-                    NeededItem.applyToNeededItems(extracted, neededItems);
+                    if (movedCount < applied.getCount()) {
+                        applied.setCount(movedCount);
+                    }
+                    NeededItem.applyToNeededItems(applied, neededItems);
+                    container.setChanged();
                     anyTaken = true;
+
+                    if (!leftover.isEmpty()) {
+                        return false;
+                    }
 
                     if (itemInChest.isEmpty()) {
                         break;

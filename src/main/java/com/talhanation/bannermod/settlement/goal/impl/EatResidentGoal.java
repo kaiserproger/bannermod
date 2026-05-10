@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 public final class EatResidentGoal implements ResidentGoal {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(BannerModMain.MOD_ID, "resident/goal/eat");
 
-    private static final int EAT_DURATION_TICKS = 140;
+    private static final int EAT_DURATION_TICKS = 200;
     private static final int EAT_COOLDOWN_TICKS = 200;
 
     @Override
@@ -26,7 +26,7 @@ public final class EatResidentGoal implements ResidentGoal {
 
     @Override
     public boolean canStart(ResidentGoalContext ctx) {
-        return this.computePriority(ctx) > 0;
+        return ctx.hasHome() || ctx.hasMarketFoodAccess();
     }
 
     @Override

@@ -6,9 +6,14 @@ import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.events.WorkersVillagerEvents;
 import com.talhanation.bannermod.entity.civilian.AbstractWorkerEntity;
 import com.talhanation.bannermod.entity.civilian.FarmerEntity;
+import com.talhanation.bannermod.entity.civilian.FishermanEntity;
 import com.talhanation.bannermod.entity.civilian.workarea.CropArea;
+import com.talhanation.bannermod.entity.civilian.workarea.FishingArea;
+import com.talhanation.bannermod.entity.civilian.workarea.WorkAreaIndex;
+import com.talhanation.bannermod.registry.civilian.ModEntityTypes;
 import com.talhanation.bannermod.settlement.civilian.WorkerSettlementSpawnRules;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
@@ -118,7 +123,7 @@ public class BannerModClaimWorkerGrowthGameTests {
 
     @PrefixGameTestTemplate(false)
     @GameTest(template = "harness_empty")
-    public static void claimGrownFarmerSeedsCropAreaFromPreparedField(GameTestHelper helper) {
+    public static void claimGrownFarmerWaitsWithoutMarkedCropAreaEvenOnPreparedField(GameTestHelper helper) {
         WorkerSettlementSpawnRules.ClaimGrowthConfig config = claimGrowthConfig(20L, 4);
 
         ServerLevel level = helper.getLevel();
@@ -132,13 +137,65 @@ public class BannerModClaimWorkerGrowthGameTests {
 
         helper.assertTrue(worker instanceof FarmerEntity, "Expected the configured claim-growth profession pool to spawn a farmer.");
         FarmerEntity farmer = (FarmerEntity) worker;
+        helper.runAfterDelay(20, () -> {
+            helper.assertTrue(farmer.getCurrentCropArea() == null,
+                    "Expected prepared farmland alone not to auto-bind or create a crop area for a claim-grown farmer.");
+            List<CropArea> cropAreas = level.getEntitiesOfClass(CropArea.class, new AABB(fieldCenter).inflate(12.0D));
+            helper.assertTrue(cropAreas.isEmpty(),
+                    "Expected claim growth to leave prepared farmland without a synthetic CropArea until a player-marked or validated zone exists.");
+            helper.succeed();
+        });
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void claimGrownFarmerBindsExistingCropArea(GameTestHelper helper) {
+        WorkerSettlementSpawnRules.ClaimGrowthConfig config = claimGrowthConfig(20L, 4, List.of(WorkerSettlementSpawnRules.WorkerProfession.FARMER));
+
+        ServerLevel level = helper.getLevel();
+        String teamId = "phase31_claim_autofield";
+        ServerPlayer leader = createLeader(helper, level, UUID.fromString("00000000-0000-0000-0000-000000003116"), "phase31-autofield-leader", teamId);
+        BlockPos claimPos = helper.absolutePos(new BlockPos(8, 2, 8));
+        RecruitsClaim claim = BannerModDedicatedServerGameTestSupport.seedClaim(level, claimPos, teamId, leader.getUUID(), leader.getScoreboardName());
+        prepareField(level, claimPos);
+        CropArea existingArea = placeCropArea(level, leader, claimPos);
+
+        AbstractWorkerEntity worker = WorkersVillagerEvents.attemptClaimWorkerGrowth(level, claim, teamId, 20L, config);
+
+        helper.assertTrue(worker instanceof FarmerEntity, "Expected the configured claim-growth profession pool to spawn a farmer.");
+        FarmerEntity farmer = (FarmerEntity) worker;
         helper.succeedWhen(() -> {
             CropArea currentArea = farmer.getCurrentCropArea();
-            List<CropArea> cropAreas = level.getEntitiesOfClass(CropArea.class, new AABB(fieldCenter).inflate(12.0D));
-            helper.assertTrue(currentArea != null || !cropAreas.isEmpty(),
-                    "Expected a claim-grown farmer on a prepared field to receive or seed a crop area instead of idling without work.");
-            helper.assertTrue((currentArea != null && currentArea.isAlive()) || cropAreas.stream().anyMatch(CropArea::isAlive),
-                    "Expected claim-grown farmer field seeding to create a live crop area entity.");
+            helper.assertTrue(currentArea != null && currentArea.isAlive(),
+                    "Expected claim-grown farmers to bind an existing claim crop area instead of waiting idle.");
+            helper.assertTrue(existingArea.getUUID().equals(currentArea.getUUID()),
+                    "Expected claim-grown farmer to reuse the existing player-marked crop area instead of spawning a new one.");
+        });
+    }
+
+    @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void claimGrownFishermanWaitsWithoutMarkedFishingArea(GameTestHelper helper) {
+        WorkerSettlementSpawnRules.ClaimGrowthConfig config = claimGrowthConfig(20L, 4, List.of(WorkerSettlementSpawnRules.WorkerProfession.FISHERMAN));
+
+        ServerLevel level = helper.getLevel();
+        String teamId = "phase31_claim_autofish";
+        ServerPlayer leader = createLeader(helper, level, UUID.fromString("00000000-0000-0000-0000-000000003117"), "phase31-autofish-leader", teamId);
+        BlockPos claimPos = helper.absolutePos(new BlockPos(8, 2, 8));
+        RecruitsClaim claim = BannerModDedicatedServerGameTestSupport.seedClaim(level, claimPos, teamId, leader.getUUID(), leader.getScoreboardName());
+        prepareFishingWater(level, claimPos.east(3));
+
+        AbstractWorkerEntity worker = WorkersVillagerEvents.attemptClaimWorkerGrowth(level, claim, teamId, 20L, config);
+
+        helper.assertTrue(worker instanceof FishermanEntity, "Expected the configured claim-growth profession pool to spawn a fisherman.");
+        FishermanEntity fisherman = (FishermanEntity) worker;
+        helper.runAfterDelay(20, () -> {
+            helper.assertTrue(fisherman.getCurrentFishingArea() == null,
+                    "Expected nearby water alone not to auto-create or bind a fishing area for a claim-grown fisherman.");
+            List<FishingArea> fishingAreas = level.getEntitiesOfClass(FishingArea.class, new AABB(claimPos).inflate(24.0D));
+            helper.assertTrue(fishingAreas.isEmpty(),
+                    "Expected claim growth to leave nearby water without a synthetic FishingArea until a player-marked or validated zone exists.");
+            helper.succeed();
         });
     }
 
@@ -174,12 +231,35 @@ public class BannerModClaimWorkerGrowthGameTests {
         });
     }
 
+    private static CropArea placeCropArea(ServerLevel level, ServerPlayer leader, BlockPos center) {
+        CropArea cropArea = new CropArea(ModEntityTypes.CROPAREA.get(), level);
+        cropArea.setWidthSize(9);
+        cropArea.setHeightSize(2);
+        cropArea.setDepthSize(9);
+        cropArea.setFacing(Direction.NORTH);
+        cropArea.moveTo(center.getX() - 4, center.getY(), center.getZ() + 4, 0.0F, 0.0F);
+        cropArea.createArea();
+        cropArea.setDone(false);
+        cropArea.setTeamStringID(leader.getTeam() == null ? "" : leader.getTeam().getName());
+        cropArea.setPlayerUUID(leader.getUUID());
+        cropArea.setPlayerName(leader.getScoreboardName());
+        level.addFreshEntity(cropArea);
+        WorkAreaIndex.instance().onEntityJoin(cropArea);
+        return cropArea;
+    }
+
     private static WorkerSettlementSpawnRules.ClaimGrowthConfig claimGrowthConfig(long baseCooldownTicks, int workerCap) {
+        return claimGrowthConfig(baseCooldownTicks, workerCap, List.of(WorkerSettlementSpawnRules.WorkerProfession.FARMER));
+    }
+
+    private static WorkerSettlementSpawnRules.ClaimGrowthConfig claimGrowthConfig(long baseCooldownTicks,
+                                                                                  int workerCap,
+                                                                                  List<WorkerSettlementSpawnRules.WorkerProfession> professions) {
         return new WorkerSettlementSpawnRules.ClaimGrowthConfig(
                 true,
                 baseCooldownTicks,
                 workerCap,
-                List.of(WorkerSettlementSpawnRules.WorkerProfession.FARMER)
+                professions
         );
     }
 
@@ -192,6 +272,16 @@ public class BannerModClaimWorkerGrowthGameTests {
                 }
                 level.setBlockAndUpdate(center.offset(dx, 0, dz), Blocks.FARMLAND.defaultBlockState());
                 level.setBlockAndUpdate(center.offset(dx, 1, dz), Blocks.WHEAT.defaultBlockState());
+            }
+        }
+    }
+
+    private static void prepareFishingWater(ServerLevel level, BlockPos center) {
+        for (int dx = -2; dx <= 2; dx++) {
+            for (int dz = -2; dz <= 2; dz++) {
+                level.setBlockAndUpdate(center.offset(dx, -1, dz), Blocks.DIRT.defaultBlockState());
+                level.setBlockAndUpdate(center.offset(dx, 0, dz), Blocks.WATER.defaultBlockState());
+                level.setBlockAndUpdate(center.offset(dx, 1, dz), Blocks.AIR.defaultBlockState());
             }
         }
     }

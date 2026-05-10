@@ -6,31 +6,33 @@ import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.entity.citizen.CitizenEntity;
 import com.talhanation.bannermod.entity.civilian.FarmerEntity;
 import com.talhanation.bannermod.registry.citizen.ModCitizenEntityTypes;
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementDesiredGoodsSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementManager;
-import com.talhanation.bannermod.settlement.BannerModSettlementMarketRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementMarketState;
-import com.talhanation.bannermod.settlement.BannerModSettlementProjectCandidateSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentAssignmentState;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentMode;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRole;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRuntimeRoleSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentScheduleSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentScheduleWindowSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentServiceContract;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
-import com.talhanation.bannermod.settlement.BannerModSettlementStockpileSummary;
-import com.talhanation.bannermod.settlement.BannerModSettlementSupplySignalState;
-import com.talhanation.bannermod.settlement.BannerModSettlementTradeRouteHandoffSeed;
+import com.talhanation.bannermod.settlement.SettlementBuildingRecord;
+import com.talhanation.bannermod.settlement.SettlementDesiredGoodsSnapshot;
+import com.talhanation.bannermod.settlement.SettlementManager;
+import com.talhanation.bannermod.settlement.SettlementMarketRecord;
+import com.talhanation.bannermod.settlement.SettlementMarketState;
+import com.talhanation.bannermod.settlement.SettlementProjectCandidateSnapshot;
+import com.talhanation.bannermod.settlement.SettlementResidentAssignmentState;
+import com.talhanation.bannermod.settlement.SettlementResidentMode;
+import com.talhanation.bannermod.settlement.SettlementResidentRecord;
+import com.talhanation.bannermod.settlement.SettlementResidentRole;
+import com.talhanation.bannermod.settlement.SettlementResidentRuntimeRoleState;
+import com.talhanation.bannermod.settlement.SettlementResidentScheduleSeed;
+import com.talhanation.bannermod.settlement.SettlementResidentScheduleWindowSeed;
+import com.talhanation.bannermod.settlement.SettlementResidentServiceContract;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementStockpileSummary;
+import com.talhanation.bannermod.settlement.SettlementSupplySignalState;
+import com.talhanation.bannermod.settlement.SettlementTradeRouteHandoffSnapshot;
 import com.talhanation.bannermod.settlement.goal.BannerModResidentGoalScheduler;
 import com.talhanation.bannermod.settlement.goal.ResidentGoalContext;
+import com.talhanation.bannermod.settlement.goal.ResidentStopReason;
 import com.talhanation.bannermod.settlement.goal.ResidentTask;
+import com.talhanation.bannermod.settlement.goal.ResidentTaskOutcome;
 import com.talhanation.bannermod.settlement.goal.impl.DefendResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.EatResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.HideResidentGoal;
-import com.talhanation.bannermod.settlement.goal.impl.SocialiseResidentGoal;
+import com.talhanation.bannermod.settlement.goal.impl.IdleResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.WorkResidentGoal;
 import com.talhanation.bannermod.settlement.household.BannerModHomeAssignmentRuntime;
 import com.talhanation.bannermod.settlement.household.GoHomeResidentGoal;
@@ -64,8 +66,8 @@ public final class NpcSocietyPhaseTwoGameTests {
         ServerLevel level = helper.getLevel();
         UUID residentId = UUID.fromString("00000000-0000-0000-0000-000000042001");
         UUID marketUuid = UUID.fromString("00000000-0000-0000-0000-000000042011");
-        BannerModSettlementBuildingRecord market = building(marketUuid, "bannermod:market_stall", helper.absolutePos(new BlockPos(10, 2, 10)), 0);
-        BannerModSettlementSnapshot snapshot = snapshot(
+        SettlementBuildingRecord market = building(marketUuid, "bannermod:market_stall", helper.absolutePos(new BlockPos(10, 2, 10)), 0);
+        SettlementSnapshot snapshot = snapshot(
                 ACTIVE_TIME,
                 List.of(villagerResident(residentId)),
                 List.of(market),
@@ -77,7 +79,7 @@ public final class NpcSocietyPhaseTwoGameTests {
                 .withNeedState(95, 10, 10, 10, ACTIVE_TIME);
 
         seedProfile(level, profile);
-        BannerModSettlementManager.get(level).putSnapshot(snapshot);
+        SettlementManager.get(level).putSnapshot(snapshot);
 
         ResidentGoalContext ctx = new ResidentGoalContext(villagerResident(residentId), snapshot, ACTIVE_TIME, profile);
         scheduler.tick(ctx);
@@ -105,18 +107,18 @@ public final class NpcSocietyPhaseTwoGameTests {
         ServerLevel level = helper.getLevel();
         UUID residentId = UUID.fromString("00000000-0000-0000-0000-000000042002");
         UUID homeUuid = UUID.fromString("00000000-0000-0000-0000-000000042012");
-        BannerModSettlementBuildingRecord home = building(homeUuid, "bannermod:house", helper.absolutePos(new BlockPos(12, 2, 12)), 4);
-        BannerModSettlementSnapshot snapshot = snapshot(
+        SettlementBuildingRecord home = building(homeUuid, "bannermod:house", helper.absolutePos(new BlockPos(12, 2, 12)), 4);
+        SettlementSnapshot snapshot = snapshot(
                 NIGHT_TIME,
                 List.of(workerResident(residentId, null, null)),
                 List.of(home),
-                BannerModSettlementMarketState.empty()
+                SettlementMarketState.empty()
         );
         BannerModHomeAssignmentRuntime homeRuntime = new BannerModHomeAssignmentRuntime();
         homeRuntime.assign(residentId, homeUuid, HomePreference.ASSIGNED, NIGHT_TIME);
         BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals(
                 homeRuntime,
-                BannerModSettlementMarketState::empty,
+                SettlementMarketState::empty,
                 new com.talhanation.bannermod.settlement.dispatch.BannerModSellerDispatchRuntime()
         );
         NpcSocietyProfile profile = NpcSocietyProfile.createDefault(residentId, NIGHT_TIME)
@@ -125,7 +127,7 @@ public final class NpcSocietyPhaseTwoGameTests {
                 .withNeedState(10, 95, 10, 10, NIGHT_TIME);
 
         seedProfile(level, profile);
-        BannerModSettlementManager.get(level).putSnapshot(snapshot);
+        SettlementManager.get(level).putSnapshot(snapshot);
 
         ResidentGoalContext ctx = new ResidentGoalContext(workerResident(residentId, null, null), snapshot, NIGHT_TIME, profile);
         scheduler.tick(ctx);
@@ -149,12 +151,12 @@ public final class NpcSocietyPhaseTwoGameTests {
 
     @PrefixGameTestTemplate(false)
     @GameTest(template = "harness_empty")
-    public static void socialNeedSelectsSocialiseAndPublishesMarketAnchor(GameTestHelper helper) {
+    public static void socialNeedNowFallsBackToIdleWithoutMarketAnchor(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         UUID residentId = UUID.fromString("00000000-0000-0000-0000-000000042003");
         UUID marketUuid = UUID.fromString("00000000-0000-0000-0000-000000042013");
-        BannerModSettlementBuildingRecord market = building(marketUuid, "bannermod:market_stall", helper.absolutePos(new BlockPos(8, 2, 8)), 0);
-        BannerModSettlementSnapshot snapshot = snapshot(
+        SettlementBuildingRecord market = building(marketUuid, "bannermod:market_stall", helper.absolutePos(new BlockPos(8, 2, 8)), 0);
+        SettlementSnapshot snapshot = snapshot(
                 ACTIVE_TIME,
                 List.of(villagerResident(residentId)),
                 List.of(market),
@@ -166,24 +168,24 @@ public final class NpcSocietyPhaseTwoGameTests {
                 .withNeedState(5, 5, 95, 5, ACTIVE_TIME);
 
         seedProfile(level, profile);
-        BannerModSettlementManager.get(level).putSnapshot(snapshot);
+        SettlementManager.get(level).putSnapshot(snapshot);
 
         ResidentGoalContext ctx = new ResidentGoalContext(villagerResident(residentId), snapshot, ACTIVE_TIME, profile);
         scheduler.tick(ctx);
 
-        ResidentTask task = requireTask(helper, scheduler, residentId, SocialiseResidentGoal.ID.toString());
+        ResidentTask task = requireTask(helper, scheduler, residentId, IdleResidentGoal.ID.toString());
         NpcSocietyPhaseOneRuntime.updateResidentProfile(level, homeRuntime, ctx, task, byBuilding(snapshot));
 
         NpcSocietyProfile stored = NpcSocietyAccess.profileFor(level, residentId).orElseThrow();
-        helper.assertTrue(stored.currentIntent() == NpcIntent.SOCIALISE,
-                "Expected strong social pressure to select SOCIALISE.");
-        helper.assertTrue(stored.currentAnchor() == NpcAnchorType.MARKET,
-                "Expected socialise to publish MARKET when an open market exists.");
+        helper.assertTrue(stored.currentIntent() == NpcIntent.IDLE,
+                "Expected high social pressure to fall back to the cheap idle intent instead of selecting a dedicated social slice.");
+        helper.assertTrue(stored.currentAnchor() == NpcAnchorType.STREET,
+                "Expected the cheap idle fallback to avoid publishing a special market social anchor.");
         NpcPhaseOneSnapshot aiSnapshot = NpcSocietyAccess.phaseOneSnapshot(level, residentId, null);
-        helper.assertTrue("socialise".equals(aiSnapshot.aiCurrentGoalLabel()),
-                "Expected AI observability to publish the selected socialise goal.");
-        helper.assertTrue("social_pressure".equals(aiSnapshot.aiChoiceReasonTag().toLowerCase()),
-                "Expected AI observability to explain SOCIALISE via social pressure.");
+        helper.assertTrue("idle".equals(aiSnapshot.aiCurrentGoalLabel()),
+                "Expected AI observability to publish the idle fallback once social scheduling is removed.");
+        helper.assertTrue("no_higher_priority_goal".equals(aiSnapshot.aiChoiceReasonTag().toLowerCase()),
+                "Expected AI observability to explain that no higher-priority goal beat the fallback.");
         helper.succeed();
     }
 
@@ -192,11 +194,11 @@ public final class NpcSocietyPhaseTwoGameTests {
     public static void hungryHomelessResidentWithoutMarketPublishesBlockedEatReason(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         UUID residentId = UUID.fromString("00000000-0000-0000-0000-000000042021");
-        BannerModSettlementSnapshot snapshot = snapshot(
+        SettlementSnapshot snapshot = snapshot(
                 ACTIVE_TIME,
                 List.of(villagerResident(residentId)),
                 List.of(),
-                BannerModSettlementMarketState.empty()
+                SettlementMarketState.empty()
         );
         BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals();
         BannerModHomeAssignmentRuntime homeRuntime = new BannerModHomeAssignmentRuntime();
@@ -204,7 +206,7 @@ public final class NpcSocietyPhaseTwoGameTests {
                 .withNeedState(96, 15, 10, 10, ACTIVE_TIME);
 
         seedProfile(level, profile);
-        BannerModSettlementManager.get(level).putSnapshot(snapshot);
+        SettlementManager.get(level).putSnapshot(snapshot);
 
         ResidentGoalContext ctx = new ResidentGoalContext(villagerResident(residentId), snapshot, ACTIVE_TIME, profile);
         scheduler.tick(ctx);
@@ -308,8 +310,8 @@ public final class NpcSocietyPhaseTwoGameTests {
                 null,
                 worker.getBoundWorkAreaUUID(),
                 NpcDailyPhase.ACTIVE,
-                NpcIntent.SOCIALISE,
-                NpcAnchorType.MARKET,
+                NpcIntent.IDLE,
+                NpcAnchorType.STREET,
                 NpcSocietyDecisionSnapshot.empty(),
                 ACTIVE_TIME + 1L
         );
@@ -324,10 +326,9 @@ public final class NpcSocietyPhaseTwoGameTests {
         UUID residentId = UUID.fromString("00000000-0000-0000-0000-000000042006");
         BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals();
         NpcSocietyProfile profile = NpcSocietyProfile.createDefault(residentId, ACTIVE_TIME)
-                .withNeedState(10, 18, 72, 5, ACTIVE_TIME)
-                .withSocialState(50, 0, 0, 0, 62, ACTIVE_TIME);
+                .withNeedState(10, 18, 72, 5, ACTIVE_TIME);
         ResidentGoalContext ctx = new ResidentGoalContext(
-                workerResident(residentId, null, null, BannerModSettlementResidentAssignmentState.ASSIGNED_MISSING_BUILDING),
+                workerResident(residentId, null, null, SettlementResidentAssignmentState.ASSIGNED_MISSING_BUILDING),
                 null,
                 ACTIVE_TIME,
                 profile
@@ -341,47 +342,45 @@ public final class NpcSocietyPhaseTwoGameTests {
 
     @PrefixGameTestTemplate(false)
     @GameTest(template = "harness_empty")
-    public static void workerSocialisesDuringLeisureGapAfterShift(GameTestHelper helper) {
+    public static void workerFallsBackToIdleDuringLeisureGapAfterShift(GameTestHelper helper) {
         long leisureTime = 10000L;
         UUID residentId = UUID.fromString("00000000-0000-0000-0000-000000042007");
         BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals();
         NpcSocietyProfile profile = NpcSocietyProfile.createDefault(residentId, leisureTime)
-                .withNeedState(10, 10, 95, 5, leisureTime)
-                .withSocialState(50, 0, 0, 0, 55, leisureTime);
+                .withNeedState(10, 10, 95, 5, leisureTime);
         ResidentGoalContext ctx = new ResidentGoalContext(workerResident(residentId, null, null), null, leisureTime, profile);
 
         scheduler.tick(ctx);
 
-        requireTask(helper, scheduler, residentId, SocialiseResidentGoal.ID.toString());
+        requireTask(helper, scheduler, residentId, IdleResidentGoal.ID.toString());
         helper.succeed();
     }
 
     @PrefixGameTestTemplate(false)
     @GameTest(template = "harness_empty")
-    public static void familyLeisureSocialisePublishesHomeAnchor(GameTestHelper helper) {
+    public static void lateDayHomeboundFallbackPublishesHomeAnchor(GameTestHelper helper) {
         long leisureTime = 11550L;
         ServerLevel level = helper.getLevel();
         UUID residentId = UUID.fromString("00000000-0000-0000-0000-000000042008");
         UUID homeUuid = UUID.fromString("00000000-0000-0000-0000-000000042018");
-        BannerModSettlementBuildingRecord home = building(homeUuid, "bannermod:house", helper.absolutePos(new BlockPos(12, 2, 12)), 4);
-        BannerModSettlementSnapshot snapshot = snapshot(
+        SettlementBuildingRecord home = building(homeUuid, "bannermod:house", helper.absolutePos(new BlockPos(12, 2, 12)), 4);
+        SettlementSnapshot snapshot = snapshot(
                 leisureTime,
                 List.of(villagerResident(residentId)),
                 List.of(home),
-                BannerModSettlementMarketState.empty()
+                SettlementMarketState.empty()
         );
         BannerModHomeAssignmentRuntime homeRuntime = new BannerModHomeAssignmentRuntime();
         homeRuntime.assign(residentId, homeUuid, HomePreference.ASSIGNED, leisureTime);
         BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals(
                 homeRuntime,
-                BannerModSettlementMarketState::empty,
+                SettlementMarketState::empty,
                 new com.talhanation.bannermod.settlement.dispatch.BannerModSellerDispatchRuntime()
         );
         NpcSocietyProfile profile = NpcSocietyProfile.createDefault(residentId, leisureTime)
                 .withPhaseOneState(null, homeUuid, null, NpcDailyPhase.ACTIVE, NpcIntent.UNSPECIFIED, NpcAnchorType.NONE,
                         NpcSocietyDecisionSnapshot.empty(), leisureTime)
-                .withNeedState(10, 10, 95, 5, leisureTime)
-                .withSocialState(50, 0, 0, 0, 55, leisureTime);
+                .withNeedState(10, 10, 95, 5, leisureTime);
         ResidentGoalContext ctx = new ResidentGoalContext(
                 villagerResident(residentId),
                 snapshot,
@@ -395,18 +394,18 @@ public final class NpcSocietyPhaseTwoGameTests {
         );
 
         seedProfile(level, profile);
-        BannerModSettlementManager.get(level).putSnapshot(snapshot);
+        SettlementManager.get(level).putSnapshot(snapshot);
         scheduler.tick(ctx);
 
-        ResidentTask task = requireTask(helper, scheduler, residentId, SocialiseResidentGoal.ID.toString());
+        ResidentTask task = requireTask(helper, scheduler, residentId, GoHomeResidentGoal.ID.toString());
         NpcSocietyPhaseOneRuntime.updateResidentProfile(level, homeRuntime, ctx, task, byBuilding(snapshot));
 
         NpcSocietyProfile stored = NpcSocietyAccess.profileFor(level, residentId).orElseThrow();
         helper.assertTrue(stored.currentAnchor() == NpcAnchorType.HOME,
-                "Expected family evening social intent to stay anchored at home for readable household scenes.");
+                "Expected late-day fallback to publish the home anchor once dedicated leisure social slices are gone.");
         NpcPhaseOneSnapshot aiSnapshot = NpcSocietyAccess.phaseOneSnapshot(level, residentId, null);
-        helper.assertTrue("evening_home_circle".equals(aiSnapshot.aiRouteReasonTag().toLowerCase()),
-                "Expected observability to explain that evening family socialising is staying at home.");
+        helper.assertTrue("soon_night_homebound".equals(aiSnapshot.aiRouteReasonTag().toLowerCase()),
+                "Expected observability to explain that evening residents are now simply heading home.");
         helper.succeed();
     }
 
@@ -416,18 +415,18 @@ public final class NpcSocietyPhaseTwoGameTests {
         ServerLevel level = helper.getLevel();
         UUID residentId = UUID.fromString("00000000-0000-0000-0000-000000042009");
         UUID homeUuid = UUID.fromString("00000000-0000-0000-0000-000000042019");
-        BannerModSettlementBuildingRecord home = building(homeUuid, "bannermod:house", helper.absolutePos(new BlockPos(12, 2, 12)), 4);
-        BannerModSettlementSnapshot snapshot = snapshot(
+        SettlementBuildingRecord home = building(homeUuid, "bannermod:house", helper.absolutePos(new BlockPos(12, 2, 12)), 4);
+        SettlementSnapshot snapshot = snapshot(
                 NIGHT_TIME,
                 List.of(workerResident(residentId, null, null)),
                 List.of(home),
-                BannerModSettlementMarketState.empty()
+                SettlementMarketState.empty()
         );
         BannerModHomeAssignmentRuntime homeRuntime = new BannerModHomeAssignmentRuntime();
         homeRuntime.assign(residentId, homeUuid, HomePreference.ASSIGNED, NIGHT_TIME - 200L);
         BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals(
                 homeRuntime,
-                BannerModSettlementMarketState::empty,
+                SettlementMarketState::empty,
                 new com.talhanation.bannermod.settlement.dispatch.BannerModSellerDispatchRuntime()
         );
         NpcSocietyProfile profile = NpcSocietyProfile.createDefault(residentId, NIGHT_TIME)
@@ -436,7 +435,7 @@ public final class NpcSocietyPhaseTwoGameTests {
                 .withNeedState(10, 92, 10, 10, NIGHT_TIME);
 
         seedProfile(level, profile);
-        BannerModSettlementManager.get(level).putSnapshot(snapshot);
+        SettlementManager.get(level).putSnapshot(snapshot);
 
         ResidentGoalContext ctx = new ResidentGoalContext(workerResident(residentId, null, null), snapshot, NIGHT_TIME, profile);
         scheduler.tick(ctx);
@@ -457,18 +456,18 @@ public final class NpcSocietyPhaseTwoGameTests {
         ServerLevel level = helper.getLevel();
         UUID residentId = UUID.fromString("00000000-0000-0000-0000-000000042010");
         UUID homeUuid = UUID.fromString("00000000-0000-0000-0000-000000042020");
-        BannerModSettlementBuildingRecord home = building(homeUuid, "bannermod:house", helper.absolutePos(new BlockPos(6, 2, 6)), 4);
-        BannerModSettlementSnapshot snapshot = snapshot(
+        SettlementBuildingRecord home = building(homeUuid, "bannermod:house", helper.absolutePos(new BlockPos(6, 2, 6)), 4);
+        SettlementSnapshot snapshot = snapshot(
                 morningTick,
                 List.of(workerResident(residentId, null, null)),
                 List.of(home),
-                BannerModSettlementMarketState.empty()
+                SettlementMarketState.empty()
         );
         BannerModHomeAssignmentRuntime homeRuntime = new BannerModHomeAssignmentRuntime();
         homeRuntime.assign(residentId, homeUuid, HomePreference.ASSIGNED, morningTick - 200L);
         BannerModResidentGoalScheduler scheduler = BannerModResidentGoalScheduler.withDefaultGoals(
                 homeRuntime,
-                BannerModSettlementMarketState::empty,
+                SettlementMarketState::empty,
                 new com.talhanation.bannermod.settlement.dispatch.BannerModSellerDispatchRuntime()
         );
         NpcSocietyProfile profile = NpcSocietyProfile.createDefault(residentId, morningTick)
@@ -477,7 +476,7 @@ public final class NpcSocietyPhaseTwoGameTests {
                 .withNeedState(10, 18, 18, 5, morningTick);
 
         seedProfile(level, profile);
-        BannerModSettlementManager.get(level).putSnapshot(snapshot);
+        SettlementManager.get(level).putSnapshot(snapshot);
 
         ResidentGoalContext ctx = new ResidentGoalContext(workerResident(residentId, null, null), snapshot, morningTick, profile);
         scheduler.tick(ctx);
@@ -492,21 +491,81 @@ public final class NpcSocietyPhaseTwoGameTests {
     }
 
     @PrefixGameTestTemplate(false)
+    @GameTest(template = "harness_empty")
+    public static void invalidatedWorkRecoveryPublishesReadableHomeRegroup(GameTestHelper helper) {
+        long gameTime = 9200L;
+        ServerLevel level = helper.getLevel();
+        UUID residentId = UUID.fromString("00000000-0000-0000-0000-000000042011");
+        UUID homeUuid = UUID.fromString("00000000-0000-0000-0000-000000042031");
+        SettlementBuildingRecord home = building(homeUuid, "bannermod:house", helper.absolutePos(new BlockPos(8, 2, 8)), 4);
+        SettlementSnapshot snapshot = snapshot(
+                gameTime,
+                List.of(workerResident(residentId, null, null)),
+                List.of(home),
+                SettlementMarketState.empty()
+        );
+        BannerModHomeAssignmentRuntime homeRuntime = new BannerModHomeAssignmentRuntime();
+        homeRuntime.assign(residentId, homeUuid, HomePreference.ASSIGNED, gameTime - 120L);
+        NpcSocietyProfile profile = NpcSocietyProfile.createDefault(residentId, gameTime)
+                .withPhaseOneState(null, homeUuid, UUID.fromString("00000000-0000-0000-0000-000000042099"), NpcDailyPhase.ACTIVE,
+                        NpcIntent.WORK, NpcAnchorType.WORKPLACE,
+                        new NpcSocietyDecisionSnapshot("BLOCKED", null, "ASSIGNED_SHIFT", "HEADING_TO_WORKPLACE",
+                                WorkResidentGoal.ID.toString(), NpcSocietyDecisionSnapshot.BLOCKED_REASON_CONTEXT_INVALIDATED,
+                                NpcIntent.WORK.name(), gameTime - 40L),
+                        gameTime)
+                .withNeedState(16, 56, 18, 18, gameTime);
+        ResidentGoalContext ctx = new ResidentGoalContext(
+                workerResident(residentId, null, null),
+                snapshot,
+                gameTime,
+                gameTime,
+                profile,
+                4,
+                NpcHouseholdHousingState.NORMAL,
+                true,
+                2
+        );
+
+        seedProfile(level, profile);
+        SettlementManager.get(level).putSnapshot(snapshot);
+
+        NpcSocietyPhaseOneRuntime.updateResidentProfile(
+                level,
+                homeRuntime,
+                ctx,
+                new ResidentTask(GoHomeResidentGoal.ID, gameTime, 40),
+                new ResidentTaskOutcome(WorkResidentGoal.ID, ResidentStopReason.CONTEXT_INVALID, gameTime - 20L),
+                byBuilding(snapshot)
+        );
+
+        NpcPhaseOneSnapshot aiSnapshot = NpcSocietyAccess.phaseOneSnapshot(level, residentId, null);
+        helper.assertTrue("RECOVERING".equals(aiSnapshot.aiStateTag()),
+                "Expected a broken work route to publish the recovering AI state.");
+        helper.assertTrue("work".equals(aiSnapshot.aiBlockedGoalLabel()),
+                "Expected observability to remember which work goal just broke.");
+        helper.assertTrue("context_invalidated".equals(aiSnapshot.aiBlockedReasonTag().toLowerCase()),
+                "Expected observability to distinguish an invalidated context from a generic timeout.");
+        helper.assertTrue("regrouping_at_home".equals(aiSnapshot.aiRouteReasonTag().toLowerCase()),
+                "Expected recovery routing to explain that the worker is regrouping at home after the broken path.");
+        helper.succeed();
+    }
+
+    @PrefixGameTestTemplate(false)
     @GameTest(template = "harness_empty", timeoutTicks = 160)
-    public static void citizenSocialIntentPrefersSquareSpotWithoutMarket(GameTestHelper helper) {
+    public static void idleIntentDoesNotChaseSquareSpotWithoutMarket(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         CitizenEntity citizen = BannerModGameTestSupport.spawnEntity(helper, ModCitizenEntityTypes.CITIZEN.get(), new BlockPos(1, 1, 1));
         UUID squareUuid = UUID.fromString("00000000-0000-0000-0000-000000042021");
         BlockPos squarePos = helper.absolutePos(new BlockPos(12, 1, 1));
-        BannerModSettlementBuildingRecord square = building(squareUuid, "bannermod:village_square", squarePos, 0);
-        BannerModSettlementSnapshot snapshot = snapshot(
+        SettlementBuildingRecord square = building(squareUuid, "bannermod:village_square", squarePos, 0);
+        SettlementSnapshot snapshot = snapshot(
                 ACTIVE_TIME,
                 List.of(villagerResident(citizen.getUUID())),
                 List.of(square),
-                BannerModSettlementMarketState.empty()
+                SettlementMarketState.empty()
         );
 
-        BannerModSettlementManager.get(level).putSnapshot(snapshot);
+        SettlementManager.get(level).putSnapshot(snapshot);
         NpcSocietyAccess.reconcilePhaseOneState(
                 level,
                 citizen.getUUID(),
@@ -514,35 +573,38 @@ public final class NpcSocietyPhaseTwoGameTests {
                 null,
                 null,
                 NpcDailyPhase.ACTIVE,
-                NpcIntent.SOCIALISE,
+                NpcIntent.IDLE,
                 NpcAnchorType.STREET,
-                new NpcSocietyDecisionSnapshot("EXECUTING", SocialiseResidentGoal.ID.toString(), "SOCIAL_PRESSURE", "SQUARE_GATHERING", null, "NONE", NpcIntent.IDLE.name(), ACTIVE_TIME - 20L),
+                NpcSocietyDecisionSnapshot.empty(),
                 ACTIVE_TIME
         );
         double startDistance = citizen.distanceToSqr(Vec3.atCenterOf(squarePos));
 
-        helper.succeedWhen(() -> helper.assertTrue(
-                citizen.distanceToSqr(Vec3.atCenterOf(squarePos)) < startDistance - 9.0D,
-                "Expected social anchor execution to prefer a named square-style gathering spot when no market is available."
-        ));
+        helper.runAfterDelay(20, () -> {
+            helper.assertTrue(
+                    citizen.distanceToSqr(Vec3.atCenterOf(squarePos)) >= startDistance - 4.0D,
+                    "Expected idle intent to stop chasing named social gathering anchors."
+            );
+            helper.succeed();
+        });
     }
 
     @PrefixGameTestTemplate(false)
     @GameTest(template = "harness_empty", timeoutTicks = 120)
-    public static void citizenSocialIntentMovesTowardSettlementAnchor(GameTestHelper helper) {
+    public static void idleIntentDoesNotChaseSettlementAnchor(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         CitizenEntity citizen = BannerModGameTestSupport.spawnEntity(helper, ModCitizenEntityTypes.CITIZEN.get(), new BlockPos(1, 1, 1));
         UUID marketUuid = UUID.fromString("00000000-0000-0000-0000-000000042016");
         BlockPos marketPos = helper.absolutePos(new BlockPos(6, 1, 1));
-        BannerModSettlementBuildingRecord market = building(marketUuid, "bannermod:market_stall", marketPos, 0);
-        BannerModSettlementSnapshot snapshot = snapshot(
+        SettlementBuildingRecord market = building(marketUuid, "bannermod:market_stall", marketPos, 0);
+        SettlementSnapshot snapshot = snapshot(
                 ACTIVE_TIME,
                 List.of(villagerResident(citizen.getUUID())),
                 List.of(market),
                 marketState(marketUuid)
         );
 
-        BannerModSettlementManager.get(level).putSnapshot(snapshot);
+        SettlementManager.get(level).putSnapshot(snapshot);
         NpcSocietyAccess.reconcilePhaseOneState(
                 level,
                 citizen.getUUID(),
@@ -550,8 +612,8 @@ public final class NpcSocietyPhaseTwoGameTests {
                 null,
                 null,
                 NpcDailyPhase.ACTIVE,
-                NpcIntent.SOCIALISE,
-                NpcAnchorType.MARKET,
+                NpcIntent.IDLE,
+                NpcAnchorType.STREET,
                 NpcSocietyDecisionSnapshot.empty(),
                 ACTIVE_TIME
         );
@@ -559,12 +621,12 @@ public final class NpcSocietyPhaseTwoGameTests {
 
         helper.runAfterDelay(20, () -> {
             NpcSocietyProfile stored = NpcSocietyAccess.profileFor(level, citizen.getUUID()).orElseThrow();
-            helper.assertTrue(stored.currentIntent() == NpcIntent.SOCIALISE,
-                    "Expected the citizen to stay on the social intent during the market-anchor execution check.");
-            helper.assertTrue(stored.currentAnchor() == NpcAnchorType.MARKET,
-                    "Expected social anchor execution to keep the citizen tied to the market anchor.");
-            helper.assertTrue(citizen.distanceToSqr(Vec3.atCenterOf(marketPos)) <= startDistance + 4.0D,
-                    "Expected the citizen not to drift away from the chosen market anchor immediately.");
+            helper.assertTrue(stored.currentIntent() == NpcIntent.IDLE,
+                    "Expected the citizen to stay on the cheap idle intent when no other coarse goal wins.");
+            helper.assertTrue(stored.currentAnchor() == NpcAnchorType.STREET,
+                    "Expected idle intent to avoid keeping a dedicated market social anchor.");
+            helper.assertTrue(citizen.distanceToSqr(Vec3.atCenterOf(marketPos)) >= startDistance - 4.0D,
+                    "Expected idle intent not to pull the citizen toward the market anchor.");
             helper.succeed();
         });
     }
@@ -584,42 +646,42 @@ public final class NpcSocietyPhaseTwoGameTests {
         NpcSocietySavedData.get(level).runtime().seedResident(profile);
     }
 
-    private static BannerModSettlementResidentRecord villagerResident(UUID residentId) {
-        return new BannerModSettlementResidentRecord(
+    private static SettlementResidentRecord villagerResident(UUID residentId) {
+        return new SettlementResidentRecord(
                 residentId,
-                BannerModSettlementResidentRole.VILLAGER,
-                BannerModSettlementResidentScheduleSeed.SETTLEMENT_IDLE,
-                BannerModSettlementResidentScheduleWindowSeed.DAYLIGHT_FLEX,
-                BannerModSettlementResidentRuntimeRoleSeed.VILLAGE_LIFE,
-                BannerModSettlementResidentServiceContract.notServiceActor(),
-                BannerModSettlementResidentMode.SETTLEMENT_RESIDENT,
+                SettlementResidentRole.VILLAGER,
+                SettlementResidentScheduleSeed.SETTLEMENT_IDLE,
+                SettlementResidentScheduleWindowSeed.DAYLIGHT_FLEX,
+                SettlementResidentRuntimeRoleState.VILLAGE_LIFE,
+                SettlementResidentServiceContract.notServiceActor(),
+                SettlementResidentMode.SETTLEMENT_RESIDENT,
                 null,
                 null,
                 null,
-                BannerModSettlementResidentAssignmentState.NOT_APPLICABLE
+                SettlementResidentAssignmentState.NOT_APPLICABLE
         );
     }
 
-    private static BannerModSettlementResidentRecord workerResident(UUID residentId, UUID ownerUuid, String teamId) {
-        return workerResident(residentId, ownerUuid, teamId, BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING);
+    private static SettlementResidentRecord workerResident(UUID residentId, UUID ownerUuid, String teamId) {
+        return workerResident(residentId, ownerUuid, teamId, SettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING);
     }
 
-    private static BannerModSettlementResidentRecord workerResident(UUID residentId,
-                                                                    UUID ownerUuid,
-                                                                    String teamId,
-                                                                    BannerModSettlementResidentAssignmentState assignmentState) {
+    private static SettlementResidentRecord workerResident(UUID residentId,
+                                                           UUID ownerUuid,
+                                                           String teamId,
+                                                           SettlementResidentAssignmentState assignmentState) {
         UUID workAreaUuid = UUID.fromString("00000000-0000-0000-0000-000000042099");
-        return new BannerModSettlementResidentRecord(
+        return new SettlementResidentRecord(
                 residentId,
-                BannerModSettlementResidentRole.CONTROLLED_WORKER,
-                BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK,
-                BannerModSettlementResidentScheduleWindowSeed.defaultFor(
-                        BannerModSettlementResidentScheduleSeed.ASSIGNED_WORK,
-                        BannerModSettlementResidentRuntimeRoleSeed.LOCAL_LABOR
+                SettlementResidentRole.CONTROLLED_WORKER,
+                SettlementResidentScheduleSeed.ASSIGNED_WORK,
+                SettlementResidentScheduleWindowSeed.defaultFor(
+                        SettlementResidentScheduleSeed.ASSIGNED_WORK,
+                        SettlementResidentRuntimeRoleState.LOCAL_LABOR
                 ),
-                BannerModSettlementResidentRuntimeRoleSeed.LOCAL_LABOR,
-                BannerModSettlementResidentServiceContract.notServiceActor(),
-                BannerModSettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
+                SettlementResidentRuntimeRoleState.LOCAL_LABOR,
+                SettlementResidentServiceContract.notServiceActor(),
+                SettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
                 ownerUuid,
                 teamId,
                 workAreaUuid,
@@ -627,24 +689,24 @@ public final class NpcSocietyPhaseTwoGameTests {
         );
     }
 
-    private static BannerModSettlementResidentRecord governorResident(UUID residentId) {
-        return new BannerModSettlementResidentRecord(
+    private static SettlementResidentRecord governorResident(UUID residentId) {
+        return new SettlementResidentRecord(
                 residentId,
-                BannerModSettlementResidentRole.GOVERNOR_RECRUIT,
-                BannerModSettlementResidentScheduleSeed.GOVERNING,
-                BannerModSettlementResidentScheduleWindowSeed.CIVIC_DAY,
-                BannerModSettlementResidentRuntimeRoleSeed.GOVERNANCE,
-                BannerModSettlementResidentServiceContract.notServiceActor(),
-                BannerModSettlementResidentMode.SETTLEMENT_RESIDENT,
+                SettlementResidentRole.GOVERNOR_RECRUIT,
+                SettlementResidentScheduleSeed.GOVERNING,
+                SettlementResidentScheduleWindowSeed.CIVIC_DAY,
+                SettlementResidentRuntimeRoleState.GOVERNANCE,
+                SettlementResidentServiceContract.notServiceActor(),
+                SettlementResidentMode.SETTLEMENT_RESIDENT,
                 null,
                 null,
                 null,
-                BannerModSettlementResidentAssignmentState.NOT_APPLICABLE
+                SettlementResidentAssignmentState.NOT_APPLICABLE
         );
     }
 
-    private static BannerModSettlementBuildingRecord building(UUID buildingUuid, String typeId, BlockPos originPos, int residentCapacity) {
-        return new BannerModSettlementBuildingRecord(
+    private static SettlementBuildingRecord building(UUID buildingUuid, String typeId, BlockPos originPos, int residentCapacity) {
+        return new SettlementBuildingRecord(
                 buildingUuid,
                 typeId,
                 originPos,
@@ -657,11 +719,11 @@ public final class NpcSocietyPhaseTwoGameTests {
         );
     }
 
-    private static BannerModSettlementSnapshot snapshot(long gameTime,
-                                                        List<BannerModSettlementResidentRecord> residents,
-                                                        List<BannerModSettlementBuildingRecord> buildings,
-                                                        BannerModSettlementMarketState marketState) {
-        return new BannerModSettlementSnapshot(
+    private static SettlementSnapshot snapshot(long gameTime,
+                                               List<SettlementResidentRecord> residents,
+                                               List<SettlementBuildingRecord> buildings,
+                                               SettlementMarketState marketState) {
+        return new SettlementSnapshot(
                 UUID.fromString("00000000-0000-0000-0000-000000042777"),
                 0,
                 0,
@@ -673,33 +735,33 @@ public final class NpcSocietyPhaseTwoGameTests {
                 residents.size(),
                 0,
                 0,
-                BannerModSettlementStockpileSummary.empty(),
+                SettlementStockpileSummary.empty(),
                 marketState,
-                BannerModSettlementDesiredGoodsSeed.empty(),
-                BannerModSettlementProjectCandidateSeed.empty(),
-                BannerModSettlementTradeRouteHandoffSeed.empty(),
-                BannerModSettlementSupplySignalState.empty(),
+                SettlementDesiredGoodsSnapshot.empty(),
+                SettlementProjectCandidateSnapshot.empty(),
+                SettlementTradeRouteHandoffSnapshot.empty(),
+                SettlementSupplySignalState.empty(),
                 residents,
                 buildings
         );
     }
 
-    private static BannerModSettlementMarketState marketState(UUID marketBuildingUuid) {
-        return new BannerModSettlementMarketState(
+    private static SettlementMarketState marketState(UUID marketBuildingUuid) {
+        return new SettlementMarketState(
                 1,
                 1,
                 16,
                 8,
                 0,
                 0,
-                List.of(new BannerModSettlementMarketRecord(marketBuildingUuid, "market", true, 16, 8)),
+                List.of(new SettlementMarketRecord(marketBuildingUuid, "market", true, 16, 8)),
                 List.of()
         );
     }
 
-    private static Map<UUID, BannerModSettlementBuildingRecord> byBuilding(BannerModSettlementSnapshot snapshot) {
-        Map<UUID, BannerModSettlementBuildingRecord> indexed = new LinkedHashMap<>();
-        for (BannerModSettlementBuildingRecord building : snapshot.buildings()) {
+    private static Map<UUID, SettlementBuildingRecord> byBuilding(SettlementSnapshot snapshot) {
+        Map<UUID, SettlementBuildingRecord> indexed = new LinkedHashMap<>();
+        for (SettlementBuildingRecord building : snapshot.buildings()) {
             if (building != null && building.buildingUuid() != null) {
                 indexed.put(building.buildingUuid(), building);
             }

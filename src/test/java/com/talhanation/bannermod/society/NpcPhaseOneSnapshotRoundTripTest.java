@@ -4,7 +4,6 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.network.FriendlyByteBuf;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,18 +34,11 @@ class NpcPhaseOneSnapshotRoundTripTest {
                 NpcHouseholdHousingState.OVERCROWDED.name(),
                 12,
                 22,
-                32,
                 42,
-                55,
-                15,
-                18,
-                7,
-                61,
                 NpcHousingRequestStatus.REQUESTED.name(),
                 "HIGH",
                 "OVERCROWDED",
-                9,
-                List.of(new NpcMemorySummarySnapshot("HOUSING_PRESSURE", "HOUSEHOLD", "household:00000000", 88, true))
+                9
         );
 
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
@@ -63,6 +55,5 @@ class NpcPhaseOneSnapshotRoundTripTest {
         assertEquals(snapshot.aiRouteReasonTag(), decoded.aiRouteReasonTag());
         assertEquals(snapshot.aiBlockedGoalId(), decoded.aiBlockedGoalId());
         assertEquals(snapshot.aiBlockedReasonTag(), decoded.aiBlockedReasonTag());
-        assertEquals(snapshot.safeRecentMemories(), decoded.safeRecentMemories());
     }
 }

@@ -145,7 +145,7 @@ class SettlementSnapshotRuntimeTest {
     }
 
     @Test
-    void mergesValidatedCapacityIntoLiveWorkAreaRecordWithoutBreakingBindingUuid() {
+    void mergesValidatedCapacityIntoLiveWorkAreaRecordUsingValidatedBuildingAuthority() {
         UUID liveWorkAreaUuid = UUID.randomUUID();
         UUID settlementId = UUID.randomUUID();
         UUID ownerUuid = UUID.randomUUID();
@@ -186,13 +186,41 @@ class SettlementSnapshotRuntimeTest {
 
         SettlementBuildingRecord merged = SettlementSnapshotRuntime.mergeValidatedBuildingIntoLiveRecord(record, liveRecord);
 
-        assertEquals(liveWorkAreaUuid, merged.buildingUuid());
+        assertEquals(record.buildingId(), merged.buildingUuid());
         assertEquals("bannermod:crop_area", merged.buildingTypeId());
         assertEquals(expectedValidated.workplaceSlots(), merged.workplaceSlots());
         assertEquals(expectedValidated.buildingCategory(), merged.buildingCategory());
         assertEquals(expectedValidated.buildingProfileSeed(), merged.buildingProfileSeed());
         assertEquals(ownerUuid, merged.ownerUuid());
         assertEquals(liveRecord.teamId(), merged.teamId());
+    }
+
+    @Test
+    void authoritativeWorkBindingUsesValidatedBuildingWhenPresent() {
+        UUID validatedBuildingUuid = UUID.randomUUID();
+        UUID liveAreaUuid = UUID.randomUUID();
+
+        assertEquals(
+                validatedBuildingUuid,
+                SettlementSnapshotRuntime.authoritativeWorkBuildingBinding(
+                        liveAreaUuid,
+                        Map.of(liveAreaUuid, validatedBuildingUuid)
+                )
+        );
+    }
+
+    @Test
+    void authoritativeWorkBindingFallsBackToCanonicalLiveAreaWithoutValidatedBuilding() {
+        UUID liveAreaUuid = UUID.randomUUID();
+        UUID canonicalLiveAreaUuid = UUID.randomUUID();
+
+        assertEquals(
+                canonicalLiveAreaUuid,
+                SettlementSnapshotRuntime.authoritativeWorkBuildingBinding(
+                        liveAreaUuid,
+                        Map.of(liveAreaUuid, canonicalLiveAreaUuid)
+                )
+        );
     }
 
     @Test

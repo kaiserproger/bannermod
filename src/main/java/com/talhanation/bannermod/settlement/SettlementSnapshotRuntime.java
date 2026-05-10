@@ -61,9 +61,10 @@ final class SettlementSnapshotRuntime {
     }
 
     static List<SettlementResidentRecord> collectResidents(ServerLevel level,
-                                                                    RecruitsClaim claim,
-                                                                    @Nullable BannerModGovernorSnapshot governorSnapshot,
-                                                                    @Nullable String settlementFactionId) {
+                                                           RecruitsClaim claim,
+                                                           @Nullable BannerModGovernorSnapshot governorSnapshot,
+                                                           @Nullable String settlementFactionId,
+                                                           Map<UUID, UUID> authoritativeBindings) {
         Map<UUID, SettlementResidentRecord> residents = new LinkedHashMap<>();
         for (Villager villager : level.getEntitiesOfClass(Villager.class, claimBounds(level, claim), entity -> entity.isAlive() && claim.containsChunk(entity.chunkPosition()))) {
             residents.put(villager.getUUID(), new SettlementResidentRecord(
@@ -87,9 +88,10 @@ final class SettlementSnapshotRuntime {
             ));
         }
         for (AbstractWorkerEntity worker : workersInClaim(level, claim)) {
-            SettlementResidentScheduleSeed scheduleSeed = SettlementResidentScheduleSeed.defaultFor(SettlementResidentRole.CONTROLLED_WORKER, worker.getBoundWorkAreaUUID());
+            UUID authoritativeWorkBuildingUuid = authoritativeWorkBuildingBinding(worker.getBoundWorkAreaUUID(), authoritativeBindings);
+            SettlementResidentScheduleSeed scheduleSeed = SettlementResidentScheduleSeed.defaultFor(SettlementResidentRole.CONTROLLED_WORKER, authoritativeWorkBuildingUuid);
             SettlementResidentMode residentMode = SettlementResidentMode.defaultFor(SettlementResidentRole.CONTROLLED_WORKER, worker.getOwnerUUID());
-            SettlementResidentAssignmentState assignmentState = worker.getBoundWorkAreaUUID() == null
+            SettlementResidentAssignmentState assignmentState = authoritativeWorkBuildingUuid == null
                     ? SettlementResidentAssignmentState.UNASSIGNED
                     : SettlementResidentAssignmentState.ASSIGNED_MISSING_BUILDING;
             SettlementResidentRuntimeRoleState runtimeRoleState = SettlementResidentRuntimeRoleState.defaultFor(
@@ -104,17 +106,17 @@ final class SettlementSnapshotRuntime {
                     scheduleSeed,
                     SettlementResidentScheduleWindowSeed.defaultFor(scheduleSeed, runtimeRoleState),
                     runtimeRoleState,
-                    SettlementResidentServiceContract.defaultFor(SettlementResidentRole.CONTROLLED_WORKER, residentMode, assignmentState, worker.getBoundWorkAreaUUID(), null),
+                    SettlementResidentServiceContract.defaultFor(SettlementResidentRole.CONTROLLED_WORKER, residentMode, assignmentState, authoritativeWorkBuildingUuid, null),
                     SettlementResidentJobDefinition.defaultFor(
                             SettlementResidentRole.CONTROLLED_WORKER,
                             runtimeRoleState,
-                            SettlementResidentServiceContract.defaultFor(SettlementResidentRole.CONTROLLED_WORKER, residentMode, assignmentState, worker.getBoundWorkAreaUUID(), null),
+                            SettlementResidentServiceContract.defaultFor(SettlementResidentRole.CONTROLLED_WORKER, residentMode, assignmentState, authoritativeWorkBuildingUuid, null),
                             null
                     ),
                     residentMode,
                     worker.getOwnerUUID(),
                     worker.getTeam() == null ? null : worker.getTeam().getName(),
-                    worker.getBoundWorkAreaUUID(),
+                    authoritativeWorkBuildingUuid,
                     assignmentState
             ));
         }
@@ -142,6 +144,14 @@ final class SettlementSnapshotRuntime {
         return new ArrayList<>(residents.values());
     }
 
+    static @Nullable UUID authoritativeWorkBuildingBinding(@Nullable UUID boundWorkAreaUuid,
+                                                           Map<UUID, UUID> authoritativeBindings) {
+        if (boundWorkAreaUuid == null || authoritativeBindings == null || authoritativeBindings.isEmpty()) {
+            return boundWorkAreaUuid;
+        }
+        return authoritativeBindings.getOrDefault(boundWorkAreaUuid, boundWorkAreaUuid);
+    }
+
     public static List<AbstractWorkerEntity> workersInClaim(ServerLevel level, RecruitsClaim claim) {
         return WorkerIndex.instance()
                 .queryInClaim(level, claim)
@@ -164,10 +174,11 @@ final class SettlementSnapshotRuntime {
                 continue;
             }
 
+            UUID workBuildingUuid = resident.effectiveWorkBuildingUuid();
             SettlementResidentAssignmentState assignmentState;
-            if (resident.boundWorkAreaUuid() == null) {
+            if (workBuildingUuid == null) {
                 assignmentState = SettlementResidentAssignmentState.UNASSIGNED;
-            } else if (localBuildingUuids.contains(resident.boundWorkAreaUuid())) {
+            } else if (localBuildingUuids.contains(workBuildingUuid)) {
                 assignmentState = SettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING;
             } else {
                 assignmentState = SettlementResidentAssignmentState.ASSIGNED_MISSING_BUILDING;
@@ -196,7 +207,7 @@ final class SettlementSnapshotRuntime {
                     resident.residentMode(),
                     resident.ownerUuid(),
                     resident.teamId(),
-                    resident.boundWorkAreaUuid(),
+                    workBuildingUuid,
                     assignmentState,
                     SettlementResidentRoleProfile.defaultFor(
                             resident.role(),
@@ -222,14 +233,15 @@ final class SettlementSnapshotRuntime {
 
         List<SettlementResidentRecord> updatedResidents = new ArrayList<>(residents.size());
         for (SettlementResidentRecord resident : residents) {
-            SettlementBuildingRecord serviceBuilding = resident.boundWorkAreaUuid() == null
+            UUID workBuildingUuid = resident.effectiveWorkBuildingUuid();
+            SettlementBuildingRecord serviceBuilding = workBuildingUuid == null
                     ? null
-                    : buildingsByUuid.get(resident.boundWorkAreaUuid());
+                    : buildingsByUuid.get(workBuildingUuid);
             SettlementResidentServiceContract serviceContract = SettlementResidentServiceContract.defaultFor(
                     resident.role(),
                     resident.residentMode(),
                     resident.assignmentState(),
-                    resident.boundWorkAreaUuid(),
+                    workBuildingUuid,
                     serviceBuilding == null ? null : serviceBuilding.buildingTypeId()
             );
             updatedResidents.add(new SettlementResidentRecord(
@@ -244,7 +256,7 @@ final class SettlementSnapshotRuntime {
                     resident.residentMode(),
                     resident.ownerUuid(),
                     resident.teamId(),
-                    resident.boundWorkAreaUuid(),
+                    workBuildingUuid,
                     resident.assignmentState(),
                     resident.roleProfile()
             ));
@@ -286,7 +298,7 @@ final class SettlementSnapshotRuntime {
                     resident.residentMode(),
                     resident.ownerUuid(),
                     resident.teamId(),
-                    resident.boundWorkAreaUuid(),
+                    resident.effectiveWorkBuildingUuid(),
                     resident.assignmentState(),
                     resident.roleProfile()
             ));
@@ -320,7 +332,7 @@ final class SettlementSnapshotRuntime {
                     resident.residentMode(),
                     resident.ownerUuid(),
                     resident.teamId(),
-                    resident.boundWorkAreaUuid(),
+                    resident.effectiveWorkBuildingUuid(),
                     resident.assignmentState(),
                     resident.roleProfile(),
                     resident.schedulePolicy()
@@ -330,11 +342,10 @@ final class SettlementSnapshotRuntime {
     }
 
     static List<SettlementBuildingRecord> collectBuildings(ServerLevel level,
-                                                                     RecruitsClaim claim) {
+                                                           RecruitsClaim claim,
+                                                           List<AbstractWorkAreaEntity> workAreas,
+                                                           List<ValidatedBuildingRecord> validatedBuildings) {
         List<SettlementBuildingRecord> buildings = new ArrayList<>();
-        List<AbstractWorkAreaEntity> workAreas = collectWorkAreas(level, claim, AbstractWorkAreaEntity.class);
-        SettlementRecord settlementRecord = settlementRecordForClaim(level, claim);
-        List<ValidatedBuildingRecord> validatedBuildings = collectValidatedBuildings(level, settlementRecord);
         Map<UUID, UUID> canonicalBindings = buildCanonicalWorkAreaBindings(validatedBuildings, workAreas);
         Set<UUID> mergedLiveAreas = new LinkedHashSet<>();
 
@@ -373,16 +384,16 @@ final class SettlementSnapshotRuntime {
     }
 
     static SettlementBuildingRecord mergeValidatedBuildingIntoLiveRecord(ValidatedBuildingRecord record,
-                                                                                  SettlementBuildingRecord liveRecord) {
+                                                                                   SettlementBuildingRecord liveRecord) {
         SettlementBuildingRecord validatedRecord = fromValidatedBuildingFields(
-                liveRecord.buildingUuid(),
+                record.buildingId(),
                 record.type(),
                 liveRecord.originPos(),
                 record.capacity(),
                 liveRecord.ownerUuid()
         );
         return new SettlementBuildingRecord(
-                liveRecord.buildingUuid(),
+                record.buildingId(),
                 liveRecord.buildingTypeId(),
                 liveRecord.originPos(),
                 liveRecord.ownerUuid(),
@@ -520,7 +531,7 @@ final class SettlementSnapshotRuntime {
     }
 
     public static Map<UUID, UUID> buildCanonicalWorkAreaBindings(Collection<ValidatedBuildingRecord> validatedBuildings,
-                                                                 List<AbstractWorkAreaEntity> workAreas) {
+                                                                  List<AbstractWorkAreaEntity> workAreas) {
         Map<UUID, UUID> canonicalBindings = new HashMap<>();
         for (ValidatedBuildingRecord record : validatedBuildings) {
             List<AbstractWorkAreaEntity> candidates = compatibleOverlappingWorkAreas(record, workAreas);
@@ -534,6 +545,31 @@ final class SettlementSnapshotRuntime {
         }
         return canonicalBindings;
     }
+
+    static Map<UUID, UUID> buildAuthoritativeWorkBuildingBindings(Collection<ValidatedBuildingRecord> validatedBuildings,
+                                                                  List<AbstractWorkAreaEntity> workAreas) {
+        Map<UUID, UUID> canonicalBindings = buildCanonicalWorkAreaBindings(validatedBuildings, workAreas);
+        Map<UUID, UUID> authoritativeBindings = new HashMap<>(canonicalBindings);
+        for (ValidatedBuildingRecord record : validatedBuildings) {
+            if (record == null || record.buildingId() == null) {
+                continue;
+            }
+            List<AbstractWorkAreaEntity> candidates = compatibleOverlappingWorkAreas(record, workAreas);
+            AbstractWorkAreaEntity primary = primaryWorkAreaForValidatedBuilding(record, candidates);
+            if (primary == null) {
+                continue;
+            }
+            UUID authoritativeBuildingUuid = record.buildingId();
+            authoritativeBindings.put(canonicalBindings.getOrDefault(primary.getUUID(), primary.getUUID()), authoritativeBuildingUuid);
+            for (AbstractWorkAreaEntity candidate : candidates) {
+                if (candidate != null) {
+                    authoritativeBindings.put(candidate.getUUID(), authoritativeBuildingUuid);
+                }
+            }
+        }
+        return authoritativeBindings;
+    }
+
 
     private static List<AbstractWorkAreaEntity> compatibleOverlappingWorkAreas(ValidatedBuildingRecord record,
                                                                                 List<AbstractWorkAreaEntity> workAreas) {
@@ -608,12 +644,13 @@ final class SettlementSnapshotRuntime {
 
         Map<UUID, List<UUID>> assignedResidentsByBuilding = new LinkedHashMap<>();
         for (SettlementResidentRecord resident : residents) {
+            UUID workBuildingUuid = resident.effectiveWorkBuildingUuid();
             if (resident.role() != SettlementResidentRole.CONTROLLED_WORKER
                     || resident.assignmentState() != SettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
-                    || resident.boundWorkAreaUuid() == null) {
+                    || workBuildingUuid == null) {
                 continue;
             }
-            assignedResidentsByBuilding.computeIfAbsent(resident.boundWorkAreaUuid(), ignored -> new ArrayList<>())
+            assignedResidentsByBuilding.computeIfAbsent(workBuildingUuid, ignored -> new ArrayList<>())
                     .add(resident.residentUuid());
         }
 

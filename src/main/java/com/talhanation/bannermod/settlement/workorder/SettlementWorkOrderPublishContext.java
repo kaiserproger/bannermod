@@ -3,6 +3,8 @@ package com.talhanation.bannermod.settlement.workorder;
 import com.talhanation.bannermod.settlement.SettlementBuildingRecord;
 import com.talhanation.bannermod.settlement.SettlementSnapshot;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.AABB;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -27,5 +29,24 @@ public record SettlementWorkOrderPublishContext(
         Objects.requireNonNull(claimUuid, "claimUuid");
         Objects.requireNonNull(building, "building");
         Objects.requireNonNull(snapshot, "snapshot");
+    }
+
+    public @Nullable <T extends Entity> T resolveBuildingEntity(Class<T> entityClass) {
+        if (entityClass == null || this.level == null) {
+            return null;
+        }
+        Entity direct = this.level.getEntity(this.building.buildingUuid());
+        if (entityClass.isInstance(direct) && direct != null && direct.isAlive()) {
+            return entityClass.cast(direct);
+        }
+        if (this.building.originPos() == null) {
+            return null;
+        }
+        AABB searchBox = new AABB(this.building.originPos()).inflate(1.5D);
+        return this.level.getEntitiesOfClass(entityClass, searchBox,
+                        entity -> entity != null && entity.isAlive() && this.building.originPos().equals(entity.blockPosition()))
+                .stream()
+                .findFirst()
+                .orElse(null);
     }
 }

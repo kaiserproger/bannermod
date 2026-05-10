@@ -89,7 +89,7 @@ public final class SettlementBootstrapService {
     static String starterWorkerReadinessMessage(int spawnedWorkers, int spawnedFreeCitizens) {
         return "Settlement bootstrapped. Starter workers spawned: " + spawnedWorkers
                 + ". Starter households seeded: " + Math.max(0, spawnedFreeCitizens)
-                + " residents. Adult free citizens can fill vacancies; adolescents and children stay in their families. Ready: farmer has a starter crop area. Waiting: miner needs a mine, lumberjack needs a lumber camp, builder needs an architect workshop/build area. If vacancies remain empty, no free adult citizen is close enough or available yet.";
+                + " residents. Adult free citizens can fill vacancies; adolescents and children stay in their families. Starter workers wait for player-marked or validated work areas; fort founding no longer auto-ploughs a field on its own. Waiting: farmer needs a crop area, miner needs a mine, lumberjack needs a lumber camp, builder needs an architect workshop/build area. If vacancies remain empty, no free adult citizen is close enough or available yet.";
     }
 
     public static BootstrapResult bootstrapSettlement(ServerLevel level,
@@ -247,7 +247,8 @@ public final class SettlementBootstrapService {
         for (WorkerSettlementSpawnRules.WorkerProfession profession : STARTER_PROFESSIONS) {
             WorkerSettlementSpawnRules.Decision decision =
                     new WorkerSettlementSpawnRules.Decision(true, profession, null, 0L);
-            if (WorkerSettlementSpawner.spawnClaimWorker(level, authorityPos, decision, claim) != null) {
+            var worker = WorkerSettlementSpawner.spawnClaimWorker(level, authorityPos, decision, claim);
+            if (worker != null) {
                 spawned++;
             }
         }

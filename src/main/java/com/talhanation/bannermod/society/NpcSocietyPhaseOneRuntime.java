@@ -1,7 +1,8 @@
 package com.talhanation.bannermod.society;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRecord;
+import com.talhanation.bannermod.settlement.SettlementBuildingRecord;
+import com.talhanation.bannermod.settlement.SettlementResidentAssignmentState;
+import com.talhanation.bannermod.settlement.SettlementResidentRecord;
 import com.talhanation.bannermod.settlement.dispatch.SellerResidentGoal;
 import com.talhanation.bannermod.settlement.goal.ResidentGoalContext;
 import com.talhanation.bannermod.settlement.goal.ResidentTask;
@@ -14,7 +15,6 @@ import com.talhanation.bannermod.settlement.goal.impl.HideResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.IdleResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.RestResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.SeekSuppliesResidentGoal;
-import com.talhanation.bannermod.settlement.goal.impl.SocialiseResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.WorkResidentGoal;
 import com.talhanation.bannermod.settlement.household.BannerModHomeAssignmentRuntime;
 import com.talhanation.bannermod.settlement.household.GoHomeResidentGoal;
@@ -34,7 +34,7 @@ public final class NpcSocietyPhaseOneRuntime {
                                              BannerModHomeAssignmentRuntime homeRuntime,
                                              ResidentGoalContext ctx,
                                              @Nullable ResidentTask activeTask,
-                                             Map<UUID, BannerModSettlementBuildingRecord> buildingsByUuid) {
+                                             Map<UUID, SettlementBuildingRecord> buildingsByUuid) {
         updateResidentProfile(level, homeRuntime, ctx, activeTask, null, buildingsByUuid);
     }
 
@@ -43,7 +43,7 @@ public final class NpcSocietyPhaseOneRuntime {
                                              ResidentGoalContext ctx,
                                              @Nullable ResidentTask activeTask,
                                              @Nullable ResidentTaskOutcome lastOutcome,
-                                             Map<UUID, BannerModSettlementBuildingRecord> buildingsByUuid) {
+                                             Map<UUID, SettlementBuildingRecord> buildingsByUuid) {
         if (level == null || homeRuntime == null || ctx == null) {
             return;
         }
@@ -55,14 +55,12 @@ public final class NpcSocietyPhaseOneRuntime {
                 .map(home -> home.homeBuildingUuid())
                 .orElse(null);
         UUID workBuildingUuid = resolveWorkBuildingUuid(ctx.resident());
-        BannerModSettlementBuildingRecord homeBuilding = homeBuildingUuid == null ? null : buildingsByUuid.get(homeBuildingUuid);
-        int residentCapacity = homeBuilding == null ? 0 : homeBuilding.residentCapacity();
-        UUID householdId = NpcHouseholdAccess.reconcileResidentHome(level, residentUuid, homeBuildingUuid, residentCapacity, ctx.gameTime());
-        NpcFamilyAccess.reconcileFamilyForResident(level, residentUuid, ctx.gameTime());
+        UUID householdId = ctx.societyProfile() == null ? null : ctx.societyProfile().householdId();
         NpcDailyPhase dailyPhase = resolveDailyPhase(ctx, activeTask);
-        NpcIntent currentIntent = resolveIntent(ctx, activeTask);
-        NpcAnchorType currentAnchor = resolveAnchor(ctx, activeTask, homeBuildingUuid, workBuildingUuid, buildingsByUuid);
-        String routeReasonTag = resolveRouteReason(ctx, homeBuildingUuid, workBuildingUuid, currentIntent, currentAnchor, buildingsByUuid);
+        NpcIntent goalIntent = resolveGoalIntent(ctx, activeTask);
+        NpcIntent currentIntent = publishedIntent(goalIntent);
+        NpcAnchorType currentAnchor = resolveAnchor(ctx, goalIntent, homeBuildingUuid, workBuildingUuid, buildingsByUuid);
+        String routeReasonTag = resolveRouteReason(ctx, homeBuildingUuid, workBuildingUuid, goalIntent, currentAnchor, buildingsByUuid);
         NpcSocietyDecisionSnapshot decisionSnapshot = NpcSocietyDecisionSnapshot.capture(ctx, activeTask, routeReasonTag, lastOutcome);
         NpcSocietyAccess.reconcilePhaseOneState(
                 level,
@@ -78,14 +76,11 @@ public final class NpcSocietyPhaseOneRuntime {
         );
     }
 
-    private static UUID resolveWorkBuildingUuid(BannerModSettlementResidentRecord resident) {
+    private static UUID resolveWorkBuildingUuid(SettlementResidentRecord resident) {
         if (resident == null) {
             return null;
         }
-        if (resident.jobDefinition() != null && resident.jobDefinition().targetBuildingUuid() != null) {
-            return resident.jobDefinition().targetBuildingUuid();
-        }
-        return resident.boundWorkAreaUuid();
+        return resident.effectiveWorkBuildingUuid();
     }
 
     private static NpcDailyPhase resolveDailyPhase(ResidentGoalContext ctx, @Nullable ResidentTask activeTask) {
@@ -104,7 +99,7 @@ public final class NpcSocietyPhaseOneRuntime {
         return NpcDailyPhase.UNSPECIFIED;
     }
 
-    private static NpcIntent resolveIntent(ResidentGoalContext ctx, @Nullable ResidentTask activeTask) {
+    private static NpcIntent resolveGoalIntent(ResidentGoalContext ctx, @Nullable ResidentTask activeTask) {
         if (activeTask == null || activeTask.goalId() == null) {
             return ctx.isRestPhase() ? NpcIntent.REST : NpcIntent.IDLE;
         }
@@ -136,9 +131,6 @@ public final class NpcSocietyPhaseOneRuntime {
         if (SellerResidentGoal.ID.equals(goalId)) {
             return NpcIntent.SELL;
         }
-        if (SocialiseResidentGoal.ID.equals(goalId)) {
-            return NpcIntent.SOCIALISE;
-        }
         if (HideResidentGoal.ID.equals(goalId)) {
             return NpcIntent.HIDE;
         }
@@ -157,12 +149,25 @@ public final class NpcSocietyPhaseOneRuntime {
         return NpcIntent.UNSPECIFIED;
     }
 
+    public static NpcIntent publishedIntentForGoal(@Nullable ResourceLocation goalId) {
+        return publishedIntent(intentForGoal(goalId));
+    }
+
+    private static NpcIntent publishedIntent(@Nullable NpcIntent intent) {
+        if (intent == null) {
+            return NpcIntent.UNSPECIFIED;
+        }
+        if (intent == NpcIntent.SELL || intent == NpcIntent.FETCH || intent == NpcIntent.DELIVER) {
+            return NpcIntent.WORK;
+        }
+        return intent;
+    }
+
     private static NpcAnchorType resolveAnchor(ResidentGoalContext ctx,
-                                               @Nullable ResidentTask activeTask,
+                                               NpcIntent intent,
                                                @Nullable UUID homeBuildingUuid,
                                                @Nullable UUID workBuildingUuid,
-                                               Map<UUID, BannerModSettlementBuildingRecord> buildingsByUuid) {
-        NpcIntent intent = resolveIntent(ctx, activeTask);
+                                               Map<UUID, SettlementBuildingRecord> buildingsByUuid) {
         boolean hasHome = homeBuildingUuid != null || ctx.hasHome();
         if (intent == NpcIntent.GO_HOME) {
             return NpcAnchorType.HOME;
@@ -184,17 +189,6 @@ public final class NpcSocietyPhaseOneRuntime {
         if (intent == NpcIntent.WORK || intent == NpcIntent.FETCH || intent == NpcIntent.DELIVER) {
             return anchorForWorkBuilding(workBuildingUuid, buildingsByUuid);
         }
-        if (intent == NpcIntent.SOCIALISE) {
-            if (hasHome && ctx.shouldPreferHouseholdSocial()) {
-                return NpcAnchorType.HOME;
-            }
-            if (hasHome && ctx.hasDependents() && ctx.socialNeed() >= 55) {
-                return NpcAnchorType.HOME;
-            }
-            return ctx.settlement() != null && ctx.settlement().marketState().openMarketCount() > 0
-                    ? NpcAnchorType.MARKET
-                    : NpcAnchorType.STREET;
-        }
         if (intent == NpcIntent.LEAVE_HOME || intent == NpcIntent.IDLE) {
             return NpcAnchorType.STREET;
         }
@@ -212,78 +206,35 @@ public final class NpcSocietyPhaseOneRuntime {
                                             @Nullable UUID workBuildingUuid,
                                             NpcIntent intent,
                                             NpcAnchorType anchor,
-                                            Map<UUID, BannerModSettlementBuildingRecord> buildingsByUuid) {
+                                            Map<UUID, SettlementBuildingRecord> buildingsByUuid) {
         if (intent == NpcIntent.GO_HOME) {
-            if (ctx.hasRecentGoalFailure() && ctx.hasHome()) {
-                return ctx.hasFamilyTies() ? "REGROUPING_AT_HOME" : "RETURNING_HOME_ROUTE";
-            }
-            if (ctx.shouldPreferHomeFallback() && ctx.hasHome()) {
-                return ctx.hasFamilyTies() ? "REGROUPING_AT_HOME" : "RETURNING_HOME_ROUTE";
-            }
             if (ctx.fatigueNeed() >= 75 && homeBuildingUuid != null && !ctx.isRestPhase()) {
                 return "TIRED_HOMEBOUND";
-            }
-            if (ctx.hasFamilyTies() && ctx.isLeisurePhase()) {
-                return "EVENING_HOME_CIRCLE";
             }
             if (ctx.isRestPhase() || ctx.isLateDayWindow(1000)) {
                 return "SOON_NIGHT_HOMEBOUND";
             }
-            if (ctx.safetyNeed() >= 70 || ctx.fearScore() >= 60) {
-                return "HOME_AS_SHELTER";
-            }
             return "RETURNING_HOME_ROUTE";
         }
         if (intent == NpcIntent.REST) {
-            if (ctx.hasRecentGoalFailure() && homeBuildingUuid != null) {
-                return "RESTING_AFTER_REGROUP";
-            }
-            if (ctx.lastPublishedIntent() == NpcIntent.GO_HOME || ctx.currentPublishedIntent() == NpcIntent.GO_HOME) {
-                return "SETTLING_AT_HOME_FOR_REST";
-            }
             return homeBuildingUuid != null ? "RESTING_AT_HOME" : "RESTING_OFF_STREET";
         }
         if (intent == NpcIntent.LEAVE_HOME) {
             return hasWorkAssignment(ctx.resident()) ? "LEAVING_HOME_FOR_WORK" : "LEAVING_HOME_FOR_DAY";
         }
         if (intent == NpcIntent.WORK) {
-            if (ctx.isHouseholdPressured() || ctx.hasDependents()) {
-                return "WORKING_FOR_HOUSEHOLD";
-            }
             return ctx.recentlyCameFromHome() ? "STARTING_WORKDAY_AFTER_HOME" : "HEADING_TO_WORKPLACE";
         }
         if (intent == NpcIntent.EAT) {
             return homeBuildingUuid != null ? "MEAL_AT_HOME" : "MEAL_AT_MARKET";
         }
         if (intent == NpcIntent.SEEK_SUPPLIES) {
-            if (ctx.hasRecentGoalFailure() && ctx.previousBlockedIntent() == NpcIntent.EAT) {
-                return "FOOD_RECOVERY_RUN";
-            }
             return ctx.settlement() != null && ctx.settlement().marketState().openMarketCount() > 0
                     ? "MARKET_SUPPLY_RUN"
                     : "STOCKPILE_SUPPLY_RUN";
         }
-        if (intent == NpcIntent.SOCIALISE) {
-            if (anchor == NpcAnchorType.HOME && ctx.hasRecentGoalFailure()) {
-                return "HOUSEHOLD_RECOVERY_CIRCLE";
-            }
-            if (anchor == NpcAnchorType.HOME && ctx.hasFamilyTies() && (ctx.isLeisurePhase() || ctx.isLateDayWindow(1400))) {
-                return "EVENING_HOME_CIRCLE";
-            }
-            if (anchor == NpcAnchorType.HOME && ctx.shouldPreferHouseholdSocial() && ctx.hasFamilyTies()) {
-                return ctx.hasDependents() ? "HOUSEHOLD_RECOVERY_CIRCLE" : "HOUSEHOLD_YARD_GATHERING";
-            }
-            if (anchor == NpcAnchorType.HOME && ctx.hasFamilyTies()) {
-                return "HOUSEHOLD_YARD_GATHERING";
-            }
-            boolean preferHome = anchor == NpcAnchorType.HOME || homeBuildingUuid != null && ctx.hasFamilyTies() && ctx.isLeisurePhase();
-            return NpcSocietySocialSpotSelector.select(ctx.settlement(), homeBuildingUuid, preferHome).routeReasonTag();
-        }
         if (intent == NpcIntent.HIDE) {
-            if (ctx.hasFamilyTies() || ctx.hasRecentGoalFailure() && homeBuildingUuid != null) {
-                return "HIDING_CLOSE_TO_HOUSEHOLD";
-            }
-            return "HIDING_FROM_FEAR";
+            return "SEEKING_SHELTER_ROUTE";
         }
         if (intent == NpcIntent.DEFEND) {
             return "MOVING_TO_DEFENSE_POST";
@@ -299,20 +250,20 @@ public final class NpcSocietyPhaseOneRuntime {
         return "NO_CLEAR_ROUTE";
     }
 
-    private static boolean hasWorkAssignment(BannerModSettlementResidentRecord resident) {
+    private static boolean hasWorkAssignment(SettlementResidentRecord resident) {
         if (resident == null) {
             return false;
         }
-        return resident.assignmentState() == com.talhanation.bannermod.settlement.BannerModSettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
-                || resident.assignmentState() == com.talhanation.bannermod.settlement.BannerModSettlementResidentAssignmentState.ASSIGNED_MISSING_BUILDING;
+        return resident.assignmentState() == SettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
+                || resident.assignmentState() == SettlementResidentAssignmentState.ASSIGNED_MISSING_BUILDING;
     }
 
     private static NpcAnchorType anchorForWorkBuilding(@Nullable UUID workBuildingUuid,
-                                                       Map<UUID, BannerModSettlementBuildingRecord> buildingsByUuid) {
+                                                       Map<UUID, SettlementBuildingRecord> buildingsByUuid) {
         if (workBuildingUuid == null) {
             return NpcAnchorType.WORKPLACE;
         }
-        BannerModSettlementBuildingRecord building = buildingsByUuid.get(workBuildingUuid);
+        SettlementBuildingRecord building = buildingsByUuid.get(workBuildingUuid);
         if (building == null || building.buildingTypeId() == null || building.buildingTypeId().isBlank()) {
             return NpcAnchorType.WORKPLACE;
         }

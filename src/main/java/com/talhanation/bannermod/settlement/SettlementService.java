@@ -64,8 +64,13 @@ public final class SettlementService {
     }
 
     public static Map<UUID, UUID> buildCanonicalWorkAreaBindings(Collection<ValidatedBuildingRecord> validatedBuildings,
-                                                                 List<AbstractWorkAreaEntity> workAreas) {
+                                                                  List<AbstractWorkAreaEntity> workAreas) {
         return SettlementSnapshotRuntime.buildCanonicalWorkAreaBindings(validatedBuildings, workAreas);
+    }
+
+    public static Map<UUID, UUID> buildAuthoritativeWorkBuildingBindings(Collection<ValidatedBuildingRecord> validatedBuildings,
+                                                                          List<AbstractWorkAreaEntity> workAreas) {
+        return SettlementSnapshotRuntime.buildAuthoritativeWorkBuildingBindings(validatedBuildings, workAreas);
     }
 
     public static AABB claimBounds(ServerLevel level, RecruitsClaim claim) {

@@ -22,11 +22,6 @@ public record NpcSocietyProfile(
         int fatigueNeed,
         int socialNeed,
         int safetyNeed,
-        int trustScore,
-        int fearScore,
-        int angerScore,
-        int gratitudeScore,
-        int loyaltyScore,
         long version,
         long lastUpdatedGameTime
 ) {
@@ -49,13 +44,8 @@ public record NpcSocietyProfile(
                 NpcSocietyDecisionSnapshot.empty(),
                 10,
                 10,
+                0,
                 10,
-                10,
-                50,
-                0,
-                0,
-                0,
-                50,
                 1L,
                 gameTime
         );
@@ -83,11 +73,6 @@ public record NpcSocietyProfile(
                 profile.fatigueNeed,
                 profile.socialNeed,
                 profile.safetyNeed,
-                profile.trustScore,
-                profile.fearScore,
-                profile.angerScore,
-                profile.gratitudeScore,
-                profile.loyaltyScore,
                 profile.version,
                 gameTime
         );
@@ -128,14 +113,16 @@ public record NpcSocietyProfile(
                 this.fatigueNeed,
                 this.socialNeed,
                 this.safetyNeed,
-                this.trustScore,
-                this.fearScore,
-                this.angerScore,
-                this.gratitudeScore,
-                this.loyaltyScore,
                 this.version + 1L,
                 gameTime
         );
+    }
+
+    public NpcSocietyProfile withNeedState(int hungerNeed,
+                                           int fatigueNeed,
+                                           int safetyNeed,
+                                           long gameTime) {
+        return this.withNeedState(hungerNeed, fatigueNeed, 0, safetyNeed, gameTime);
     }
 
     public NpcSocietyProfile withNeedState(int hungerNeed,
@@ -145,7 +132,7 @@ public record NpcSocietyProfile(
                                            long gameTime) {
         int clampedHunger = clampNeed(hungerNeed);
         int clampedFatigue = clampNeed(fatigueNeed);
-        int clampedSocial = clampNeed(socialNeed);
+        int clampedSocial = 0;
         int clampedSafety = clampNeed(safetyNeed);
         if (this.hungerNeed == clampedHunger
                 && this.fatigueNeed == clampedFatigue
@@ -170,56 +157,6 @@ public record NpcSocietyProfile(
                 clampedFatigue,
                 clampedSocial,
                 clampedSafety,
-                this.trustScore,
-                this.fearScore,
-                this.angerScore,
-                this.gratitudeScore,
-                this.loyaltyScore,
-                this.version + 1L,
-                gameTime
-        );
-    }
-
-    public NpcSocietyProfile withSocialState(int trustScore,
-                                             int fearScore,
-                                             int angerScore,
-                                             int gratitudeScore,
-                                             int loyaltyScore,
-                                             long gameTime) {
-        int clampedTrust = clampNeed(trustScore);
-        int clampedFear = clampNeed(fearScore);
-        int clampedAnger = clampNeed(angerScore);
-        int clampedGratitude = clampNeed(gratitudeScore);
-        int clampedLoyalty = clampNeed(loyaltyScore);
-        if (this.trustScore == clampedTrust
-                && this.fearScore == clampedFear
-                && this.angerScore == clampedAnger
-                && this.gratitudeScore == clampedGratitude
-                && this.loyaltyScore == clampedLoyalty) {
-            return this;
-        }
-        return new NpcSocietyProfile(
-                this.residentUuid,
-                this.lifeStage,
-                this.sex,
-                this.householdId,
-                this.homeBuildingUuid,
-                this.workBuildingUuid,
-                this.cultureId,
-                this.faithId,
-                this.dailyPhase,
-                this.currentIntent,
-                this.currentAnchor,
-                this.decisionSnapshot,
-                this.hungerNeed,
-                this.fatigueNeed,
-                this.socialNeed,
-                this.safetyNeed,
-                clampedTrust,
-                clampedFear,
-                clampedAnger,
-                clampedGratitude,
-                clampedLoyalty,
                 this.version + 1L,
                 gameTime
         );
@@ -249,11 +186,6 @@ public record NpcSocietyProfile(
                 this.fatigueNeed,
                 this.socialNeed,
                 this.safetyNeed,
-                this.trustScore,
-                this.fearScore,
-                this.angerScore,
-                this.gratitudeScore,
-                this.loyaltyScore,
                 this.version + 1L,
                 gameTime
         );
@@ -287,11 +219,6 @@ public record NpcSocietyProfile(
         tag.putInt("FatigueNeed", this.fatigueNeed);
         tag.putInt("SocialNeed", this.socialNeed);
         tag.putInt("SafetyNeed", this.safetyNeed);
-        tag.putInt("TrustScore", this.trustScore);
-        tag.putInt("FearScore", this.fearScore);
-        tag.putInt("AngerScore", this.angerScore);
-        tag.putInt("GratitudeScore", this.gratitudeScore);
-        tag.putInt("LoyaltyScore", this.loyaltyScore);
         tag.putLong("Version", this.version);
         tag.putLong("LastUpdatedGameTime", this.lastUpdatedGameTime);
         return tag;
@@ -314,13 +241,8 @@ public record NpcSocietyProfile(
                 NpcSocietyDecisionSnapshot.fromTag(tag.contains("DecisionSnapshot") ? tag.getCompound("DecisionSnapshot") : null),
                 clampNeed(tag.getInt("HungerNeed")),
                 clampNeed(tag.getInt("FatigueNeed")),
-                clampNeed(tag.getInt("SocialNeed")),
+                0,
                 clampNeed(tag.getInt("SafetyNeed")),
-                clampNeed(tag.contains("TrustScore") ? tag.getInt("TrustScore") : 50),
-                clampNeed(tag.contains("FearScore") ? tag.getInt("FearScore") : 0),
-                clampNeed(tag.contains("AngerScore") ? tag.getInt("AngerScore") : 0),
-                clampNeed(tag.contains("GratitudeScore") ? tag.getInt("GratitudeScore") : 0),
-                clampNeed(tag.contains("LoyaltyScore") ? tag.getInt("LoyaltyScore") : 50),
                 Math.max(1L, tag.getLong("Version")),
                 tag.getLong("LastUpdatedGameTime")
         );

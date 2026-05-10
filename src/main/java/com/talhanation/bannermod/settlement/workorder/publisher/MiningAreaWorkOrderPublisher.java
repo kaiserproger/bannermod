@@ -32,8 +32,8 @@ public final class MiningAreaWorkOrderPublisher implements SettlementWorkOrderPu
         if (level == null) {
             return;
         }
-        Entity entity = level.getEntity(ctx.building().buildingUuid());
-        if (!(entity instanceof MiningArea miningArea) || !miningArea.isAlive()) {
+        MiningArea miningArea = ctx.resolveBuildingEntity(MiningArea.class);
+        if (miningArea == null) {
             return;
         }
 

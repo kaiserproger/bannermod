@@ -2,7 +2,6 @@ package com.talhanation.bannermod.client.military.events;
 
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.client.military.ClientManager;
-import com.talhanation.bannermod.society.client.NpcHamletClientState;
 import com.talhanation.bannermod.society.client.NpcHousingClientState;
 import com.talhanation.bannermod.war.client.WarClientState;
 import net.neoforged.api.distmarker.Dist;
@@ -19,7 +18,6 @@ public class ClientSyncLifecycleEvents {
         ClientManager.resetSynchronizedState();
         WarClientState.clear();
         NpcHousingClientState.clear();
-        NpcHamletClientState.clear();
     }
 
     @SubscribeEvent
@@ -27,6 +25,5 @@ public class ClientSyncLifecycleEvents {
         ClientManager.resetSynchronizedState();
         WarClientState.clear();
         NpcHousingClientState.clear();
-        NpcHamletClientState.clear();
     }
 }

@@ -123,6 +123,36 @@ class SettlementResidentRecordTest {
     }
 
     @Test
+    void effectiveWorkBuildingUuidPrefersDerivedServiceBindingOverLegacyTargets() {
+        UUID serviceBuildingUuid = UUID.randomUUID();
+        UUID targetBuildingUuid = UUID.randomUUID();
+        UUID legacyBoundUuid = UUID.randomUUID();
+        SettlementResidentRecord resident = new SettlementResidentRecord(
+                UUID.randomUUID(),
+                SettlementResidentRole.CONTROLLED_WORKER,
+                SettlementResidentScheduleSeed.ASSIGNED_WORK,
+                SettlementResidentScheduleWindowSeed.LABOR_DAY,
+                SettlementResidentRuntimeRoleState.LOCAL_LABOR,
+                new SettlementResidentServiceContract(SettlementServiceActorState.LOCAL_BUILDING_SERVICE, serviceBuildingUuid, "bannermod:crop_area"),
+                new SettlementResidentJobDefinition(SettlementJobHandlerSeed.LOCAL_BUILDING_LABOR, targetBuildingUuid, "bannermod:crop_area", SettlementBuildingCategory.FOOD, SettlementBuildingProfileSeed.FOOD_PRODUCTION),
+                new SettlementResidentJobTargetSelectionState(SettlementJobTargetSelectionMode.SERVICE_BUILDING, null, null),
+                SettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
+                UUID.randomUUID(),
+                "blueguild",
+                legacyBoundUuid,
+                SettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING,
+                SettlementResidentRoleProfile.defaultFor(
+                        SettlementResidentRole.CONTROLLED_WORKER,
+                        SettlementResidentRuntimeRoleState.LOCAL_LABOR,
+                        SettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
+                        SettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING
+                )
+        );
+
+        assertEquals(serviceBuildingUuid, resident.effectiveWorkBuildingUuid());
+    }
+
+    @Test
     void residentRecordFallsBackForUnknownScheduleSeed() {
         UUID workAreaUuid = UUID.randomUUID();
         CompoundTag residentTag = new CompoundTag();

@@ -22,7 +22,7 @@ public final class GoHomeResidentGoal implements ResidentGoal {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(BannerModMain.MOD_ID, "resident/goal/go_home");
 
     private static final int GO_HOME_PRIORITY = 95;
-    private static final int GO_HOME_DURATION_TICKS = 120;
+    private static final int GO_HOME_DURATION_TICKS = 200;
     private static final int GO_HOME_COOLDOWN_TICKS = 400;
 
     /** Tick-window before the rest phase begins where the goal also arms. */
@@ -67,7 +67,7 @@ public final class GoHomeResidentGoal implements ResidentGoal {
         if (this.runtime.homeFor(ctx.residentId()).isEmpty()) {
             return false;
         }
-        return this.computePriority(ctx) > 0;
+        return isRestOrApproachingRest(ctx);
     }
 
     @Override

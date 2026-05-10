@@ -7,6 +7,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.entity.SpawnGroupData;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -53,10 +54,18 @@ final class RecruitSpawnService {
     }
 
     static void setRandomSpawnBonus(AbstractRecruitEntity recruit) {
-        recruit.getAttribute(Attributes.MAX_HEALTH).addPermanentModifier(new AttributeModifier(ResourceLocation.fromNamespaceAndPath(BannerModMain.MOD_ID, "heath_bonus"), recruit.getRandom().nextDouble() * 0.5D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
-        recruit.getAttribute(Attributes.ATTACK_DAMAGE).addPermanentModifier(new AttributeModifier(ResourceLocation.fromNamespaceAndPath(BannerModMain.MOD_ID, "attack_bonus"), recruit.getRandom().nextDouble() * 0.5D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
-        recruit.getAttribute(Attributes.KNOCKBACK_RESISTANCE).addPermanentModifier(new AttributeModifier(ResourceLocation.fromNamespaceAndPath(BannerModMain.MOD_ID, "knockback_bonus"), recruit.getRandom().nextDouble() * 0.1D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
-        recruit.getAttribute(Attributes.MOVEMENT_SPEED).addPermanentModifier(new AttributeModifier(ResourceLocation.fromNamespaceAndPath(BannerModMain.MOD_ID, "speed_bonus"), recruit.getRandom().nextDouble() * 0.1D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+        applyPermanentModifier(recruit.getAttribute(Attributes.MAX_HEALTH), new AttributeModifier(ResourceLocation.fromNamespaceAndPath(BannerModMain.MOD_ID, "heath_bonus"), recruit.getRandom().nextDouble() * 0.5D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+        applyPermanentModifier(recruit.getAttribute(Attributes.ATTACK_DAMAGE), new AttributeModifier(ResourceLocation.fromNamespaceAndPath(BannerModMain.MOD_ID, "attack_bonus"), recruit.getRandom().nextDouble() * 0.5D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+        applyPermanentModifier(recruit.getAttribute(Attributes.KNOCKBACK_RESISTANCE), new AttributeModifier(ResourceLocation.fromNamespaceAndPath(BannerModMain.MOD_ID, "knockback_bonus"), recruit.getRandom().nextDouble() * 0.1D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+        applyPermanentModifier(recruit.getAttribute(Attributes.MOVEMENT_SPEED), new AttributeModifier(ResourceLocation.fromNamespaceAndPath(BannerModMain.MOD_ID, "speed_bonus"), recruit.getRandom().nextDouble() * 0.1D, AttributeModifier.Operation.ADD_MULTIPLIED_BASE));
+    }
+
+    private static void applyPermanentModifier(AttributeInstance attribute, AttributeModifier modifier) {
+        if (attribute == null) {
+            return;
+        }
+        attribute.removeModifier(modifier.id());
+        attribute.addPermanentModifier(modifier);
     }
 
     static void applySpawnValues(AbstractRecruitEntity recruit) {

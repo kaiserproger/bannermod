@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 public final class HideResidentGoal implements ResidentGoal {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(BannerModMain.MOD_ID, "resident/goal/hide");
 
-    private static final int HIDE_DURATION_TICKS = 160;
+    private static final int HIDE_DURATION_TICKS = 200;
     private static final int HIDE_COOLDOWN_TICKS = 120;
 
     @Override
@@ -26,7 +26,7 @@ public final class HideResidentGoal implements ResidentGoal {
 
     @Override
     public boolean canStart(ResidentGoalContext ctx) {
-        return this.computePriority(ctx) > 0;
+        return true;
     }
 
     @Override

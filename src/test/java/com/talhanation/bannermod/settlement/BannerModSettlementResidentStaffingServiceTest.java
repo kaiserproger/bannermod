@@ -74,4 +74,84 @@ class SettlementResidentStaffingServiceTest {
         assertEquals(SettlementBuildingCategory.FOOD, buildings.get(0).buildingCategory());
         assertEquals(SettlementBuildingProfileSeed.FOOD_PRODUCTION, buildings.get(0).buildingProfileSeed());
     }
+
+    @Test
+    void derivedServiceBuildingBeatsLegacyBoundWorkAreaDuringStaffing() {
+        UUID localBuildingUuid = UUID.randomUUID();
+        UUID staleBoundUuid = UUID.randomUUID();
+        UUID residentUuid = UUID.randomUUID();
+
+        SettlementResidentRecord resident = new SettlementResidentRecord(
+                residentUuid,
+                SettlementResidentRole.CONTROLLED_WORKER,
+                SettlementResidentScheduleSeed.ASSIGNED_WORK,
+                SettlementResidentScheduleWindowSeed.LABOR_DAY,
+                SettlementResidentRuntimeRoleState.LOCAL_LABOR,
+                new SettlementResidentServiceContract(SettlementServiceActorState.LOCAL_BUILDING_SERVICE, localBuildingUuid, "bannermod:crop_area"),
+                new SettlementResidentJobDefinition(SettlementJobHandlerSeed.LOCAL_BUILDING_LABOR, localBuildingUuid, "bannermod:crop_area", SettlementBuildingCategory.FOOD, SettlementBuildingProfileSeed.FOOD_PRODUCTION),
+                new SettlementResidentJobTargetSelectionState(SettlementJobTargetSelectionMode.SERVICE_BUILDING, null, null),
+                SettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
+                UUID.randomUUID(),
+                "blueguild",
+                staleBoundUuid,
+                SettlementResidentAssignmentState.UNASSIGNED,
+                SettlementResidentRoleProfile.defaultFor(
+                        SettlementResidentRole.CONTROLLED_WORKER,
+                        SettlementResidentRuntimeRoleState.LOCAL_LABOR,
+                        SettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
+                        SettlementResidentAssignmentState.UNASSIGNED
+                )
+        );
+
+        SettlementResidentStaffingService.StaffingResult staffing = SettlementResidentStaffingService.apply(
+                List.of(resident),
+                List.of(new SettlementBuildingRecord(localBuildingUuid, "bannermod:crop_area", new BlockPos(16, 64, 16), UUID.randomUUID(), "blueguild", 0, 1, 0, List.of(), false, 0, 0, false, false, List.of())),
+                SettlementMarketState.empty(),
+                Set.of(localBuildingUuid)
+        );
+
+        assertEquals(SettlementResidentAssignmentState.ASSIGNED_LOCAL_BUILDING, staffing.residents().get(0).assignmentState());
+        assertEquals(localBuildingUuid, staffing.residents().get(0).boundWorkAreaUuid());
+        assertEquals(localBuildingUuid, staffing.residents().get(0).jobDefinition().targetBuildingUuid());
+        assertEquals(1, staffing.buildings().get(0).assignedWorkerCount());
+        assertEquals(List.of(residentUuid), staffing.buildings().get(0).assignedResidentUuids());
+    }
+
+    @Test
+    void derivedServiceBuildingAlsoBeatsStaleJobDefinitionTarget() {
+        UUID localBuildingUuid = UUID.randomUUID();
+        UUID staleJobTargetUuid = UUID.randomUUID();
+        SettlementResidentRecord resident = new SettlementResidentRecord(
+                UUID.randomUUID(),
+                SettlementResidentRole.CONTROLLED_WORKER,
+                SettlementResidentScheduleSeed.ASSIGNED_WORK,
+                SettlementResidentScheduleWindowSeed.LABOR_DAY,
+                SettlementResidentRuntimeRoleState.LOCAL_LABOR,
+                new SettlementResidentServiceContract(SettlementServiceActorState.LOCAL_BUILDING_SERVICE, localBuildingUuid, "bannermod:crop_area"),
+                new SettlementResidentJobDefinition(SettlementJobHandlerSeed.LOCAL_BUILDING_LABOR, staleJobTargetUuid, "bannermod:mine_area", SettlementBuildingCategory.MATERIAL, SettlementBuildingProfileSeed.MATERIAL_PRODUCTION),
+                new SettlementResidentJobTargetSelectionState(SettlementJobTargetSelectionMode.SERVICE_BUILDING, null, null),
+                SettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
+                UUID.randomUUID(),
+                "blueguild",
+                UUID.randomUUID(),
+                SettlementResidentAssignmentState.UNASSIGNED,
+                SettlementResidentRoleProfile.defaultFor(
+                        SettlementResidentRole.CONTROLLED_WORKER,
+                        SettlementResidentRuntimeRoleState.LOCAL_LABOR,
+                        SettlementResidentMode.PROJECTED_CONTROLLED_WORKER,
+                        SettlementResidentAssignmentState.UNASSIGNED
+                )
+        );
+
+        SettlementResidentStaffingService.StaffingResult staffing = SettlementResidentStaffingService.apply(
+                List.of(resident),
+                List.of(new SettlementBuildingRecord(localBuildingUuid, "bannermod:crop_area", new BlockPos(20, 64, 20), UUID.randomUUID(), "blueguild", 0, 1, 0, List.of(), false, 0, 0, false, false, List.of())),
+                SettlementMarketState.empty(),
+                Set.of(localBuildingUuid)
+        );
+
+        assertEquals(localBuildingUuid, staffing.residents().get(0).boundWorkAreaUuid());
+        assertEquals(localBuildingUuid, staffing.residents().get(0).effectiveWorkBuildingUuid());
+        assertEquals(localBuildingUuid, staffing.residents().get(0).jobDefinition().targetBuildingUuid());
+    }
 }

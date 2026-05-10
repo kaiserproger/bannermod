@@ -2,9 +2,9 @@ package com.talhanation.bannermod.society;
 
 import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingProfileSeed;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentRecord;
-import com.talhanation.bannermod.settlement.BannerModSettlementSnapshot;
+import com.talhanation.bannermod.settlement.SettlementBuildingProfileSeed;
+import com.talhanation.bannermod.settlement.SettlementResidentRecord;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
 import com.talhanation.bannermod.settlement.growth.PendingProject;
 import com.talhanation.bannermod.settlement.growth.ProjectBlocker;
 import com.talhanation.bannermod.settlement.growth.ProjectKind;
@@ -34,7 +34,7 @@ public final class NpcHousingProjectPlanner {
     }
 
     public static List<PendingProject> collectApprovedHouseProjects(ServerLevel level,
-                                                                    BannerModSettlementSnapshot snapshot,
+                                                                    SettlementSnapshot snapshot,
                                                                     BannerModHomeAssignmentRuntime homeRuntime,
                                                                     long gameTime) {
         if (level == null || snapshot == null || homeRuntime == null) {
@@ -43,7 +43,7 @@ public final class NpcHousingProjectPlanner {
         UUID lordUuid = resolveLordUuid(level, snapshot.claimUuid());
         List<PendingProject> projects = new ArrayList<>();
         Set<UUID> visitedHouseholds = new LinkedHashSet<>();
-        for (BannerModSettlementResidentRecord resident : snapshot.residents()) {
+        for (SettlementResidentRecord resident : snapshot.residents()) {
             if (resident == null || resident.residentUuid() == null) {
                 continue;
             }
@@ -79,9 +79,9 @@ public final class NpcHousingProjectPlanner {
                         request.projectId(),
                         ProjectKind.NEW_BUILDING,
                         null,
-                        null,
-                        BannerModSettlementBuildingProfileSeed.GENERAL.category(),
-                        BannerModSettlementBuildingProfileSeed.GENERAL,
+                        prefabIdFor(snapshot, request),
+                        SettlementBuildingProfileSeed.GENERAL.category(),
+                        SettlementBuildingProfileSeed.GENERAL,
                         HOUSE_REQUEST_PRIORITY,
                         gameTime,
                         HOUSE_REQUEST_TICK_COST,
@@ -142,6 +142,11 @@ public final class NpcHousingProjectPlanner {
         }
         PoliticalEntityRecord owner = WarRuntimeContext.registry(level).byId(claim.getOwnerPoliticalEntityId()).orElse(null);
         return owner == null ? null : owner.leaderUuid();
+    }
+
+    private static net.minecraft.resources.ResourceLocation prefabIdFor(SettlementSnapshot snapshot,
+                                                                        NpcHousingRequestRecord request) {
+        return null;
     }
 
     private static void notifyLord(ServerLevel level,

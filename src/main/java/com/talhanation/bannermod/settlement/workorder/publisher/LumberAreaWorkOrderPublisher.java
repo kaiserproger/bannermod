@@ -37,8 +37,8 @@ public final class LumberAreaWorkOrderPublisher implements SettlementWorkOrderPu
         if (level == null) {
             return;
         }
-        Entity entity = level.getEntity(ctx.building().buildingUuid());
-        if (!(entity instanceof LumberArea lumberArea) || !lumberArea.isAlive()) {
+        LumberArea lumberArea = ctx.resolveBuildingEntity(LumberArea.class);
+        if (lumberArea == null) {
             return;
         }
 

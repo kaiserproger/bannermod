@@ -39,10 +39,11 @@ final class SettlementSnapshotBuilder {
         List<AbstractWorkAreaEntity> workAreas = SettlementSnapshotRuntime.collectWorkAreas(level, claim, AbstractWorkAreaEntity.class);
         SettlementRecord settlementRecord = SettlementSnapshotRuntime.settlementRecordForClaim(level, claim);
         List<ValidatedBuildingRecord> validatedBuildings = SettlementSnapshotRuntime.collectValidatedBuildings(level, settlementRecord);
+        java.util.Map<UUID, UUID> authoritativeBindings = SettlementSnapshotRuntime.buildAuthoritativeWorkBuildingBindings(validatedBuildings, workAreas);
         SettlementSnapshotRuntime.repairClaimState(level, claim, workAreas, validatedBuildings);
 
-        List<SettlementResidentRecord> residents = SettlementSnapshotRuntime.collectResidents(level, claim, governorSnapshot, settlementFactionId);
-        List<SettlementBuildingRecord> buildings = SettlementSnapshotRuntime.collectBuildings(level, claim);
+        List<SettlementResidentRecord> residents = SettlementSnapshotRuntime.collectResidents(level, claim, governorSnapshot, settlementFactionId, authoritativeBindings);
+        List<SettlementBuildingRecord> buildings = SettlementSnapshotRuntime.collectBuildings(level, claim, workAreas, validatedBuildings);
         SettlementMarketState marketState = SettlementSnapshotRuntime.collectMarketState(level, claim);
         List<StorageArea> storageAreas = SettlementSnapshotRuntime.collectStorageAreas(level, claim);
         List<BannerModSeaTradeEntrypoint> liveSeaTradeEntrypoints = SettlementSnapshotRuntime.collectLiveSeaTradeEntrypoints(storageAreas);

@@ -36,8 +36,8 @@ public final class CropAreaWorkOrderPublisher implements SettlementWorkOrderPubl
         if (level == null) {
             return;
         }
-        Entity entity = level.getEntity(ctx.building().buildingUuid());
-        if (!(entity instanceof CropArea cropArea) || !cropArea.isAlive()) {
+        CropArea cropArea = ctx.resolveBuildingEntity(CropArea.class);
+        if (cropArea == null) {
             return;
         }
 
