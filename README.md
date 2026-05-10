@@ -10,7 +10,7 @@ The active mod lives in the root `src/**` tree under the `bannermod` runtime. Th
 - Documentation index: `docs/README.md`
 - Current developer status: `docs/STATUS.md`
 - Contribution flow: `docs/CONTRIBUTING.md`
-- Canonical unfinished-work queue: `docs/BANNERMOD_BACKLOG.json` via `tools/backlog`
+- Canonical unfinished-work queue: `docs/BANNERMOD_BACKLOG.sqlite` via `tools/backlog`
 
 ## Current Gameplay Shape
 
@@ -25,7 +25,7 @@ BannerMod is playable in pieces and still under active stabilization. The curren
 - government-form editing for monarchy/republic authority differences;
 - recruit formation stance control, shield-wall behavior, reach weapons, flanking, cohesion, brace, and counter rules.
 
-Important unfinished areas remain in `docs/BANNERMOD_BACKLOG.json`; use `tools/backlog batch --limit 5` instead of reading the full file directly.
+Important unfinished areas remain in `docs/BANNERMOD_BACKLOG.sqlite`; use `tools/backlog batch --limit 5` instead of reading the database directly.
 
 ## Build
 
@@ -41,7 +41,7 @@ Use `./gradlew verifyGameTestStage` when changing gameplay wiring, ownership, AI
 - Active source: `src/**`
 - Active mod id: `bannermod`
 - Active planning: `.planning/`
-- Active backlog: `docs/BANNERMOD_BACKLOG.json` via `tools/backlog`
+- Active backlog: `docs/BANNERMOD_BACKLOG.sqlite` via `tools/backlog`
 - Archive/reference source trees: `recruits/`, `workers/`
 
 Do not revive old duplicate faction, diplomacy, worker, or siege systems as parallel gameplay. If code and old planning notes disagree, trust the live code and update the backlog or docs instead of adding compatibility layers without a concrete need.

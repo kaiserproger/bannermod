@@ -1,5 +1,9 @@
 package com.talhanation.bannermod.war;
 
+import com.talhanation.bannermod.events.ClaimEvents;
+import com.talhanation.bannermod.governance.BannerModTreasuryManager;
+import com.talhanation.bannermod.settlement.economy.StrategicResourceAccountingManager;
+import com.talhanation.bannermod.war.config.WarServerConfig;
 import com.talhanation.bannermod.war.audit.WarAuditLogSavedData;
 import com.talhanation.bannermod.war.cooldown.WarCooldownRuntime;
 import com.talhanation.bannermod.war.cooldown.WarCooldownSavedData;
@@ -7,6 +11,8 @@ import com.talhanation.bannermod.war.registry.PoliticalRegistryRuntime;
 import com.talhanation.bannermod.war.registry.WarPoliticalRegistrySavedData;
 import com.talhanation.bannermod.war.runtime.DemilitarizationRuntime;
 import com.talhanation.bannermod.war.runtime.DemilitarizationSavedData;
+import com.talhanation.bannermod.war.runtime.EconomicObjectiveRuntime;
+import com.talhanation.bannermod.war.runtime.EconomicObjectiveSavedData;
 import com.talhanation.bannermod.war.runtime.OccupationRuntime;
 import com.talhanation.bannermod.war.runtime.OccupationSavedData;
 import com.talhanation.bannermod.war.runtime.OccupationTaxRuntime;
@@ -14,6 +20,9 @@ import com.talhanation.bannermod.war.runtime.RevoltRuntime;
 import com.talhanation.bannermod.war.runtime.RevoltSavedData;
 import com.talhanation.bannermod.war.runtime.SiegeStandardRuntime;
 import com.talhanation.bannermod.war.runtime.SiegeStandardSavedData;
+import com.talhanation.bannermod.war.runtime.TreatyPaymentRuntime;
+import com.talhanation.bannermod.war.runtime.TreatyRuntime;
+import com.talhanation.bannermod.war.runtime.TreatySavedData;
 import com.talhanation.bannermod.war.runtime.WarAllyInviteRuntime;
 import com.talhanation.bannermod.war.runtime.WarAllyInviteSavedData;
 import com.talhanation.bannermod.war.runtime.WarDeclarationRuntime;
@@ -77,6 +86,10 @@ public final class WarRuntimeContext {
         return RevoltSavedData.get(level).runtime();
     }
 
+    public static EconomicObjectiveRuntime economicObjectives(ServerLevel level) {
+        return EconomicObjectiveSavedData.get(level).runtime();
+    }
+
     public static WarCooldownRuntime cooldowns(ServerLevel level) {
         return WarCooldownSavedData.get(level).runtime();
     }
@@ -89,11 +102,25 @@ public final class WarRuntimeContext {
         return WarAllyInviteSavedData.get(level).runtime();
     }
 
+    public static TreatyRuntime treaties(ServerLevel level) {
+        return TreatySavedData.get(level).runtime();
+    }
+
+    public static TreatyPaymentRuntime treatyPayments(ServerLevel level) {
+        return new TreatyPaymentRuntime(
+                treaties(level),
+                BannerModTreasuryManager.get(level),
+                StrategicResourceAccountingManager.get(level),
+                ClaimEvents.claimManager(),
+                audit(level)
+        );
+    }
+
     public static OccupationTaxRuntime taxRuntime(ServerLevel level) {
         return new OccupationTaxRuntime(
                 occupations(level),
-                com.talhanation.bannermod.governance.BannerModTreasuryManager.get(level),
-                com.talhanation.bannermod.events.ClaimEvents.claimManager(),
+                BannerModTreasuryManager.get(level),
+                ClaimEvents.claimManager(),
                 audit(level)
         );
     }
@@ -107,10 +134,12 @@ public final class WarRuntimeContext {
                 demilitarizations(level),
                 registry(level),
                 cooldowns(level),
-                com.talhanation.bannermod.war.config.WarServerConfig.lostTerritoryImmunityTicks(),
+                WarServerConfig.lostTerritoryImmunityTicks(),
                 level,
-                com.talhanation.bannermod.governance.BannerModTreasuryManager.get(level),
-                com.talhanation.bannermod.events.ClaimEvents.claimManager()
+                BannerModTreasuryManager.get(level),
+                ClaimEvents.claimManager(),
+                treaties(level),
+                WarServerConfig.tributeTreatyIntervalTicks()
         );
     }
 }

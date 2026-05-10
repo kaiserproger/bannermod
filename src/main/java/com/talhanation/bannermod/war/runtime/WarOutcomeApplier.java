@@ -4,6 +4,7 @@ import com.talhanation.bannermod.governance.BannerModTreasuryLedgerSnapshot;
 import com.talhanation.bannermod.governance.BannerModTreasuryManager;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
 import com.talhanation.bannermod.persistence.military.RecruitsClaimManager;
+import com.talhanation.bannermod.settlement.economy.StrategicResourceBucket;
 import com.talhanation.bannermod.war.audit.WarAuditLogSavedData;
 import com.talhanation.bannermod.war.cooldown.WarCooldownKind;
 import com.talhanation.bannermod.war.cooldown.WarCooldownRuntime;
@@ -33,6 +34,9 @@ public final class WarOutcomeApplier {
     private final BannerModTreasuryManager treasury;
     @Nullable
     private final RecruitsClaimManager claimManager;
+    @Nullable
+    private final TreatyRuntime treaties;
+    private final long tributeTreatyIntervalTicks;
 
     public WarOutcomeApplier(WarDeclarationRuntime declarations,
                              SiegeStandardRuntime sieges,
@@ -80,6 +84,23 @@ public final class WarOutcomeApplier {
                              @Nullable ServerLevel level,
                              @Nullable BannerModTreasuryManager treasury,
                              @Nullable RecruitsClaimManager claimManager) {
+        this(declarations, sieges, audit, occupations, demilitarizations, registry,
+                cooldowns, lostTerritoryImmunityTicks, level, treasury, claimManager, null, 0L);
+    }
+
+    public WarOutcomeApplier(WarDeclarationRuntime declarations,
+                             SiegeStandardRuntime sieges,
+                             WarAuditLogSavedData audit,
+                             OccupationRuntime occupations,
+                             DemilitarizationRuntime demilitarizations,
+                             PoliticalRegistryRuntime registry,
+                             @Nullable WarCooldownRuntime cooldowns,
+                             long lostTerritoryImmunityTicks,
+                             @Nullable ServerLevel level,
+                             @Nullable BannerModTreasuryManager treasury,
+                             @Nullable RecruitsClaimManager claimManager,
+                             @Nullable TreatyRuntime treaties,
+                             long tributeTreatyIntervalTicks) {
         this.declarations = declarations;
         this.sieges = sieges;
         this.audit = audit;
@@ -91,6 +112,8 @@ public final class WarOutcomeApplier {
         this.level = level;
         this.treasury = treasury;
         this.claimManager = claimManager;
+        this.treaties = treaties;
+        this.tributeTreatyIntervalTicks = Math.max(0L, tributeTreatyIntervalTicks);
     }
 
     public Result applyWhitePeace(UUID warId, long gameTime) {
@@ -126,6 +149,26 @@ public final class WarOutcomeApplier {
                 war.attackerPoliticalEntityId(),
                 requested,
                 gameTime);
+        if (treaties != null && requested > 0 && tributeTreatyIntervalTicks > 0L) {
+            RecruitsClaim sourceClaim = findFirstClaimOwnedBy(war.defenderPoliticalEntityId());
+            TributeTreatyRecord treaty = treaties.addTribute(
+                    war.defenderPoliticalEntityId(),
+                    war.attackerPoliticalEntityId(),
+                    StrategicResourceBucket.COINS,
+                    requested,
+                    tributeTreatyIntervalTicks,
+                    warId,
+                    sourceClaim == null ? null : sourceClaim.getUUID(),
+                    gameTime);
+            audit.append(warId, "TREATY_CREATED",
+                    "type=TRIBUTE;treatyId=" + treaty.id()
+                            + ";payer=" + treaty.payerEntityId()
+                            + ";receiver=" + treaty.receiverEntityId()
+                            + ";amount=" + treaty.amount()
+                            + ";resource=" + treaty.resourceBucket().id()
+                            + ";intervalTicks=" + treaty.intervalTicks(),
+                    gameTime);
+        }
         declarations.updateState(warId, WarState.RESOLVED);
         clearSieges(warId);
         grantLostTerritoryImmunity(war.defenderPoliticalEntityId(), gameTime);
@@ -291,6 +334,22 @@ public final class WarOutcomeApplier {
         boolean changed = registry.updateStatus(war.defenderPoliticalEntityId(), PoliticalEntityStatus.VASSAL);
         if (!changed) {
             return Result.invalid("defender_not_found");
+        }
+        if (treaties != null) {
+            VassalRelationshipRecord relationship = treaties.addVassalRelationship(
+                    war.attackerPoliticalEntityId(),
+                    war.defenderPoliticalEntityId(),
+                    "military_support,overlord_diplomacy",
+                    0,
+                    tributeTreatyIntervalTicks,
+                    warId,
+                    gameTime);
+            audit.append(warId, "TREATY_CREATED",
+                    "type=VASSAL_RELATIONSHIP;relationshipId=" + relationship.id()
+                            + ";overlord=" + relationship.overlordEntityId()
+                            + ";vassal=" + relationship.vassalEntityId()
+                            + ";obligations=" + relationship.obligations(),
+                    gameTime);
         }
         declarations.updateState(warId, WarState.RESOLVED);
         clearSieges(warId);

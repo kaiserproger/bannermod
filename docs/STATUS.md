@@ -1,6 +1,6 @@
 # Developer Status
 
-Last updated: 2026-05-09.
+Last updated: 2026-05-10.
 
 ## Runtime State
 
@@ -42,12 +42,14 @@ Last updated: 2026-05-09.
 - War-state sync now uses dirty/version tracking and cached payloads instead of serializing all war records every idle second for hash polling.
 - True-async pathfinding now checks scheduler capacity before snapshot capture and rejects over-budget snapshots with profiling counters.
 - GameTests are being hardened around claim worker growth, dedicated-server ownership, player cycle, settlement degradation, and upkeep currency sourcing.
+- Strategic economy second-act groundwork is in progress on `feature/strategic-economy-second-act`: VenaTerra now exposes a read-only deposit survey API in `/home/kaiserroman/venaterra`, BannerMod has an optional reflection bridge, claim-level food/iron/wood/stone/coin summary hints, strategic mine site records, mine maintenance/degraded-yield pressure, fort level/cap/readiness output, persisted NPC demand contracts, server-authoritative strategic resource accounting, and economy debug/status commands. See `docs/STRATEGIC_ECONOMY_INTEGRATION.md`.
 
 ## Known Open Areas
 
 - Full settlement onboarding remains incomplete: a new player still needs clearer starter-fort/town-hall, surveyor, wand, citizen, and profession guidance in-game.
 - Worker assignment binding is split between two sources of truth: the entity-side `currentWorkArea` (cached on `AbstractWorkerEntity`) and the registry-side `ValidatedBuildingRecord` in the settlement validated-building registry. The remaining gap is making `ValidatedBuildingRecord` the authoritative assignment source and reducing `currentWorkArea` to a derived runtime cache.
 - Sea-trade production/consumption is documented as hints, but not yet a full gameplay loop.
+- Strategic mine output is still a summary/read-model hint only and does not yet mutate storage, treasury, or item stacks. Fort caps are defined and exposed but not enforced at all creation/assignment points, and strategic resource accounting is available as a backend for later upgrade, contract, treaty, and upkeep callers.
 - Remaining war gaps are depth/coverage gaps, not absent systems: some outcomes are still command/admin-heavy, occupation control is lighter than a full governance loop, revolt resolution depends on objective presence rather than a richer objective campaign, siege-standard AI is basic attack/escort behavior, and morale plus ranged-backline polish still need follow-up.
 - `verifyGameTestStage` last had a known failure around `reconnectedOwnerRecoversAuthorityAfterOwnershipRoundTrip` in a Better Combat-present smoke; do not claim full GameTest green until rerun successfully.
 

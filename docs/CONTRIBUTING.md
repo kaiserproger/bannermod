@@ -5,7 +5,7 @@ BannerMod is a brownfield merge workspace. Contributions should be small, verifi
 ## Source Of Truth
 
 - Use root `src/**` and `build.gradle` as runtime truth.
-- Use `tools/backlog` as the interface to the unfinished-work queue in `docs/BANNERMOD_BACKLOG.json`.
+- Use `tools/backlog` as the interface to the unfinished-work queue in `docs/BANNERMOD_BACKLOG.sqlite`.
 - Use `.planning/` for execution history and planning context.
 - Treat `recruits/` and `workers/` as archive/reference only.
 
@@ -128,7 +128,7 @@ Use `tools/task-worktree <TASK-ID> --base origin/master` for an independent task
 - Focused tests: `./gradlew test --tests <fully.qualified.TestName>`
 - Gameplay/multiplayer wiring: `./gradlew verifyGameTestStage`
 - Noisy commands: run through `tools/ai-context-proxy/bin/ctx log -- <command...>`
-- Verify acceptance sequentially and record results sequentially; do not run concurrent backlog mutations against `docs/BANNERMOD_BACKLOG.json`.
+- Verify acceptance sequentially and record results sequentially; do not run concurrent backlog mutations against `docs/BANNERMOD_BACKLOG.sqlite`.
 
 ## Documentation Rules
 

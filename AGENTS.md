@@ -72,8 +72,9 @@ After coding, provide:
 - For multi-line commit messages: write the message to `/tmp/commit_msg.txt` via the file-writing tool, then `git commit -F /tmp/commit_msg.txt`. The `ctx` pre-bash hook blocks heredoc patterns (`<<'EOF'`).
 
 10. Backlog hygiene
-- `docs/BANNERMOD_BACKLOG.json` is the single canonical backlog. `docs/BANNERMOD_BACKLOG.md` is only a pointer and must not contain task data.
-- Use `tools/backlog` for normal backlog work instead of reading or dumping the JSON directly: `tools/backlog batch --limit 5`, `tools/backlog show <ID>`, `tools/backlog list --status open`, `tools/backlog validate`.
+- `docs/BANNERMOD_BACKLOG.sqlite` is the single canonical backlog. `docs/BANNERMOD_BACKLOG.md` is only a pointer and must not contain task data.
+- Use `tools/backlog` for normal backlog work instead of reading or dumping the SQLite DB directly: `tools/backlog batch --limit 5`, `tools/backlog show <ID>`, `tools/backlog list --status open`, `tools/backlog validate`.
+- Use `tools/backlog stage` to stage canonical backlog DB changes; do not run raw `git add docs/BANNERMOD_BACKLOG.sqlite`.
 - When adding a task, use `tools/backlog add <ID> <title> --why ... --scope ... --acceptance ...`. Every task must include `id`, `title`, `why`, concrete scope deliverables, and verifiable acceptance checks.
 - **DONE = every acceptance item is observably satisfied right now.** Closing a task is a binary check against the existing acceptance list, not a judgement call. If any acceptance item describes gameplay-observable behaviour you cannot demonstrate from current code, the task stays open even when supporting infrastructure landed.
 - Before marking a task done, verify your own implementation against every acceptance item. Record the exact verification result with `tools/backlog done <ID> --verification "..."`; if verification cannot be run, record what blocked it instead of pretending it passed.
@@ -85,11 +86,24 @@ After coding, provide:
 11. Contribution flow
 - Read `docs/STATUS.md` before picking up brownfield work.
 - Use `docs/CONTRIBUTING.md` as the contribution flow for code, tests, docs, and commits.
-- Use `tools/backlog` to inspect and update the canonical active backlog (`docs/BANNERMOD_BACKLOG.json`).
+- Use `tools/backlog` to inspect and update the canonical active backlog (`docs/BANNERMOD_BACKLOG.sqlite`).
 - Put module documentation under `docs/`; keep root player guides split as `MULTIPLAYER_GUIDE_RU.md` and `MULTIPLAYER_GUIDE_EN.md`.
 - The local context multitool is documented in `tools/ai-context-proxy/README.md` and summarized in `docs/TOOLS.md`.
 - If the user invokes `/backlog-execute [N]`, treat it as an execution command, not a planning request: default `N=5`, run `tools/backlog ready N`, pick that batch as the active queue, and begin execution under the backlog dependency, worktree, feature-branch, and finish-or-split rules.
 - For `/backlog-execute [N]` with parallel subagents, create one dedicated worktree and one dedicated feature branch per task before any edits. For dependency chains, complete the first task and branch the dependent task from the updated tip of the first task branch.
+
+Documentation index for agents:
+- `docs/README.md` - top-level documentation index.
+- `docs/STATUS.md` - current developer status, known open areas, and live system references.
+- `docs/CONTRIBUTING.md` - contribution, verification, and review flow.
+- `docs/DEVELOPMENT.md` - codebase map, hot spots, and validation shortcuts.
+- `docs/TOOLS.md` - local tools, context proxy, backlog helper, and repo skills.
+- `docs/BANNERMOD_BACKLOG.sqlite` - canonical backlog; use `tools/backlog`, not raw SQLite reads/writes.
+- `docs/BANNERMOD_TECHNICAL_DESIGN.md` - architecture, state model, authority model, invariants, and target end state.
+- `docs/STRATEGIC_ECONOMY_INTEGRATION.md` - VenaTerra-backed strategic economy, mine-site, yield, backlog, and verification notes.
+- `docs/AI_MINECRAFT_UI_STYLE_GUIDE.md` - required style rules for Minecraft-native UI/HUD work.
+- `MULTIPLAYER_GUIDE_RU.md` / `MULTIPLAYER_GUIDE_EN.md` - player-facing guides; update them for shipped player-visible mechanics.
+- `docs/BANNERMOD_ALMANAC.html` - compact player almanac; update it with player-facing UI/mechanic changes.
 
 12. Minecraft UI design
 - For Minecraft GUI/HUD work, load and apply the repo skill `minecraft-ui-design` from `.agents/skills/minecraft-ui-design/SKILL.md`.

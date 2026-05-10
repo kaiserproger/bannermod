@@ -108,6 +108,7 @@ public final class MilitaryPacketCatalog {
         MessageRequestPerkTreeSnapshot.class,
         MessageUpdatePerkTree.class,
         MessageToClientUpdatePerkTreeSnapshot.class,
+        MessageToClientRunVisualScenario.class,
     };
 
     public static final PacketCatalog CATALOG = new PacketCatalog(MESSAGES);

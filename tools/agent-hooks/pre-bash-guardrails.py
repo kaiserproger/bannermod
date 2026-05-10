@@ -2,7 +2,7 @@
 """Shared Bash guardrails for local coding agents.
 
 Compatible with Claude Code and Codex hook payloads. It blocks direct backlog
-JSON access and common raw repository context dumps that should go through the
+access and common raw repository context dumps that should go through the
 bounded project tools instead.
 """
 
@@ -43,13 +43,14 @@ def main() -> int:
     if stripped.startswith(SAFE_PREFIXES):
         return 0
 
-    if "BANNERMOD_BACKLOG.json" in stripped:
+    if "BANNERMOD_BACKLOG.json" in stripped or "BANNERMOD_BACKLOG.sqlite" in stripped:
         print(
-            "Blocked direct backlog JSON access. Use bounded backlog commands instead:\n"
+            "Blocked direct backlog access. Use bounded backlog commands instead:\n"
             "- tools/backlog batch --limit 5\n"
             "- tools/backlog show <ID>\n"
             "- tools/backlog add <ID> <title> --why ... --scope ... --acceptance ...\n"
-            "- tools/backlog validate",
+            "- tools/backlog validate\n"
+            "- tools/backlog stage",
             file=sys.stderr,
         )
         return 2

@@ -154,6 +154,7 @@ public class BannerModMain {
         NeoForge.EVENT_BUS.register(new WarRevoltAutoResolver());
         NeoForge.EVENT_BUS.register(new WarStateBroadcaster());
         NeoForge.EVENT_BUS.register(new com.talhanation.bannermod.war.events.WarOccupationTaxTicker());
+        NeoForge.EVENT_BUS.register(new com.talhanation.bannermod.war.events.TreatyPaymentTicker());
         NeoForge.EVENT_BUS.register(new com.talhanation.bannermod.war.events.WarRetentionSweeper());
         NeoForge.EVENT_BUS.register(new SettlementMutationRefreshEvents());
         NeoForge.EVENT_BUS.register(new SettlementWorkOrderClaimReleaseEvents());
@@ -199,6 +200,7 @@ public class BannerModMain {
         // See 21-UAT.md gap "Recruits hotkey screens (Command/Faction/Map) and the claim overlay open in dev client".
         NeoForge.EVENT_BUS.register(new KeyEvents());
         NeoForge.EVENT_BUS.register(new ClientPlayerEvents());
+        NeoForge.EVENT_BUS.register(new com.talhanation.bannermod.client.military.scenario.VisualScenarioClient());
         NeoForge.EVENT_BUS.register(HudOverlayCoordinator.INSTANCE);
     }
 
