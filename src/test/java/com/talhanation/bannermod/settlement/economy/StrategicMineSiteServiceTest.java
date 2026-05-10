@@ -175,6 +175,30 @@ class StrategicMineSiteServiceTest {
     }
 
     @Test
+    void invalidValidatedMineDoesNotReappearThroughSnapshotFallback() {
+        RecruitsClaim claim = claim(UUID.randomUUID());
+        UUID mineId = UUID.randomUUID();
+
+        List<StrategicMineSite> sites = StrategicMineSiteService.derive(
+                null,
+                claim,
+                snapshot(claim.getUUID(), List.of(miningArea(mineId))),
+                List.of(validated(claim.getUUID(), mineId, BuildingType.MINE, BuildingValidationState.INVALID)),
+                deposits(List.of(new VenaterraDepositCandidate(
+                        VenaterraDepositCategory.IRON,
+                        ResourceLocation.withDefaultNamespace("iron_ore"),
+                        ResourceLocation.withDefaultNamespace("raw_iron"),
+                        new BlockPos(0, 64, 0),
+                        0.75F,
+                        0.8D,
+                        new VenaterraDepositCandidate.SourceMetadata("venaterra", "test", Level.OVERWORLD.location())
+                )))
+        );
+
+        assertTrue(sites.isEmpty());
+    }
+
+    @Test
     void nonMineBuildingIsNotIncluded() {
         RecruitsClaim claim = claim(UUID.randomUUID());
 

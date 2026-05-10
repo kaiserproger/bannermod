@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.settlement.economy;
 
+import com.talhanation.bannermod.compat.venaterra.VenaterraDepositCategory;
 import com.talhanation.bannermod.governance.BannerModTreasuryLedgerSnapshot;
 import com.talhanation.bannermod.settlement.SettlementBuildingRecord;
 import com.talhanation.bannermod.settlement.SettlementDesiredGoodsSnapshot;
@@ -125,6 +126,109 @@ class ClaimStrategicEconomySummaryServiceTest {
         assertTrue(wood.unknown());
     }
 
+    @Test
+    void strategicMineSitesAddCategoryProductionHints() {
+        UUID claimUuid = UUID.randomUUID();
+        UUID ownerUuid = UUID.randomUUID();
+        SettlementSnapshot snapshot = snapshot(claimUuid, List.of(), 0, 0, 0);
+
+        ClaimStrategicEconomySummary summary = ClaimStrategicEconomySummaryService.derive(
+                snapshot,
+                List.of(),
+                null,
+                List.of(
+                        mineSite(claimUuid, ownerUuid, VenaterraDepositCategory.IRON, 0.75F, false, false),
+                        mineSite(claimUuid, ownerUuid, VenaterraDepositCategory.QUARRY_STONE, 0.45F, false, false),
+                        mineSite(claimUuid, ownerUuid, VenaterraDepositCategory.PRECIOUS_COIN_VALUE, 1.0F, false, false)
+                )
+        );
+
+        assertEquals(2, line(summary, "iron").productionHint());
+        assertEquals(1, line(summary, "stone").productionHint());
+        assertEquals(3, line(summary, "coins").productionHint());
+    }
+
+    @Test
+    void strategicMineSiteCategoryReplacesGenericMineIronHint() {
+        UUID claimUuid = UUID.randomUUID();
+        UUID ownerUuid = UUID.randomUUID();
+        UUID mineUuid = UUID.randomUUID();
+        SettlementSnapshot snapshot = snapshot(claimUuid, List.of(building(mineUuid, "bannermod:validated_mine", 2)), 0, 2, 0);
+
+        ClaimStrategicEconomySummary summary = ClaimStrategicEconomySummaryService.derive(
+                snapshot,
+                List.of(validated(claimUuid, mineUuid, BuildingType.MINE, BuildingValidationState.VALID)),
+                null,
+                List.of(mineSite(claimUuid, ownerUuid, VenaterraDepositCategory.QUARRY_STONE, 0.75F, false, false))
+        );
+
+        assertEquals(0, line(summary, "iron").productionHint());
+        assertEquals(2, line(summary, "stone").productionHint());
+    }
+
+    @Test
+    void unknownMineSiteDoesNotGrantYield() {
+        UUID claimUuid = UUID.randomUUID();
+        UUID ownerUuid = UUID.randomUUID();
+        SettlementSnapshot snapshot = snapshot(claimUuid, List.of(), 0, 0, 0);
+
+        ClaimStrategicEconomySummary summary = ClaimStrategicEconomySummaryService.derive(
+                snapshot,
+                List.of(),
+                null,
+                List.of(mineSite(claimUuid, ownerUuid, VenaterraDepositCategory.UNKNOWN_OTHER, 1.0F, true, true))
+        );
+
+        ClaimStrategicEconomySummary.ResourceLine iron = line(summary, "iron");
+        assertEquals(0, iron.productionHint());
+        assertTrue(iron.degraded());
+        assertTrue(iron.unknown());
+    }
+
+    @Test
+    void removedOrInvalidatedMineSiteStopsContributingOnNextDerivation() {
+        UUID claimUuid = UUID.randomUUID();
+        UUID ownerUuid = UUID.randomUUID();
+        UUID mineUuid = UUID.randomUUID();
+        SettlementSnapshot snapshot = snapshot(claimUuid, List.of(building(mineUuid, "bannermod:validated_mine", 2)), 0, 2, 0);
+
+        ClaimStrategicEconomySummary before = ClaimStrategicEconomySummaryService.derive(
+                snapshot,
+                List.of(validated(claimUuid, mineUuid, BuildingType.MINE, BuildingValidationState.VALID)),
+                null,
+                List.of(mineSite(claimUuid, ownerUuid, VenaterraDepositCategory.IRON, 0.75F, false, false))
+        );
+        ClaimStrategicEconomySummary after = ClaimStrategicEconomySummaryService.derive(
+                snapshot,
+                List.of(validated(claimUuid, mineUuid, BuildingType.MINE, BuildingValidationState.INVALID)),
+                null,
+                List.of()
+        );
+
+        assertEquals(2, line(before, "iron").productionHint());
+        assertEquals(0, line(after, "iron").productionHint());
+    }
+
+    @Test
+    void unownedOrOtherClaimMineSiteDoesNotContribute() {
+        UUID claimUuid = UUID.randomUUID();
+        UUID ownerUuid = UUID.randomUUID();
+        SettlementSnapshot snapshot = snapshot(claimUuid, List.of(), 0, 0, 0);
+
+        ClaimStrategicEconomySummary summary = ClaimStrategicEconomySummaryService.derive(
+                snapshot,
+                List.of(),
+                null,
+                List.of(
+                        mineSite(claimUuid, null, VenaterraDepositCategory.IRON, 1.0F, false, false),
+                        mineSite(UUID.randomUUID(), ownerUuid, VenaterraDepositCategory.QUARRY_STONE, 1.0F, false, false)
+                )
+        );
+
+        assertEquals(0, line(summary, "iron").productionHint());
+        assertEquals(0, line(summary, "stone").productionHint());
+    }
+
     private static ClaimStrategicEconomySummary.ResourceLine line(ClaimStrategicEconomySummary summary, String resourceId) {
         return summary.resources().stream()
                 .filter(line -> line.resourceId().equals(resourceId))
@@ -164,6 +268,27 @@ class ClaimStrategicEconomySummaryServiceTest {
                 10L,
                 20L,
                 state == BuildingValidationState.VALID ? 0L : 20L
+        );
+    }
+
+    private static StrategicMineSite mineSite(UUID claimUuid,
+                                             UUID ownerUuid,
+                                             VenaterraDepositCategory category,
+                                             float richness,
+                                             boolean degraded,
+                                             boolean unknown) {
+        return new StrategicMineSite(
+                UUID.randomUUID(),
+                claimUuid,
+                ownerUuid,
+                Level.OVERWORLD,
+                BlockPos.ZERO,
+                8,
+                StrategicMineSite.SourceType.VALIDATED_MINE_BUILDING,
+                category,
+                richness,
+                degraded,
+                unknown
         );
     }
 

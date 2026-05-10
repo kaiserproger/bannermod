@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.settlement.economy;
 
+import com.talhanation.bannermod.compat.venaterra.VenaterraDepositCategory;
 import com.talhanation.bannermod.governance.BannerModTreasuryLedgerSnapshot;
 import com.talhanation.bannermod.settlement.SettlementBuildingRecord;
 import com.talhanation.bannermod.settlement.SettlementSnapshot;
@@ -34,12 +35,28 @@ public final class ClaimStrategicEconomySummaryService {
     public static ClaimStrategicEconomySummary derive(SettlementSnapshot snapshot,
                                                        List<ValidatedBuildingRecord> validatedBuildings,
                                                        @Nullable BannerModTreasuryLedgerSnapshot treasuryLedger) {
+        return derive(snapshot, validatedBuildings, treasuryLedger, List.of(), false);
+    }
+
+    public static ClaimStrategicEconomySummary derive(SettlementSnapshot snapshot,
+                                                       List<ValidatedBuildingRecord> validatedBuildings,
+                                                       @Nullable BannerModTreasuryLedgerSnapshot treasuryLedger,
+                                                       @Nullable List<StrategicMineSite> mineSites) {
+        return derive(snapshot, validatedBuildings, treasuryLedger, mineSites, true);
+    }
+
+    private static ClaimStrategicEconomySummary derive(SettlementSnapshot snapshot,
+                                                       List<ValidatedBuildingRecord> validatedBuildings,
+                                                       @Nullable BannerModTreasuryLedgerSnapshot treasuryLedger,
+                                                       @Nullable List<StrategicMineSite> mineSites,
+                                                       boolean strategicMineSitesProvided) {
         Map<ResourceKey, MutableResource> resources = new EnumMap<>(ResourceKey.class);
         for (ResourceKey resource : RESOURCES) {
             resources.put(resource, new MutableResource());
         }
 
         List<ValidatedBuildingRecord> safeValidatedBuildings = validatedBuildings == null ? List.of() : validatedBuildings;
+        List<StrategicMineSite> safeMineSites = mineSites == null ? List.of() : mineSites;
         Set<UUID> validBuildingIds = new HashSet<>();
         Set<UUID> invalidBuildingIds = new HashSet<>();
         for (ValidatedBuildingRecord record : safeValidatedBuildings) {
@@ -56,7 +73,8 @@ public final class ClaimStrategicEconomySummaryService {
         applySupplySignals(resources, snapshot);
         applyMarket(resources, snapshot);
         applyTreasury(resources, treasuryLedger);
-        applyBuildings(resources, snapshot, safeValidatedBuildings, validBuildingIds, invalidBuildingIds);
+        applyBuildings(resources, snapshot, safeValidatedBuildings, validBuildingIds, invalidBuildingIds, strategicMineSitesProvided);
+        applyMines(resources, snapshot, safeMineSites);
 
         boolean anyShortage = false;
         boolean anyDegraded = false;
@@ -151,7 +169,8 @@ public final class ClaimStrategicEconomySummaryService {
                                        SettlementSnapshot snapshot,
                                        List<ValidatedBuildingRecord> validatedBuildings,
                                        Set<UUID> validBuildingIds,
-                                       Set<UUID> invalidBuildingIds) {
+                                       Set<UUID> invalidBuildingIds,
+                                       boolean suppressGenericMineContribution) {
         resources.get(ResourceKey.FOOD).consumptionHint += snapshot.assignedResidentCount();
         if (snapshot.missingWorkAreaAssignmentCount() > 0 || snapshot.unassignedWorkerCount() > 0) {
             for (MutableResource resource : resources.values()) {
@@ -162,6 +181,9 @@ public final class ClaimStrategicEconomySummaryService {
         Set<UUID> snapshotBuildingIds = new HashSet<>();
         for (SettlementBuildingRecord building : snapshot.buildings()) {
             snapshotBuildingIds.add(building.buildingUuid());
+            if (suppressGenericMineContribution && isMineLike(building.buildingTypeId())) {
+                continue;
+            }
             BuildingContribution contribution = contributionForBuilding(building);
             if (contribution.resource() == null) {
                 continue;
@@ -192,6 +214,9 @@ public final class ClaimStrategicEconomySummaryService {
             if (!record.settlementId().equals(snapshot.claimUuid()) || snapshotBuildingIds.contains(record.buildingId())) {
                 continue;
             }
+            if (suppressGenericMineContribution && record.type() == BuildingType.MINE) {
+                continue;
+            }
             BuildingContribution contribution = contributionForValidatedRecord(record);
             if (contribution.resource() == null) {
                 if (record.state() == BuildingValidationState.VALID && record.type() == BuildingType.STORAGE) {
@@ -208,6 +233,35 @@ public final class ClaimStrategicEconomySummaryService {
             resource.productionHint += contribution.degradedUnits();
             resource.degraded = true;
             resource.unknown = true;
+        }
+    }
+
+    private static void applyMines(Map<ResourceKey, MutableResource> resources,
+                                   SettlementSnapshot snapshot,
+                                   List<StrategicMineSite> mineSites) {
+        for (StrategicMineSite site : mineSites) {
+            if (site == null || !site.claimUuid().equals(snapshot.claimUuid()) || site.ownerPoliticalEntityId() == null) {
+                continue;
+            }
+            ResourceKey resource = resourceForMineCategory(site.resourceCategory());
+            if (resource == null) {
+                if (site.degraded() || site.unknown()) {
+                    MutableResource unknownMineResource = resources.get(ResourceKey.IRON);
+                    unknownMineResource.degraded = true;
+                    unknownMineResource.unknown = true;
+                }
+                continue;
+            }
+
+            MutableResource mutable = resources.get(resource);
+            if (site.degraded()) {
+                mutable.degraded = true;
+            }
+            if (site.unknown()) {
+                mutable.unknown = true;
+                continue;
+            }
+            mutable.productionHint += mineProductionHint(site);
         }
     }
 
@@ -229,6 +283,14 @@ public final class ClaimStrategicEconomySummaryService {
             return new BuildingContribution(ResourceKey.STONE, 1, 1, Map.of(ResourceKey.WOOD, 1));
         }
         return new BuildingContribution(null, 0, 0, Map.of());
+    }
+
+    private static boolean isMineLike(@Nullable String buildingTypeId) {
+        if (buildingTypeId == null || buildingTypeId.isBlank()) {
+            return false;
+        }
+        String normalized = buildingTypeId.toLowerCase(Locale.ROOT);
+        return normalized.contains("mine") || normalized.contains("mining_area");
     }
 
     private static BuildingContribution contributionForValidatedRecord(ValidatedBuildingRecord record) {
@@ -263,6 +325,24 @@ public final class ClaimStrategicEconomySummaryService {
             return ResourceKey.COINS;
         }
         return null;
+    }
+
+    @Nullable
+    private static ResourceKey resourceForMineCategory(VenaterraDepositCategory category) {
+        return switch (category) {
+            case IRON -> ResourceKey.IRON;
+            case QUARRY_STONE -> ResourceKey.STONE;
+            case PRECIOUS_COIN_VALUE -> ResourceKey.COINS;
+            default -> null;
+        };
+    }
+
+    private static int mineProductionHint(StrategicMineSite site) {
+        if (site.degraded()) {
+            return 1;
+        }
+        int richnessYield = (int) Math.floor(site.richness() * 3.0F);
+        return Math.max(1, Math.min(3, richnessYield));
     }
 
     private enum ResourceKey {

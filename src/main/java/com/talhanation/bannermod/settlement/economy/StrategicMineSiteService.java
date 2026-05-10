@@ -51,15 +51,16 @@ public final class StrategicMineSiteService {
         List<VenaterraDepositCandidate> deposits = depositProvider == null ? List.of() : depositProvider.findClaimDeposits(level, claim);
         deposits = deposits == null ? List.of() : deposits;
         List<StrategicMineSite> sites = new ArrayList<>();
-        Set<UUID> includedBuildingIds = new HashSet<>();
+        Set<UUID> knownMineBuildingIds = new HashSet<>();
 
         for (ValidatedBuildingRecord record : records) {
-            if (!record.settlementId().equals(claim.getUUID())
-                    || record.type() != BuildingType.MINE
-                    || record.state() != BuildingValidationState.VALID) {
+            if (!record.settlementId().equals(claim.getUUID()) || record.type() != BuildingType.MINE) {
                 continue;
             }
-            includedBuildingIds.add(record.buildingId());
+            knownMineBuildingIds.add(record.buildingId());
+            if (record.state() != BuildingValidationState.VALID) {
+                continue;
+            }
             sites.add(createSite(
                     record.buildingId(),
                     claim,
@@ -74,7 +75,7 @@ public final class StrategicMineSiteService {
         if (snapshot != null && snapshot.claimUuid().equals(claim.getUUID())) {
             ResourceKey<Level> dimension = level == null ? Level.OVERWORLD : level.dimension();
             for (SettlementBuildingRecord building : snapshot.buildings()) {
-                if (includedBuildingIds.contains(building.buildingUuid()) || !isMineLike(building.buildingTypeId())) {
+                if (knownMineBuildingIds.contains(building.buildingUuid()) || !isMineLike(building.buildingTypeId())) {
                     continue;
                 }
                 sites.add(createSite(

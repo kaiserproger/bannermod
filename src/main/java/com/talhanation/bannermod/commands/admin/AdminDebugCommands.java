@@ -192,10 +192,18 @@ public final class AdminDebugCommands {
         List<ValidatedBuildingRecord> validatedBuildings = ValidatedBuildingRegistryData.get(level).allRecords().stream()
                 .filter(record -> record.settlementId().equals(claimUuid))
                 .toList();
+        RecruitsClaim claim = RecruitsClaimSaveData.get(level).getAllClaims().stream()
+                .filter(candidate -> candidate.getUUID().equals(claimUuid))
+                .findFirst()
+                .orElse(null);
+        List<StrategicMineSite> mineSites = claim == null
+                ? List.of()
+                : StrategicMineSiteService.derive(level, claim, snapshot, validatedBuildings);
         ClaimStrategicEconomySummary summary = ClaimStrategicEconomySummaryService.derive(
                 snapshot,
                 validatedBuildings,
-                BannerModTreasuryManager.get(level).getLedger(claimUuid)
+                BannerModTreasuryManager.get(level).getLedger(claimUuid),
+                mineSites
         );
         for (String line : summary.debugLines()) {
             context.getSource().sendSuccess(() -> Component.literal(line), false);
