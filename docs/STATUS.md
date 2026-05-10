@@ -9,6 +9,7 @@ Last updated: 2026-04-28.
 - Archive source trees: `recruits/` and `workers/`; use them only as references.
 - Active planning root: `.planning/`.
 - Active backlog: `docs/BANNERMOD_BACKLOG.sqlite` via `tools/backlog`.
+- Per-screen UI audit: `docs/UI_AUDIT_FINDINGS.md`.
 
 ## Done Recently
 
