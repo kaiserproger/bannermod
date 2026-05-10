@@ -62,10 +62,16 @@ class CriticalUiStateVerificationTest {
     void warScreensKeepWaitingForSyncStateSelection() throws IOException {
         String warListScreen = read("src/main/java/com/talhanation/bannermod/client/military/gui/war/WarListScreen.java");
         String politicalEntityListScreen = read("src/main/java/com/talhanation/bannermod/client/military/gui/war/PoliticalEntityListScreen.java");
+        String enLang = read("src/main/resources/assets/bannermod/lang/en_us.json");
+        String ruLang = read("src/main/resources/assets/bannermod/lang/ru_ru.json");
 
         assertTrue(warListScreen.contains("boolean hasSnapshot = WarClientState.hasSnapshot();"));
         assertTrue(warListScreen.contains("? \"gui.bannermod.war_list.empty\""));
         assertTrue(warListScreen.contains(": \"gui.bannermod.war_list.waiting_sync\"") );
+        assertTrue(warListScreen.contains("resolveOutcomeMenu = new ActionMenuButton"));
+        assertTrue(warListScreen.contains("text(\"gui.bannermod.war_list.menu.resolve_outcome\")"));
+        assertTrue(enLang.contains("gui.bannermod.war_list.menu.resolve_outcome"));
+        assertTrue(ruLang.contains("gui.bannermod.war_list.menu.resolve_outcome"));
 
         assertTrue(politicalEntityListScreen.contains("String empty = text(WarClientState.hasSnapshot()"));
         assertTrue(politicalEntityListScreen.contains("? \"gui.bannermod.states.empty\""));
