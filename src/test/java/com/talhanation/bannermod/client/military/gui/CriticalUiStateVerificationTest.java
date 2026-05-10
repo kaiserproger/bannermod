@@ -62,10 +62,16 @@ class CriticalUiStateVerificationTest {
     void warScreensKeepWaitingForSyncStateSelection() throws IOException {
         String warListScreen = read("src/main/java/com/talhanation/bannermod/client/military/gui/war/WarListScreen.java");
         String politicalEntityListScreen = read("src/main/java/com/talhanation/bannermod/client/military/gui/war/PoliticalEntityListScreen.java");
+        String enLang = read("src/main/resources/assets/bannermod/lang/en_us.json");
+        String ruLang = read("src/main/resources/assets/bannermod/lang/ru_ru.json");
 
         assertTrue(warListScreen.contains("boolean hasSnapshot = WarClientState.hasSnapshot();"));
         assertTrue(warListScreen.contains("? \"gui.bannermod.war_list.empty\""));
         assertTrue(warListScreen.contains(": \"gui.bannermod.war_list.waiting_sync\"") );
+        assertTrue(warListScreen.contains("resolveOutcomeMenu = new ActionMenuButton"));
+        assertTrue(warListScreen.contains("text(\"gui.bannermod.war_list.menu.resolve_outcome\")"));
+        assertTrue(enLang.contains("gui.bannermod.war_list.menu.resolve_outcome"));
+        assertTrue(ruLang.contains("gui.bannermod.war_list.menu.resolve_outcome"));
 
         assertTrue(politicalEntityListScreen.contains("String empty = text(WarClientState.hasSnapshot()"));
         assertTrue(politicalEntityListScreen.contains("? \"gui.bannermod.states.empty\""));
@@ -91,6 +97,11 @@ class CriticalUiStateVerificationTest {
         assertTrue(perkTreeScreen.contains("if (!snapshotReady) return null"));
         assertTrue(perkTreeScreen.contains("respecButton.active = progress != null"));
         assertTrue(perkTreeScreen.contains("setScreen(null)"));
+        assertTrue(perkTreeScreen.contains("MilitaryGuiStyle.parchmentPanel"));
+        assertTrue(perkTreeScreen.contains("MilitaryGuiStyle.parchmentInset"));
+        assertTrue(perkTreeScreen.contains("MilitaryGuiStyle.clampLabel(font, feedback, 170)"));
+        assertTrue(perkTreeScreen.contains("new ExtendedButton(guiLeft + 10, guiTop + ySize - 28, 70, 20"));
+        assertTrue(perkTreeScreen.contains("new ExtendedButton(guiLeft + xSize - 106, guiTop + ySize - 28, 96, 20"));
         assertTrue(perkTreeScreen.contains("PerkState.LOCKED"));
         assertTrue(perkTreeScreen.contains("PerkState.AVAILABLE"));
         assertTrue(perkTreeScreen.contains("PerkState.OWNED"));

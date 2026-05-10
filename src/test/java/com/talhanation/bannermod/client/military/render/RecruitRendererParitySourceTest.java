@@ -73,6 +73,21 @@ class RecruitRendererParitySourceTest {
     }
 
     @Test
+    void crowdImpostorKeepsRuntimeCounterHooks() throws IOException {
+        String lodSource = read("RecruitRenderLod.java");
+        String eventSource = read("RecruitCrowdRenderEvents.java");
+
+        assertTrue(lodSource.contains("CROWDED_RECRUIT_COUNT = 48"));
+        assertTrue(lodSource.contains("CROWD_IMPOSTOR_DISTANCE = 48.0D"));
+        assertTrue(eventSource.contains("RuntimeProfilingCounters.increment(\"recruit.render.normal_skipped_for_impostor\")"));
+        assertTrue(eventSource.contains("RuntimeProfilingCounters.add(\"recruit.render.crowd_query_results\", recruits.size())"));
+        assertTrue(eventSource.contains("RuntimeProfilingCounters.add(\"recruit.render.crowd_impostor_candidates\", candidates)"));
+        assertTrue(eventSource.contains("RuntimeProfilingCounters.add(\"recruit.render.crowd_impostors\", rendered)"));
+        assertTrue(eventSource.contains("RuntimeProfilingCounters.add(\"recruit.render.crowd_impostor_nanos\", System.nanoTime() - startNanos)"));
+        assertTrue(eventSource.contains("RuntimeProfilingCounters.add(\"recruit.render.crowd_impostor_frustum_culled\", frustumCulled)"));
+    }
+
+    @Test
     void profilingBucketsKeepRuntimeCounterNames() throws IOException {
         String source = read("RecruitRenderProfiling.java");
 

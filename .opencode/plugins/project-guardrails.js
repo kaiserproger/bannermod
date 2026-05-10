@@ -21,9 +21,9 @@ export const BannerModProjectGuardrails = async () => {
       if (!command) return
       if (SAFE_PREFIXES.some((prefix) => command.startsWith(prefix))) return
 
-      if (command.includes("BANNERMOD_BACKLOG.json")) {
+      if (command.includes("BANNERMOD_BACKLOG.json") || command.includes("BANNERMOD_BACKLOG.sqlite")) {
         throw new Error(
-          "Blocked direct backlog JSON access. Use tools/backlog batch/show/add/validate instead."
+          "Blocked direct backlog access. Use tools/backlog batch/show/add/validate/stage instead."
         )
       }
 
