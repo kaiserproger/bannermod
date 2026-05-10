@@ -16,9 +16,13 @@ import com.talhanation.bannermod.persistence.military.RecruitPlayerUnitSaveData;
 import com.talhanation.bannermod.persistence.military.RecruitsClaimSaveData;
 import com.talhanation.bannermod.persistence.military.RecruitsGroupsSaveData;
 import com.talhanation.bannermod.settlement.SettlementManager;
+import com.talhanation.bannermod.settlement.SettlementSnapshot;
 import com.talhanation.bannermod.settlement.bootstrap.SettlementRegistryData;
+import com.talhanation.bannermod.settlement.building.ValidatedBuildingRecord;
 import com.talhanation.bannermod.settlement.building.ValidatedBuildingRegistryData;
 import com.talhanation.bannermod.settlement.dispatch.BannerModSellerDispatchSavedData;
+import com.talhanation.bannermod.settlement.economy.ClaimStrategicEconomySummary;
+import com.talhanation.bannermod.settlement.economy.ClaimStrategicEconomySummaryService;
 import com.talhanation.bannermod.settlement.household.BannerModHomeAssignmentSavedData;
 import com.talhanation.bannermod.settlement.prefab.player.PlayerBuildingRegistrySavedData;
 import com.talhanation.bannermod.settlement.project.SettlementProjectSavedData;
@@ -44,6 +48,7 @@ import net.minecraft.world.level.ChunkPos;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public final class AdminDebugCommands {
     private static final SimpleCommandExceptionType INVALID_CHUNK = new SimpleCommandExceptionType(
@@ -95,6 +100,10 @@ public final class AdminDebugCommands {
                 .then(Commands.literal("counters")
                         .then(Commands.literal("dump")
                                 .executes(AdminDebugCommands::countersDump)))
+                .then(Commands.literal("economy")
+                        .then(Commands.literal("claim")
+                                .then(Commands.argument("claimUuid", StringArgumentType.word())
+                                        .executes(AdminDebugCommands::claimEconomySummary))))
                 .then(Commands.literal("save-versions")
                         .executes(AdminDebugCommands::saveVersions));
     }
@@ -158,6 +167,34 @@ public final class AdminDebugCommands {
             context.getSource().sendSuccess(() -> Component.literal(savedDataClass.getSimpleName() + "=" + version), false);
         }
         return reported;
+    }
+
+    private static int claimEconomySummary(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerLevel level = serverLevel(context.getSource());
+        UUID claimUuid;
+        try {
+            claimUuid = UUID.fromString(StringArgumentType.getString(context, "claimUuid"));
+        } catch (IllegalArgumentException exception) {
+            context.getSource().sendFailure(Component.literal("claimUuid must be a UUID"));
+            return 0;
+        }
+        SettlementSnapshot snapshot = SettlementManager.get(level).getSnapshot(claimUuid);
+        if (snapshot == null) {
+            context.getSource().sendFailure(Component.literal("No settlement snapshot for claim " + claimUuid));
+            return 0;
+        }
+        List<ValidatedBuildingRecord> validatedBuildings = ValidatedBuildingRegistryData.get(level).allRecords().stream()
+                .filter(record -> record.settlementId().equals(claimUuid))
+                .toList();
+        ClaimStrategicEconomySummary summary = ClaimStrategicEconomySummaryService.derive(
+                snapshot,
+                validatedBuildings,
+                BannerModTreasuryManager.get(level).getLedger(claimUuid)
+        );
+        for (String line : summary.debugLines()) {
+            context.getSource().sendSuccess(() -> Component.literal(line), false);
+        }
+        return summary.resources().size();
     }
 
     private static Integer currentVersion(Class<?> savedDataClass) {
