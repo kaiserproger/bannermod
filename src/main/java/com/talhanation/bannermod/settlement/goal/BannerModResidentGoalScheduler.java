@@ -3,7 +3,7 @@ package com.talhanation.bannermod.settlement.goal;
 import com.talhanation.bannermod.society.NpcIntent;
 import com.talhanation.bannermod.society.NpcSocietyPhaseOneRuntime;
 import com.talhanation.bannermod.society.NpcSocietyIntentRules;
-import com.talhanation.bannermod.settlement.BannerModSettlementMarketState;
+import com.talhanation.bannermod.settlement.SettlementMarketState;
 import com.talhanation.bannermod.settlement.dispatch.BannerModSellerDispatchRuntime;
 import com.talhanation.bannermod.settlement.dispatch.SellerResidentGoal;
 import com.talhanation.bannermod.settlement.goal.impl.DeliverResidentGoal;
@@ -85,7 +85,7 @@ public final class BannerModResidentGoalScheduler {
     /** Default scheduler extended with household and seller runtime seams. */
     public static BannerModResidentGoalScheduler withDefaultGoals(
             BannerModHomeAssignmentRuntime homeAssignmentRuntime,
-            Supplier<BannerModSettlementMarketState> marketStateSupplier,
+            Supplier<SettlementMarketState> marketStateSupplier,
             BannerModSellerDispatchRuntime sellerDispatchRuntime
     ) {
         if (homeAssignmentRuntime == null) {

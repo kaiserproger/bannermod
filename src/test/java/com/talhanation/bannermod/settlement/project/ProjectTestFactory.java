@@ -1,7 +1,7 @@
 package com.talhanation.bannermod.settlement.project;
 
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingCategory;
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingProfileSeed;
+import com.talhanation.bannermod.settlement.SettlementBuildingCategory;
+import com.talhanation.bannermod.settlement.SettlementBuildingProfileSeed;
 import com.talhanation.bannermod.settlement.growth.PendingProject;
 import com.talhanation.bannermod.settlement.growth.ProjectBlocker;
 import com.talhanation.bannermod.settlement.growth.ProjectKind;
@@ -22,9 +22,8 @@ final class ProjectTestFactory {
                 UUID.randomUUID(),
                 ProjectKind.NEW_BUILDING,
                 null,
-                null,
-                BannerModSettlementBuildingCategory.GENERAL,
-                BannerModSettlementBuildingProfileSeed.GENERAL,
+                SettlementBuildingCategory.GENERAL,
+                SettlementBuildingProfileSeed.GENERAL,
                 priority,
                 0L,
                 tickCost,
@@ -37,9 +36,8 @@ final class ProjectTestFactory {
                 UUID.randomUUID(),
                 kind,
                 kind == ProjectKind.NEW_BUILDING ? null : UUID.randomUUID(),
-                null,
-                BannerModSettlementBuildingCategory.GENERAL,
-                BannerModSettlementBuildingProfileSeed.GENERAL,
+                SettlementBuildingCategory.GENERAL,
+                SettlementBuildingProfileSeed.GENERAL,
                 priority,
                 0L,
                 5,

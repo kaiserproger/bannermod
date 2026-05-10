@@ -3,7 +3,7 @@ package com.talhanation.bannermod.settlement.household;
 import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.society.NpcIntent;
 import com.talhanation.bannermod.society.NpcSocietyPhaseTwoIntentScorer;
-import com.talhanation.bannermod.settlement.BannerModSettlementResidentScheduleWindowSeed;
+import com.talhanation.bannermod.settlement.SettlementResidentScheduleWindowSeed;
 import com.talhanation.bannermod.settlement.goal.ResidentGoal;
 import com.talhanation.bannermod.settlement.goal.ResidentGoalContext;
 import com.talhanation.bannermod.settlement.goal.ResidentTask;
@@ -87,7 +87,7 @@ public final class GoHomeResidentGoal implements ResidentGoal {
         if (ctx.isRestPhase()) {
             return true;
         }
-        BannerModSettlementResidentScheduleWindowSeed window = ctx.window();
+        SettlementResidentScheduleWindowSeed window = ctx.window();
         int now = ctx.dayTime();
         int restStart = window.restStartTick();
         int approachStart = restStart - APPROACH_WINDOW_TICKS;

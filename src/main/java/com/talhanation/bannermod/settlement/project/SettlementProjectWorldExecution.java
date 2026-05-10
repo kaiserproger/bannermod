@@ -3,7 +3,7 @@ package com.talhanation.bannermod.settlement.project;
 import com.talhanation.bannermod.entity.civilian.workarea.BuildArea;
 import com.talhanation.bannermod.events.ClaimEvents;
 import com.talhanation.bannermod.persistence.military.RecruitsClaim;
-import com.talhanation.bannermod.settlement.BannerModSettlementBuildingProfileSeed;
+import com.talhanation.bannermod.settlement.SettlementBuildingProfileSeed;
 import com.talhanation.bannermod.settlement.growth.PendingProject;
 import com.talhanation.bannermod.settlement.growth.ProjectBlocker;
 import com.talhanation.bannermod.settlement.prefab.BuildingPlacementService;
@@ -90,8 +90,8 @@ final class BannerModSettlementProjectWorldExecution {
         if (project != null && project.prefabId() != null) {
             return project.prefabId();
         }
-        BannerModSettlementBuildingProfileSeed profileSeed = project == null ? null : project.profileSeed();
-        return switch (profileSeed == null ? BannerModSettlementBuildingProfileSeed.GENERAL : profileSeed) {
+        SettlementBuildingProfileSeed profileSeed = project == null ? null : project.profileSeed();
+        return switch (profileSeed == null ? SettlementBuildingProfileSeed.GENERAL : profileSeed) {
             case FOOD_PRODUCTION -> FarmPrefab.ID;
             case MATERIAL_PRODUCTION -> LumberCampPrefab.ID;
             case STORAGE -> StoragePrefab.ID;

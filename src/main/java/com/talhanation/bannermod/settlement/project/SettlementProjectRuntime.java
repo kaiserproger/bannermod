@@ -101,7 +101,7 @@ public final class SettlementProjectRuntime {
                 && scheduler.peek(claimUuid)
                 .filter(project -> project.kind() == ProjectKind.NEW_BUILDING)
                 .isPresent()
-                && SettlementProjectWorldExecution.ensureExecutableTarget(
+                && BannerModSettlementProjectWorldExecution.ensureExecutableTarget(
                         ignoredLevel,
                         claimUuid,
                         scheduler.peek(claimUuid).orElse(null))) {

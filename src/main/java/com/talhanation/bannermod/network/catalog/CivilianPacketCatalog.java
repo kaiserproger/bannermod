@@ -45,10 +45,6 @@ public final class CivilianPacketCatalog {
         MessageRequestHousingSnapshot.class,
         MessageApproveHousingRequest.class,
         MessageDenyHousingRequest.class,
-        MessageToClientUpdateHamletState.class,
-        MessageRequestHamletSnapshot.class,
-        MessageRegisterHamlet.class,
-        MessageRenameHamlet.class,
     };
 
     public static final PacketCatalog CATALOG = new PacketCatalog(MESSAGES);
