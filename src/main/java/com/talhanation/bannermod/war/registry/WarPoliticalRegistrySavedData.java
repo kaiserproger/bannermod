@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.war.registry;
 
+import com.talhanation.bannermod.persistence.SafeSavedDataWriter;
 import com.talhanation.bannermod.persistence.SavedDataVersioning;
 import com.talhanation.bannermod.war.events.WarSyncDirtyTracker;
 import net.minecraft.core.HolderLookup;
@@ -40,10 +41,11 @@ public class WarPoliticalRegistrySavedData extends SavedData {
 
     @Override
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
-        SavedDataVersioning.putVersion(tag, CURRENT_VERSION);
-        CompoundTag runtimeTag = this.runtime.toTag();
-        tag.put("PoliticalEntities", runtimeTag.getList("PoliticalEntities", Tag.TAG_COMPOUND));
-        return tag;
+        return SafeSavedDataWriter.write("WarPoliticalRegistry", tag, registries, (out, regs) -> {
+            SavedDataVersioning.putVersion(out, CURRENT_VERSION);
+            CompoundTag runtimeTag = this.runtime.toTag();
+            out.put("PoliticalEntities", runtimeTag.getList("PoliticalEntities", Tag.TAG_COMPOUND));
+        });
     }
 
     public PoliticalRegistryRuntime runtime() {

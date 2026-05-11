@@ -19,11 +19,30 @@ public final class ClaimRuntimeService {
     }
 
     public void onServerStopping(ServerStoppingEvent event) {
-        ClaimEvents.claimManager().save(ClaimEvents.server().overworld());
+        saveClaims();
     }
 
     public void onWorldSave(LevelEvent.Save event) {
-        ClaimEvents.claimManager().save(ClaimEvents.server().overworld());
+        // LevelEvent.Save fires once per dimension; only persist via the overworld save so the
+        // SavedData write happens once and never on a half-installed runtime (server() or
+        // claimManager() can be null during early init / shutdown races).
+        if (!(event.getLevel() instanceof ServerLevel serverLevel)) return;
+        if (serverLevel.dimension() != net.minecraft.world.level.Level.OVERWORLD) return;
+        saveClaims();
+    }
+
+    private void saveClaims() {
+        var server = ClaimEvents.server();
+        var manager = ClaimEvents.claimManager();
+        if (server == null || manager == null) return;
+        ServerLevel overworld = server.overworld();
+        if (overworld == null) return;
+        try {
+            manager.save(overworld);
+        } catch (Throwable t) {
+            org.slf4j.LoggerFactory.getLogger(ClaimRuntimeService.class)
+                    .error("Failed to persist RecruitsClaimManager during world save", t);
+        }
     }
 
     public void onPlayerJoin(EntityJoinLevelEvent event) {

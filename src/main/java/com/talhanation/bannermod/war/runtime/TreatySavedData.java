@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.war.runtime;
 
+import com.talhanation.bannermod.persistence.SafeSavedDataWriter;
 import com.talhanation.bannermod.persistence.SavedDataVersioning;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -34,12 +35,13 @@ public class TreatySavedData extends SavedData {
 
     @Override
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
-        SavedDataVersioning.putVersion(tag, CURRENT_VERSION);
-        CompoundTag inner = runtime.toTag();
-        tag.put("TributeTreaties", inner.getList("TributeTreaties", Tag.TAG_COMPOUND));
-        tag.put("VassalRelationships", inner.getList("VassalRelationships", Tag.TAG_COMPOUND));
-        tag.put("DefaultFacts", inner.getList("DefaultFacts", Tag.TAG_COMPOUND));
-        return tag;
+        return SafeSavedDataWriter.write("Treaty", tag, registries, (out, regs) -> {
+            SavedDataVersioning.putVersion(out, CURRENT_VERSION);
+            CompoundTag inner = runtime.toTag();
+            out.put("TributeTreaties", inner.getList("TributeTreaties", Tag.TAG_COMPOUND));
+            out.put("VassalRelationships", inner.getList("VassalRelationships", Tag.TAG_COMPOUND));
+            out.put("DefaultFacts", inner.getList("DefaultFacts", Tag.TAG_COMPOUND));
+        });
     }
 
     public TreatyRuntime runtime() {

@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.governance;
 
+import com.talhanation.bannermod.persistence.SafeSavedDataWriter;
 import com.talhanation.bannermod.persistence.SavedDataVersioning;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -40,13 +41,15 @@ public class BannerModGovernorManager extends SavedData {
 
     @Override
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
-        SavedDataVersioning.putVersion(tag, CURRENT_VERSION);
-        ListTag list = new ListTag();
-        for (BannerModGovernorSnapshot snapshot : this.snapshots.values()) {
-            list.add(snapshot.toTag());
-        }
-        tag.put("Snapshots", list);
-        return tag;
+        return SafeSavedDataWriter.write("BannerModGovernor", tag, registries, (out, regs) -> {
+            SavedDataVersioning.putVersion(out, CURRENT_VERSION);
+            ListTag list = new ListTag();
+            // Snapshot keys first to avoid CME if a heartbeat tick mutates the map mid-save.
+            for (BannerModGovernorSnapshot snapshot : new java.util.ArrayList<>(this.snapshots.values())) {
+                list.add(snapshot.toTag());
+            }
+            out.put("Snapshots", list);
+        });
     }
 
     @Nullable

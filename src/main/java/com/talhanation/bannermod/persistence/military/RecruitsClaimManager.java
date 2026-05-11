@@ -49,7 +49,10 @@ public class RecruitsClaimManager {
     }
 
     void persistClaims(RecruitsClaimSaveData data) {
-        data.setAllClaims(new ArrayList<>(new HashSet<>(this.claims.values())));
+        // Copy values into a local ArrayList first so the dedup HashSet does not iterate the
+        // live map (autosave fires from the server thread while tick handlers can still mutate
+        // claims via removeIf/put — a CME there bubbles up into the autosave callback).
+        data.setAllClaims(new ArrayList<>(new HashSet<>(new ArrayList<>(this.claims.values()))));
         data.setDirty();
     }
 
