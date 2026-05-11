@@ -1,6 +1,8 @@
 package com.talhanation.bannermod.items.civilian;
 
+import com.talhanation.bannermod.bootstrap.BannerModMain;
 import com.talhanation.bannermod.client.civilian.gui.SettlementSurveyorScreen;
+import com.talhanation.bannermod.network.messages.civilian.MessageUseSurveyorBlock;
 import com.talhanation.bannermod.settlement.building.ZoneRole;
 import com.talhanation.bannermod.settlement.building.ZoneSelection;
 import com.talhanation.bannermod.settlement.validation.SurveyorDraftSuggestionService;
@@ -65,21 +67,32 @@ public class SettlementSurveyorToolItem extends Item {
         }
 
         if (level.isClientSide) {
+            // Keep surveyor mode changes and block clicks on the same packet stream so a
+            // fresh farm click cannot race an older fort session on the server.
+            BannerModMain.SIMPLE_CHANNEL.sendToServer(new MessageUseSurveyorBlock(context.getHand(), clicked));
             return InteractionResult.SUCCESS;
+        }
+
+        return InteractionResult.SUCCESS;
+    }
+
+    public static void handleBlockClick(ServerPlayer player, ItemStack stack, BlockPos clicked) {
+        if (player == null || stack == null || clicked == null) {
+            return;
         }
 
         ValidationSession session = getOrCreateSession(player, stack);
         if (session.anchorPos().equals(BlockPos.ZERO)) {
             SurveyorSessionCodec.write(stack, session.withAnchor(clicked));
             player.sendSystemMessage(Component.translatable("bannermod.surveyor.anchor_set", clicked.toShortString()).withStyle(ChatFormatting.AQUA));
-            return InteractionResult.SUCCESS;
+            return;
         }
 
         CompoundTag tag = ItemStackComponentData.read(stack);
         if (!tag.contains(TAG_PENDING_CORNER)) {
             ItemStackComponentData.update(stack, data -> data.putLong(TAG_PENDING_CORNER, clicked.asLong()));
             player.sendSystemMessage(Component.translatable("bannermod.surveyor.corner_a", clicked.toShortString()).withStyle(ChatFormatting.AQUA));
-            return InteractionResult.SUCCESS;
+            return;
         }
 
         BlockPos cornerA = BlockPos.of(tag.getLong(TAG_PENDING_CORNER));
@@ -90,7 +103,6 @@ public class SettlementSurveyorToolItem extends Item {
         SurveyorSessionCodec.write(stack, updated);
         player.sendSystemMessage(Component.translatable("bannermod.surveyor.zone_captured", roleLabel(role)).withStyle(ChatFormatting.GREEN));
         maybeAdvanceRoleAfterCapture(player, stack, updated, role);
-        return InteractionResult.SUCCESS;
     }
 
     @Override
@@ -263,12 +275,6 @@ public class SettlementSurveyorToolItem extends Item {
         ValidationSession session = SurveyorSessionCodec.read(stack);
         return hasPendingCorner(stack)
                 || session != null && (!session.anchorPos().equals(BlockPos.ZERO) || !session.selections().isEmpty());
-    }
-
-    private static SurveyorMode nextMode(SurveyorMode mode) {
-        SurveyorMode[] modes = SurveyorMode.values();
-        int idx = mode.ordinal();
-        return modes[(idx + 1) % modes.length];
     }
 
     public static void setSelectedRole(ItemStack stack, ZoneRole role) {

@@ -260,41 +260,42 @@ public class PoliticalEntityListScreen extends Screen {
     private void openColorDialog() {
         if (this.selected == null) return;
         UUID id = this.selected.id();
-        // 9 chars: optional '#' + up to 8 hex digits (covers AARRGGBB).
-        Minecraft.getInstance().setScreen(new PoliticalEntityNameInputScreen(
+        Minecraft.getInstance().setScreen(new PoliticalEntityColorPaletteScreen(
                 this,
-                text("gui.bannermod.states.dialog.color.title"),
-                text("gui.bannermod.states.dialog.color.prompt"),
                 this.selected.color(),
-                value -> sendColor(id, value),
-                9,
-                /* allowEmpty */ true
+                value -> sendColor(id, value)
         ));
     }
 
     private void openCharterDialog() {
         if (this.selected == null) return;
         UUID id = this.selected.id();
-        Minecraft.getInstance().setScreen(new PoliticalEntityNameInputScreen(
+        Minecraft.getInstance().setScreen(new PoliticalEntityCharterScreen(
                 this,
-                text("gui.bannermod.states.dialog.charter.title"),
-                text("gui.bannermod.states.dialog.charter.prompt", PoliticalRegistryValidation.MAX_CHARTER_LENGTH),
                 this.selected.charter(),
-                value -> sendCharter(id, value),
-                PoliticalRegistryValidation.MAX_CHARTER_LENGTH,
-                /* allowEmpty */ true
+                value -> sendCharter(id, value)
         ));
     }
 
-    private void openCoLeaderDialog(boolean add) {
+    private void openAddCoLeaderDialog() {
+        if (this.selected == null) return;
+        Minecraft.getInstance().setScreen(new PoliticalEntityCoLeaderPickerScreen(
+                this,
+                this.selected.id(),
+                this.selected.leaderUuid(),
+                this.selected.coLeaderUuids()
+        ));
+    }
+
+    private void openRemoveCoLeaderDialog() {
         if (this.selected == null) return;
         UUID id = this.selected.id();
         Minecraft.getInstance().setScreen(new PoliticalEntityNameInputScreen(
                 this,
-                text(add ? "gui.bannermod.states.dialog.co_leader_add.title" : "gui.bannermod.states.dialog.co_leader_remove.title"),
+                text("gui.bannermod.states.dialog.co_leader_remove.title"),
                 text("gui.bannermod.states.dialog.co_leader.prompt"),
                 "",
-                value -> sendCoLeader(id, value, add),
+                value -> sendCoLeader(id, value, false),
                 36,
                 false
         ));
@@ -351,9 +352,9 @@ public class PoliticalEntityListScreen extends Screen {
         entries.add(new ContextMenuEntry(text("gui.bannermod.states.charter").getString(),
                 this::openCharterDialog, canAct));
         entries.add(new ContextMenuEntry(text("gui.bannermod.states.add_co_leader").getString(),
-                () -> openCoLeaderDialog(true), leader));
+                this::openAddCoLeaderDialog, leader));
         entries.add(new ContextMenuEntry(text("gui.bannermod.states.remove_co_leader").getString(),
-                () -> openCoLeaderDialog(false), canRemoveCoLeader));
+                this::openRemoveCoLeaderDialog, canRemoveCoLeader));
         entries.add(new ContextMenuEntry(text("gui.bannermod.states.promote_state").getString(),
                 this::promoteToState, canPromote));
         return entries;
@@ -438,6 +439,7 @@ public class PoliticalEntityListScreen extends Screen {
                 text("gui.bannermod.states.detail.co_leader_authority", text(selected.governmentForm().coLeadersShareAuthority() ? "gui.bannermod.states.co_authority.active" : "gui.bannermod.states.co_authority.locked").getString()).getString(),
                 text("gui.bannermod.states.detail.capital", selected.capitalPos() == null ? text("gui.bannermod.common.none").getString() : selected.capitalPos().toShortString()).getString(),
                 text("gui.bannermod.states.detail.color", selected.color().isBlank() ? text("gui.bannermod.common.none").getString() : selected.color()).getString(),
+                text("gui.bannermod.states.detail.charter", charterSummary(selected)).getString(),
                 text("gui.bannermod.states.detail.region", selected.homeRegion().isBlank() ? text("gui.bannermod.common.none").getString() : selected.homeRegion()).getString(),
                 text("gui.bannermod.states.detail.wars", involvedWarCount(selected)).getString()
         };
@@ -551,6 +553,13 @@ public class PoliticalEntityListScreen extends Screen {
         }
         String suffix = entity.coLeaderUuids().size() > names.size() ? " +" + (entity.coLeaderUuids().size() - names.size()) : "";
         return String.join(", ", names) + suffix;
+    }
+
+    private String charterSummary(PoliticalEntityRecord entity) {
+        if (entity.charter().isBlank()) {
+            return text("gui.bannermod.common.none").getString();
+        }
+        return entity.charter().replaceAll("\\s+", " ").trim();
     }
 
     private static int involvedWarCount(PoliticalEntityRecord entity) {
