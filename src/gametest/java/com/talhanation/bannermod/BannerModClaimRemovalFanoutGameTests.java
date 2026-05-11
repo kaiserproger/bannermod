@@ -110,7 +110,11 @@ public class BannerModClaimRemovalFanoutGameTests {
         Player otherOwner = createPlayer(helper, level, OTHER_UUID, "fanout-other", OTHER_TEAM_ID);
 
         BlockPos targetPos = new BlockPos(2, 2, 2);
-        BlockPos siblingPos = new BlockPos(13, 2, 13); // different chunk
+        // Sibling must land in a *different* chunk than target. The harness_empty
+        // template is placed at a chunk-aligned origin, so local x/z >= 16 crosses
+        // the chunk boundary; (13,_,13) was still in chunk (0,0) and caused
+        // seedClaim to alias the two claims onto a single RecruitsClaim instance.
+        BlockPos siblingPos = new BlockPos(18, 2, 18);
 
         RecruitsClaim targetClaim = BannerModDedicatedServerGameTestSupport.seedClaim(
                 level, helper.absolutePos(targetPos), OWNER_TEAM_ID, OWNER_UUID, owner.getScoreboardName());
