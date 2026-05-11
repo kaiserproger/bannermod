@@ -37,11 +37,7 @@ public class RecruitLifecycleEvents {
 
     @SubscribeEvent
     public void onServerStopping(ServerStoppingEvent event) {
-        RecruitWorldLifecycleService.saveManagers(
-                RecruitEvents.server(),
-                RecruitEvents.playerUnitManager(),
-                RecruitEvents.groupsManager()
-        );
+        saveRecruitManagersSafely();
 
         AsyncPathProcessor.shutdown();
         TrueAsyncPathfindingRuntime.instance().shutdown();
@@ -49,11 +45,25 @@ public class RecruitLifecycleEvents {
 
     @SubscribeEvent
     public void onWorldSave(LevelEvent.Save event) {
-        RecruitWorldLifecycleService.saveManagers(
-                RecruitEvents.server(),
-                RecruitEvents.playerUnitManager(),
-                RecruitEvents.groupsManager()
-        );
+        // LevelEvent.Save fires once per dimension; gate on overworld so we only do the SavedData
+        // write once per autosave instead of three times (overworld+nether+end).
+        if (!(event.getLevel() instanceof ServerLevel serverLevel)) return;
+        if (serverLevel.dimension() != net.minecraft.world.level.Level.OVERWORLD) return;
+        saveRecruitManagersSafely();
+    }
+
+    private static void saveRecruitManagersSafely() {
+        MinecraftServer server = RecruitEvents.server();
+        if (server == null) return;
+        var playerUnitManager = RecruitEvents.playerUnitManager();
+        var groupsManager = RecruitEvents.groupsManager();
+        if (playerUnitManager == null || groupsManager == null) return;
+        try {
+            RecruitWorldLifecycleService.saveManagers(server, playerUnitManager, groupsManager);
+        } catch (Throwable t) {
+            org.slf4j.LoggerFactory.getLogger(RecruitLifecycleEvents.class)
+                    .error("Failed to persist recruit managers during world save", t);
+        }
     }
 
     @SubscribeEvent

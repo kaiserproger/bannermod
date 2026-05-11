@@ -1,5 +1,6 @@
 package com.talhanation.bannermod.war.runtime;
 
+import com.talhanation.bannermod.persistence.SafeSavedDataWriter;
 import com.talhanation.bannermod.persistence.SavedDataVersioning;
 import com.talhanation.bannermod.war.events.WarSyncDirtyTracker;
 import net.minecraft.core.HolderLookup;
@@ -35,10 +36,11 @@ public final class EconomicObjectiveSavedData extends SavedData {
 
     @Override
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
-        SavedDataVersioning.putVersion(tag, CURRENT_VERSION);
-        CompoundTag inner = runtime.toTag();
-        tag.put("EconomicObjectives", inner.getList("EconomicObjectives", Tag.TAG_COMPOUND));
-        return tag;
+        return SafeSavedDataWriter.write("EconomicObjective", tag, registries, (out, regs) -> {
+            SavedDataVersioning.putVersion(out, CURRENT_VERSION);
+            CompoundTag inner = runtime.toTag();
+            out.put("EconomicObjectives", inner.getList("EconomicObjectives", Tag.TAG_COMPOUND));
+        });
     }
 
     public EconomicObjectiveRuntime runtime() {

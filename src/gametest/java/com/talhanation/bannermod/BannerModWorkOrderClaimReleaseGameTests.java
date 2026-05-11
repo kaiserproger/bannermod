@@ -31,7 +31,10 @@ import java.util.UUID;
 @GameTestHolder(BannerModMain.MOD_ID)
 public class BannerModWorkOrderClaimReleaseGameTests {
 
-    private static final UUID LEADER_UUID = UUID.fromString("00000000-0000-0000-0000-000000005001");
+    // Uses a leader UUID disjoint from other gametests (workerunbind shares 5001) so the
+    // PoliticalRegistry's "one entity per leader" rule does not collide when multiple
+    // gametests run against the same GameTestServer level.
+    private static final UUID LEADER_UUID = UUID.fromString("00000000-0000-0000-0000-000000005050");
     private static final UUID DEATH_CLAIM_UUID = UUID.fromString("00000000-0000-0000-0000-000000005a01");
     private static final UUID DEATH_BUILDING_UUID = UUID.fromString("00000000-0000-0000-0000-000000005b01");
     private static final UUID DISCARD_CLAIM_UUID = UUID.fromString("00000000-0000-0000-0000-000000005a02");

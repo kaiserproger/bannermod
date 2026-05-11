@@ -90,7 +90,7 @@ final class RecruitPersistenceBridge {
         recruit.setMountTimer(nbt.getInt("mountTimer"));
         if (nbt.contains("UpkeepTimer")) recruit.setUpkeepTimer(nbt.getInt("UpkeepTimer"));
         else recruit.setUpkeepTimer(nbt.getInt("upkeepTimer"));
-        recruit.setColor(nbt.getByte("Color"));
+        recruit.setColor((byte) nbt.getInt("Color"));
         recruit.setMaxFallDistance(nbt.getInt("MaxFallDistance"));
         recruit.formationPos = nbt.getInt("formationPos");
         recruit.setShouldRest(nbt.getBoolean("ShouldRest"));
@@ -136,7 +136,7 @@ final class RecruitPersistenceBridge {
             ));
         }
 
-        if (nbt.contains("Biome")) recruit.setBiome(nbt.getByte("Biome"));
+        if (nbt.contains("Biome")) recruit.setBiome((byte) nbt.getInt("Biome"));
         else RecruitSpawnService.applyBiomeAndVariant(recruit);
 
         if (recruit.getCommandSenderWorld().isClientSide()) return;
